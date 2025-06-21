@@ -99,7 +99,7 @@ export function useTaskNotifications({
           time: dayjs(task.dueDate).calendar()
         }),
         color: "yellow",
-        icon: <IconAlarm size={16} />,
+        icon: IconAlarm,
         autoClose: 10000,
       });
       
@@ -118,7 +118,7 @@ export function useTaskNotifications({
           time: dayjs(task.dueDate).fromNow()
         }),
         color: "red",
-        icon: <IconAlarm size={16} />,
+        icon: IconAlarm,
         autoClose: 10000,
       });
       

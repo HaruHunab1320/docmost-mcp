@@ -1,0 +1,79 @@
+# Production Dockerfile for Docmost
+# Multi-stage build for optimal image size and security
+
+# Stage 1: Dependencies
+FROM node:20-alpine AS deps
+RUN apk add --no-cache libc6-compat
+WORKDIR /app
+
+# Install pnpm
+RUN npm install -g pnpm@10.12.1
+
+# Copy dependency files
+COPY package.json pnpm-lock.yaml ./
+COPY pnpm-workspace.yaml ./
+COPY nx.json ./
+COPY apps/client/package.json ./apps/client/
+COPY apps/server/package.json ./apps/server/
+COPY packages/*/package.json ./packages/
+COPY patches ./patches
+
+# Install dependencies
+RUN pnpm install --frozen-lockfile
+
+# Stage 2: Builder
+FROM node:20-alpine AS builder
+RUN apk add --no-cache libc6-compat
+WORKDIR /app
+
+# Install pnpm
+RUN npm install -g pnpm@10.12.1
+
+# Copy dependencies from deps stage
+COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/apps/client/node_modules ./apps/client/node_modules
+COPY --from=deps /app/apps/server/node_modules ./apps/server/node_modules
+COPY --from=deps /app/packages/*/node_modules ./packages/
+
+# Copy source code
+COPY . .
+
+# Build the application
+ENV NODE_ENV=production
+RUN pnpm build
+
+# Stage 3: Runner
+FROM node:20-alpine AS runner
+RUN apk add --no-cache libc6-compat curl
+WORKDIR /app
+
+# Create non-root user
+RUN addgroup -g 1001 -S nodejs
+RUN adduser -S nodejs -u 1001
+
+# Copy necessary files
+COPY --from=builder --chown=nodejs:nodejs /app/apps/server/dist ./dist
+COPY --from=builder --chown=nodejs:nodejs /app/apps/server/node_modules ./node_modules
+COPY --from=builder --chown=nodejs:nodejs /app/apps/client/dist ./public
+COPY --from=builder --chown=nodejs:nodejs /app/mcp-method-schemas.json ./
+COPY --from=builder --chown=nodejs:nodejs /app/apps/server/package.json ./
+
+# Create data directory
+RUN mkdir -p /app/data && chown -R nodejs:nodejs /app/data
+
+# Set environment
+ENV NODE_ENV=production
+ENV PORT=3000
+
+# Switch to non-root user
+USER nodejs
+
+# Expose port
+EXPOSE 3000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+  CMD curl -f http://localhost:3000/api/health || exit 1
+
+# Start the application
+CMD ["node", "dist/main"]
