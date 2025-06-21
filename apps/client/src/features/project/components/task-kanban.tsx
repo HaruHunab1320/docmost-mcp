@@ -11,6 +11,7 @@ import {
   ScrollArea,
   Badge,
   useMantineTheme,
+  useMantineColorScheme,
 } from "@mantine/core";
 import { useTranslation } from "react-i18next";
 import {
@@ -46,6 +47,7 @@ export function TaskKanban({
 }: TaskKanbanProps) {
   const { t } = useTranslation();
   const theme = useMantineTheme();
+  const { colorScheme } = useMantineColorScheme();
   const [opened, { open, close }] = useDisclosure(false);
   const [draggedTask, setDraggedTask] = useState<Task | null>(null);
   const [dragOverTaskId, setDragOverTaskId] = useState<string | null>(null);
@@ -236,27 +238,27 @@ export function TaskKanban({
   const getColumnColor = (status: TaskStatus) => {
     switch (status) {
       case "todo":
-        return theme.colorScheme === "dark"
+        return colorScheme === "dark"
           ? theme.colors.dark[6]
           : theme.colors.gray[0];
       case "in_progress":
-        return theme.colorScheme === "dark"
+        return colorScheme === "dark"
           ? theme.colors.blue[9]
           : theme.colors.blue[0];
       case "in_review":
-        return theme.colorScheme === "dark"
+        return colorScheme === "dark"
           ? theme.colors.indigo[9]
           : theme.colors.indigo[0];
       case "done":
-        return theme.colorScheme === "dark"
+        return colorScheme === "dark"
           ? theme.colors.green[9]
           : theme.colors.green[0];
       case "blocked":
-        return theme.colorScheme === "dark"
+        return colorScheme === "dark"
           ? theme.colors.red[9]
           : theme.colors.red[0];
       default:
-        return theme.colorScheme === "dark"
+        return colorScheme === "dark"
           ? theme.colors.dark[6]
           : theme.colors.gray[0];
     }
@@ -298,7 +300,7 @@ export function TaskKanban({
       </Group>
 
       <ScrollArea h={600} type="auto" offsetScrollbars>
-        <Group align="start" style={{ minWidth: COLUMNS.length * 280 }}>
+        <Group align="flex-start" style={{ minWidth: COLUMNS.length * 280 }}>
           {COLUMNS.map((column) => {
             const columnTasks = getTasksByStatus(column.id);
 

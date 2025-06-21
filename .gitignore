@@ -4,6 +4,7 @@
 !.env.*.example
 .env.dev
 .env.prod
+.env.mcp
 data
 # compiled output
 /dist

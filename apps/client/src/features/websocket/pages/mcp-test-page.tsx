@@ -16,8 +16,7 @@ import {
 } from "@mantine/core";
 import { useAtom } from "jotai";
 import { mcpSocketAtom } from "../atoms/mcp-socket-atom";
-import { MCPEvent, MCPResourceType } from "../types/mcp-event.types";
-import { MCPSubscriptionExample } from "../components/mcp-subscription-example";
+import { MCPEvent, MCPResourceType, MCPEventType, MCPOperationType } from "../types/mcp-event.types";
 import { useMCPEventSubscription } from "../hooks/use-mcp-socket";
 import { useParams, useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
@@ -98,9 +97,9 @@ export default function MCPTestPage() {
 
     // Create a navigation event
     const navigationEvent: MCPEvent = {
-      type: "navigation",
-      resource: "UI",
-      operation: "NAVIGATE",
+      type: MCPEventType.NAVIGATION,
+      resource: MCPResourceType.UI,
+      operation: MCPOperationType.NAVIGATE,
       resourceId: "navigation",
       timestamp: new Date().toISOString(),
       data: {
@@ -136,7 +135,7 @@ export default function MCPTestPage() {
           {/* Left column: Connection status and subscription */}
           <Paper p="md" withBorder>
             <Stack>
-              <Group position="apart">
+              <Group justify="space-between">
                 <Text fw={500}>Connection Status</Text>
                 <Badge color={connected ? "green" : "red"}>
                   {connected ? "Connected" : "Disconnected"}
@@ -188,25 +187,13 @@ export default function MCPTestPage() {
                 </Badge>
               )}
 
-              <Divider />
-
-              <Text fw={500}>Subscription Examples</Text>
-
-              {resourceId && (
-                <MCPSubscriptionExample
-                  resourceType={resourceType}
-                  resourceId={resourceId}
-                  title={`${resourceType.charAt(0).toUpperCase() + resourceType.slice(1)} Subscription`}
-                  description="This example shows how to use the MCPSubscriptionExample component"
-                />
-              )}
             </Stack>
           </Paper>
 
           {/* Right column: Event log */}
           <Card withBorder>
             <Card.Section withBorder p="md">
-              <Group position="apart">
+              <Group justify="space-between">
                 <Text fw={500}>Event Log</Text>
                 <Badge>{events.length} events</Badge>
               </Group>
@@ -214,23 +201,23 @@ export default function MCPTestPage() {
 
             <ScrollArea h={500} p="md">
               {events.length === 0 ? (
-                <Text color="dimmed" align="center" my="xl">
+                <Text c="dimmed" ta="center" my="xl">
                   No events received yet. Subscribe to a resource to see events.
                 </Text>
               ) : (
-                <Stack spacing="xs">
+                <Stack gap="xs">
                   {events.map((event, index) => (
                     <Paper key={index} p="sm" withBorder>
-                      <Group position="apart" mb="xs">
+                      <Group justify="space-between" mb="xs">
                         <Badge color={getEventColor(event.type)}>
                           {event.type.toUpperCase()}
                         </Badge>
-                        <Text size="xs" color="dimmed">
+                        <Text size="xs" c="dimmed">
                           {formatTime(event.timestamp)}
                         </Text>
                       </Group>
 
-                      <Group position="apart" mb="xs">
+                      <Group justify="space-between" mb="xs">
                         <Text size="sm" fw={500}>
                           {event.resource.toUpperCase()}
                         </Text>
@@ -319,7 +306,7 @@ export default function MCPTestPage() {
             </>
           )}
 
-          <Group position="right" mt="md">
+          <Group justify="flex-end" mt="md">
             <Button onClick={handleNavigate} color="blue">
               Navigate
             </Button>

@@ -1,10 +1,19 @@
 #!/bin/bash
 # Script to register an MCP API key using the registration token
+#
+# NOTE: The current MCP bridge architecture has a design flaw - it expects
+# hardcoded user/workspace IDs in environment variables, which doesn't work
+# for a multi-user system. The API key should be self-contained with all
+# necessary authentication context.
+#
+# This script is a temporary workaround. The proper solution is to refactor
+# the MCP bridge to derive user/workspace context from the API key itself.
 
 # Load environment variables if .env.mcp exists
 if [ -f .env.mcp ]; then
   source .env.mcp
   echo "Loaded environment variables from .env.mcp"
+  echo "WARNING: Using hardcoded user/workspace IDs is not recommended for production!"
 fi
 
 # First, get the APP_SECRET from .env

@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { projectService } from "../services/project-service";
 import { notifications } from "@mantine/notifications";
@@ -7,8 +7,7 @@ import { IconAlarm } from "@tabler/icons-react";
 import { useInterval } from "@mantine/hooks";
 import { Task } from "../types";
 import { useCurrentWorkspace } from "@/features/workspace/hooks/use-current-workspace";
-import { useCurrentSpaces } from "@/features/space/hooks/use-current-spaces";
-import { useCurrentUser } from "@/features/user/hooks/use-current-user";
+import useCurrentUser from "@/features/user/hooks/use-current-user";
 import dayjs from "dayjs";
 import calendar from "dayjs/plugin/calendar";
 import relativeTime from "dayjs/plugin/relativeTime";
@@ -31,8 +30,13 @@ function useTasksByAssignee(userId: string, enabled: boolean = true) {
     queryKey: ["tasks-by-assignee", userId],
     queryFn: async () => {
       // Get all tasks from the workspace and filter for assigned tasks
+      // Get current workspace data
+      if (!workspace?.id) return null;
+      
+      // For now, we'll use the workspace ID as a placeholder
+      // This would need to be updated to use the actual active space
       const response = await projectService.listTasksBySpace({
-        spaceId: workspace?.activeSpaceId || "",
+        spaceId: workspace.id,
       });
 
       // Filter to only include tasks assigned to the specified user
@@ -48,7 +52,7 @@ function useTasksByAssignee(userId: string, enabled: boolean = true) {
 
       return response;
     },
-    enabled: !!userId && !!workspace?.activeSpaceId && enabled,
+    enabled: !!userId && !!workspace?.id && enabled,
   });
 }
 
@@ -58,9 +62,8 @@ export function useTaskNotifications({
   checkInterval = 1800000, // Default: check every 30 minutes
 }: UseTaskNotificationsParams) {
   const { t } = useTranslation();
-  const { currentWorkspace } = useCurrentWorkspace();
-  const { currentSpace } = useCurrentSpaces();
-  const { currentUser } = useCurrentUser();
+  const { data: workspace } = useCurrentWorkspace();
+  const currentUser = useCurrentUser();
   const [notifiedTaskIds, setNotifiedTaskIds] = useState<Set<string>>(new Set());
 
   // Get tasks assigned to the current user
@@ -99,7 +102,7 @@ export function useTaskNotifications({
           time: dayjs(task.dueDate).calendar()
         }),
         color: "yellow",
-        icon: IconAlarm,
+        icon: <IconAlarm />,
         autoClose: 10000,
       });
       
@@ -118,7 +121,7 @@ export function useTaskNotifications({
           time: dayjs(task.dueDate).fromNow()
         }),
         color: "red",
-        icon: IconAlarm,
+        icon: <IconAlarm />,
         autoClose: 10000,
       });
       

@@ -41,12 +41,23 @@ const server = new McpServer({
 });
 
 // Configure server with environment variables
+// TODO: ARCHITECTURAL ISSUE - This approach of hardcoding user/workspace IDs
+// in environment variables is fundamentally flawed for a multi-user system.
+// The API key should be the sole authentication mechanism, and the server
+// should derive user/workspace context from the API key itself.
+// 
+// Proper architecture would be:
+// 1. Client provides only API key
+// 2. Server validates API key and retrieves associated user/workspace
+// 3. All operations use the context from the validated API key
+//
+// Current (flawed) configuration:
 const config = {
   serverUrl: process.env.MCP_SERVER_URL || "http://localhost:3000",
   apiKey: process.env.MCP_API_KEY,
-  userId: process.env.MCP_USER_ID,
-  workspaceId: process.env.MCP_WORKSPACE_ID,
-  userEmail: process.env.MCP_USER_EMAIL,
+  userId: process.env.MCP_USER_ID, // Should be derived from API key!
+  workspaceId: process.env.MCP_WORKSPACE_ID, // Should be derived from API key!
+  userEmail: process.env.MCP_USER_EMAIL, // Should be derived from API key!
 };
 
 logToFile(`Starting MCP Bridge with configuration:

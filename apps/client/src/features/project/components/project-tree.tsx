@@ -26,7 +26,6 @@ import {
 import classes from "../styles/project-tree.module.css";
 
 // Atoms to store tree state
-const projectTreeApiAtom = atom<TreeApi<any> | null>(null);
 const openTaskNodesAtom = atom<Record<string, boolean>>({});
 
 // Types for the tree nodes
@@ -55,8 +54,7 @@ export function ProjectTree({
 }: ProjectTreeProps) {
   const { t } = useTranslation();
   const [treeData, setTreeData] = useState<ProjectTaskNode[]>([]);
-  const [treeApi, setTreeApi] = useAtom(projectTreeApiAtom);
-  const treeApiRef = useRef<TreeApi<ProjectTaskNode>>();
+  const treeRef = useRef<TreeApi<ProjectTaskNode>>(null);
   const [openTaskNodes, setOpenTaskNodes] = useAtom(openTaskNodesAtom);
   const rootElement = useRef<HTMLDivElement>(null);
   const { ref: sizeRef, width, height } = useElementSize();
@@ -116,10 +114,6 @@ export function ProjectTree({
     }
   }, [tasksData, isLoading]);
 
-  const handleApiChange = (api: TreeApi<ProjectTaskNode>) => {
-    setTreeApi(api);
-    treeApiRef.current = api;
-  };
 
   const handleOpenClose = (nodeId: string, isOpen: boolean) => {
     setOpenTaskNodes((prev) => ({ ...prev, [nodeId]: isOpen }));
@@ -135,22 +129,22 @@ export function ProjectTree({
     <Box ref={mergedRef} h={height} className={classes.treeContainer}>
       {treeData.length > 0 ? (
         <Tree<ProjectTaskNode>
+          ref={treeRef}
           data={treeData}
           openByDefault={false}
           width={width || 300}
           height={height || 300}
           indent={16}
           rowHeight={28}
-          onToggle={(nodeId: string, isOpen: boolean) =>
-            handleOpenClose(nodeId, isOpen)
+          onToggle={(nodeId: string) =>
+            handleOpenClose(nodeId, true)
           }
           onSelect={(nodes) => {
             if (nodes.length > 0 && onTaskSelect) {
               onTaskSelect(nodes[0].data.id);
             }
           }}
-          selection={[]}
-          onApi={handleApiChange}
+          selection={undefined}
         >
           {(props) => (
             <TaskNode
@@ -207,7 +201,7 @@ function TaskNode({
     }
 
     deleteTaskMutation.mutate(
-      { taskId: nodeData.id, taskTitle: nodeData.name },
+      { taskId: nodeData.id },
       {
         onSuccess: () => {
           notifications.show({

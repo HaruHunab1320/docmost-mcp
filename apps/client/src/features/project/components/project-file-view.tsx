@@ -138,7 +138,6 @@ export function ProjectFileView({
           <ProjectFileSidebar
             projectId={projectId}
             spaceId={spaceId}
-            onCreateTask={handleOpenCreateTaskModal}
             onSelectTask={handleTaskSelect}
           />
         </Box>
