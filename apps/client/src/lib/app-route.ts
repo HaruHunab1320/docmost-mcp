@@ -26,6 +26,7 @@ const APP_ROUTE = {
       MEMBERS: "/settings/members",
       GROUPS: "/settings/groups",
       SPACES: "/settings/spaces",
+      API_KEYS: "/settings/api-keys",
       BILLING: "/settings/billing",
       SECURITY: "/settings/security",
     },

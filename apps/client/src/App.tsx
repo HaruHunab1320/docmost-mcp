@@ -31,6 +31,7 @@ import { useMCPEvents } from "@/features/websocket/hooks/use-mcp-events";
 import NavigationTestPage from "@/features/websocket/pages/navigation-test-page.tsx";
 import { ProjectManagementPage } from "@/features/project/pages/project-management-page.tsx";
 import { TasksPage } from "@/features/project/pages/tasks-page.tsx";
+import ApiKeys from "@/pages/settings/workspace/api-keys.tsx";
 import { useEffect } from "react";
 
 // CSS for Project 89 themes
@@ -490,6 +491,7 @@ export default function App() {
           <Route path={"/settings/groups"} element={<Groups />} />
           <Route path={"/settings/groups/:groupId"} element={<GroupInfo />} />
           <Route path={"/settings/spaces"} element={<Spaces />} />
+          <Route path={"/settings/api-keys"} element={<ApiKeys />} />
           <Route path={"/settings/billing"} element={<Billing />} />
           <Route path={"/settings/security"} element={<Security />} />
           <Route path={"/settings/license"} element={<License />} />

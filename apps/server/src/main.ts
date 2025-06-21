@@ -69,6 +69,7 @@ async function bootstrap() {
         '/api/workspace/joined',
         '/api/mcp',
         '/api/api-keys/register',
+        '/api/mcp-standard',
       ];
 
       if (

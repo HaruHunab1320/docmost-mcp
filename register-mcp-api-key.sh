@@ -38,7 +38,7 @@ fi
 
 # Make the request to register an API key
 echo "Registering API key..."
-response=$(curl -s -X POST http://localhost:3000/api/api-keys/register \
+response=$(curl -s -X POST http://localhost:3333/api/api-keys/register \
   -H "Content-Type: application/json" \
   -H "x-registration-token: $APP_SECRET" \
   -d "{

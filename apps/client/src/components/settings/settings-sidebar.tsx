@@ -11,6 +11,7 @@ import {
   IconCoin,
   IconLock,
   IconKey,
+  IconApi,
 } from "@tabler/icons-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import classes from "./settings.module.css";
@@ -82,6 +83,12 @@ const groupedData: DataGroup[] = [
       },
       { label: "Groups", icon: IconUsersGroup, path: "/settings/groups" },
       { label: "Spaces", icon: IconSpaces, path: "/settings/spaces" },
+      {
+        label: "API Keys",
+        icon: IconApi,
+        path: "/settings/api-keys",
+        isAdmin: true,
+      },
     ],
   },
   {
