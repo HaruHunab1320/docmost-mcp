@@ -1,4 +1,4 @@
-import { Module, forwardRef } from '@nestjs/common';
+import { Module, forwardRef, MiddlewareConsumer, RequestMethod } from '@nestjs/common';
 import { MCPController } from './mcp.controller';
 import { MCPService } from './mcp.service';
 import { PageHandler } from './handlers/page.handler';
@@ -33,6 +33,7 @@ import { MCPAuthGuard } from './guards/mcp-auth.guard';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { EnvironmentModule } from '../../integrations/environment/environment.module';
 import { DatabaseModule } from '../../database/database.module';
+import { WorkspaceInjectionMiddleware } from './middleware/workspace-injection.middleware';
 
 /**
  * Machine Control Protocol (MCP) Module
@@ -86,6 +87,8 @@ import { DatabaseModule } from '../../database/database.module';
     MCPPermissionGuard,
     MCPApiKeyGuard,
     MCPAuthGuard,
+    // Register middleware
+    WorkspaceInjectionMiddleware,
   ],
   exports: [
     MCPService,
@@ -95,4 +98,13 @@ import { DatabaseModule } from '../../database/database.module';
     MCPContextService,
   ],
 })
-export class MCPModule {}
+export class MCPModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(WorkspaceInjectionMiddleware)
+      .forRoutes(
+        { path: 'mcp', method: RequestMethod.POST },
+        { path: 'mcp/batch', method: RequestMethod.POST }
+      );
+  }
+}

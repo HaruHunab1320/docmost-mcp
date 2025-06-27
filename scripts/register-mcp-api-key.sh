@@ -1,20 +1,9 @@
 #!/bin/bash
 # Script to register an MCP API key using the registration token
 #
-# NOTE: The current MCP bridge architecture has a design flaw - it expects
-# hardcoded user/workspace IDs in environment variables, which doesn't work
-# for a multi-user system. The API key should be self-contained with all
-# necessary authentication context.
-#
-# This script is a temporary workaround. The proper solution is to refactor
-# the MCP bridge to derive user/workspace context from the API key itself.
-
-# Load environment variables if .env.mcp exists
-if [ -f .env.mcp ]; then
-  source .env.mcp
-  echo "Loaded environment variables from .env.mcp"
-  echo "WARNING: Using hardcoded user/workspace IDs is not recommended for production!"
-fi
+# The MCP system has been refactored to properly support multi-user systems.
+# The API key now contains all necessary authentication context, so you
+# don't need to hardcode user/workspace IDs anymore.
 
 # First, get the APP_SECRET from .env
 APP_SECRET=$(grep APP_SECRET .env | cut -d'=' -f2 | tr -d '"' | tr -d "'")
@@ -24,18 +13,12 @@ if [ -z "$APP_SECRET" ]; then
   exit 1
 fi
 
-# Use environment variables if available, otherwise prompt
-if [ -n "$MCP_USER_ID" ] && [ -n "$MCP_WORKSPACE_ID" ]; then
-  USER_ID=$MCP_USER_ID
-  WORKSPACE_ID=$MCP_WORKSPACE_ID
-  echo "Using User ID: $USER_ID"
-  echo "Using Workspace ID: $WORKSPACE_ID"
-else
-  # Prompt for user ID and workspace ID
-  echo "To create an API key, you need a valid user ID and workspace ID."
-  read -p "Enter user ID: " USER_ID
-  read -p "Enter workspace ID: " WORKSPACE_ID
-fi
+# Prompt for user ID and workspace ID
+echo "To create an API key, you need a valid user ID and workspace ID."
+echo "These IDs will be associated with the API key for authentication."
+echo ""
+read -p "Enter user ID: " USER_ID
+read -p "Enter workspace ID: " WORKSPACE_ID
 
 # Prompt for API key name or use default
 if [ -z "$1" ]; then
