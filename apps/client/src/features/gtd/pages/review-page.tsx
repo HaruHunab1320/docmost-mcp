@@ -19,6 +19,7 @@ import { filterTasksByBucket } from "@/features/gtd/utils/task-buckets";
 import { useSpaceQuery } from "@/features/space/queries/space-query";
 import { getOrCreateWeeklyReviewPage } from "@/features/gtd/utils/weekly-review";
 import { buildPageUrl } from "@/features/page/page.utils";
+import { ShortcutHint } from "@/features/gtd/components/shortcut-hint";
 
 const STALE_DAYS = 14;
 const REVIEW_ITEMS = [
@@ -224,9 +225,35 @@ export function ReviewPage() {
 
   return (
     <Container size="md" py="xl">
-      <Group mb="md" justify="space-between">
-        <Title order={2}>{t("Review")}</Title>
-      </Group>
+      <Stack gap="xs" mb="md">
+        <Group justify="space-between">
+          <Title order={2}>{t("Review")}</Title>
+          <Button
+            variant="light"
+            loading={creatingReviewPage}
+            onClick={async () => {
+              if (!space) return;
+              setCreatingReviewPage(true);
+              try {
+                const reviewPage = await getOrCreateWeeklyReviewPage({
+                  spaceId: space.id,
+                });
+                const url = buildPageUrl(
+                  space.slug,
+                  reviewPage.slugId,
+                  reviewPage.title
+                );
+                window.location.href = url;
+              } finally {
+                setCreatingReviewPage(false);
+              }
+            }}
+          >
+            {t("Open weekly review page")}
+          </Button>
+        </Group>
+        <ShortcutHint />
+      </Stack>
 
       <Stack gap="lg">
         <Stack gap="xs">
@@ -251,29 +278,6 @@ export function ReviewPage() {
           <Text size="sm" c="dimmed">
             {t("Week of {{range}}", { range: getWeekLabel() })}
           </Text>
-          <Button
-            variant="light"
-            loading={creatingReviewPage}
-            onClick={async () => {
-              if (!space) return;
-              setCreatingReviewPage(true);
-              try {
-                const reviewPage = await getOrCreateWeeklyReviewPage({
-                  spaceId: space.id,
-                });
-                const url = buildPageUrl(
-                  space.slug,
-                  reviewPage.slugId,
-                  reviewPage.title
-                );
-                window.location.href = url;
-              } finally {
-                setCreatingReviewPage(false);
-              }
-            }}
-          >
-            {t("Open weekly review page")}
-          </Button>
           <Stack gap="xs">
             {REVIEW_ITEMS.map((item) => (
               <Button

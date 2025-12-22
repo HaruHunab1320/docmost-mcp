@@ -29,6 +29,7 @@ import {
   clearTaskBucket,
   setTaskBucket,
 } from "@/features/gtd/utils/task-buckets";
+import { ShortcutHint } from "@/features/gtd/components/shortcut-hint";
 
 export function TriagePage() {
   const { t } = useTranslation();
@@ -204,9 +205,12 @@ export function TriagePage() {
 
   return (
     <Container size="md" py="xl">
-      <Group mb="md" justify="space-between">
-        <Title order={2}>{t("Daily Triage")}</Title>
-      </Group>
+      <Stack gap="xs" mb="md">
+        <Group justify="space-between">
+          <Title order={2}>{t("Daily Triage")}</Title>
+        </Group>
+        <ShortcutHint showCapture={false} />
+      </Stack>
 
       {isLoading ? (
         <Text size="sm" c="dimmed">

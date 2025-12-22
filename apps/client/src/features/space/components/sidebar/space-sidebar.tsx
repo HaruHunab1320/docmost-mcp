@@ -32,7 +32,7 @@ import React, { useState } from "react";
 import { useAtom } from "jotai";
 import { SearchSpotlight } from "@/features/search/search-spotlight.tsx";
 import { treeApiAtom } from "@/features/page/tree/atoms/tree-api-atom.ts";
-import { Link, useLocation, useParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import clsx from "clsx";
 import { useDisclosure } from "@mantine/hooks";
 import SpaceSettingsModal from "@/features/space/components/settings-modal.tsx";
@@ -55,6 +55,7 @@ import APP_ROUTE from "@/lib/app-route";
 import { useProjects } from "@/features/project/hooks/use-projects";
 import { Project } from "@/features/project/types";
 import { ProjectLinkedPages } from "@/features/project/components/project-linked-pages";
+import { getProjectsArray } from "@/features/project/utils/project-data";
 
 export function SpaceSidebar() {
   const { t } = useTranslation();
@@ -67,6 +68,7 @@ export function SpaceSidebar() {
   const { data: spaceById } = useSpaceQuery(spaceId || "");
   const space = spaceBySlug || spaceById;
   const resolvedSpaceSlug = spaceSlug || space?.slug;
+  const navigate = useNavigate();
   const { data: projectsData } = useProjects({ spaceId: space?.id });
   const [expandedProjects, setExpandedProjects] = useState<Record<string, boolean>>({});
 
@@ -77,14 +79,10 @@ export function SpaceSidebar() {
     return <></>;
   }
 
-  let projects: Project[] = [];
-  if (projectsData) {
-    if (Array.isArray(projectsData.data)) {
-      projects = projectsData.data;
-    } else if (Array.isArray(projectsData.items)) {
-      projects = projectsData.items;
-    }
-  }
+  const projects: Project[] = getProjectsArray(projectsData);
+  const projectHomePageIds = projects
+    .map((project) => project.homePageId)
+    .filter((id): id is string => Boolean(id));
 
   function handleCreatePage() {
     tree?.create({ parentId: null, type: "internal", index: 0 });
@@ -311,7 +309,7 @@ export function SpaceSidebar() {
           </div>
         </div>
 
-        <div className={clsx(classes.section, classes.sectionPages)}>
+        <div className={clsx(classes.section, classes.sectionPages, classes.sectionProjects)}>
           <Group className={classes.pagesHeader} justify="space-between">
             <Text size="xs" fw={500} c="dimmed">
               {t("Projects")}
@@ -328,33 +326,50 @@ export function SpaceSidebar() {
                 const isExpanded = !!expandedProjects[project.id];
                 return (
                   <div key={project.id} className={classes.projectGroup}>
-                    <UnstyledButton
-                      className={classes.projectRow}
-                      onClick={() =>
-                        setExpandedProjects((prev) => ({
-                          ...prev,
-                          [project.id]: !isExpanded,
-                        }))
-                      }
-                    >
-                      <Group gap={6} wrap="nowrap">
+                    <div className={classes.projectRow}>
+                      <ActionIcon
+                        variant="subtle"
+                        size={22}
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          setExpandedProjects((prev) => ({
+                            ...prev,
+                            [project.id]: !isExpanded,
+                          }));
+                        }}
+                        aria-label={
+                          isExpanded ? t("Collapse project") : t("Expand project")
+                        }
+                      >
                         {isExpanded ? (
                           <IconChevronDown size={14} />
                         ) : (
                           <IconChevronRight size={14} />
                         )}
-                        <IconFolder size={14} />
-                        <Text size="sm" truncate>
-                          {project.name}
-                        </Text>
-                      </Group>
-                    </UnstyledButton>
+                      </ActionIcon>
+                      <UnstyledButton
+                        className={classes.projectLink}
+                        onClick={() =>
+                          navigate(
+                            `${APP_ROUTE.SPACE.PROJECTS(space.id)}?projectId=${project.id}`
+                          )
+                        }
+                      >
+                        <Group gap={6} wrap="nowrap">
+                          <IconFolder size={14} />
+                          <Text size="sm" truncate>
+                            {project.name}
+                          </Text>
+                        </Group>
+                      </UnstyledButton>
+                    </div>
 
                     {isExpanded && (
                       <ProjectLinkedPages
                         projectId={project.id}
                         homePageId={project.homePageId}
                         spaceSlug={space.slug}
+                        spaceId={space.id}
                       />
                     )}
                   </div>
@@ -394,6 +409,7 @@ export function SpaceSidebar() {
           <div className={classes.pages}>
             <SpaceTree
               spaceId={space.id}
+              excludedPageIds={projectHomePageIds}
               readOnly={spaceAbility.cannot(
                 SpaceCaslAction.Manage,
                 SpaceCaslSubject.Page

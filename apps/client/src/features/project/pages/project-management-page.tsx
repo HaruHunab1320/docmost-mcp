@@ -26,6 +26,7 @@ import { DashboardHeader } from "../components/dashboard/components/DashboardHea
 import { useCreateProjectMutation } from "../hooks/use-projects";
 import { useDisclosure } from "@mantine/hooks";
 import ProjectFormModal from "../components/project-form-modal";
+import { QuickTaskModal } from "../components/quick-task-modal";
 
 export function ProjectManagementPage() {
   const { t } = useTranslation();
@@ -35,6 +36,10 @@ export function ProjectManagementPage() {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [showDashboard, setShowDashboard] = useState(true);
   const location = useLocation();
+  const [quickTaskOpened, setQuickTaskOpened] = useState(false);
+  const [quickTaskProjectId, setQuickTaskProjectId] = useState<string | null>(
+    null
+  );
 
   // Use useDisclosure with a stable reference
   const [createModalOpened, createModalHandlers] = useDisclosure(false);
@@ -65,13 +70,16 @@ export function ProjectManagementPage() {
   useEffect(() => {
     const projectId = new URLSearchParams(location.search).get("projectId");
     if (projectId) {
-      // Find project in projects list
       const project = projects.find((p) => p.id === projectId);
       if (project) {
         setSelectedProject(project);
         setShowDashboard(false);
       }
+      return;
     }
+
+    setSelectedProject(null);
+    setShowDashboard(true);
   }, [location.search, projects]);
 
   // Debug logging
@@ -91,6 +99,11 @@ export function ProjectManagementPage() {
 
   const handleToggleDashboard = () => {
     setShowDashboard(!showDashboard);
+  };
+
+  const openQuickTask = (projectId?: string | null) => {
+    setQuickTaskProjectId(projectId || null);
+    setQuickTaskOpened(true);
   };
 
   const renderBreadcrumbs = () => {
@@ -155,7 +168,11 @@ export function ProjectManagementPage() {
       return (
         <Box p="md">
           <Group justify="space-between">
-            <DashboardHeader onCreateProject={openCreateModal} />
+            <DashboardHeader
+              onCreateProject={openCreateModal}
+              onViewProjects={() => setShowDashboard(false)}
+              onQuickAddTask={() => openQuickTask()}
+            />
           </Group>
           <Box mt="xl">
             <DashboardMetrics
@@ -170,6 +187,8 @@ export function ProjectManagementPage() {
               projectWithMostTasks={projectWithMostTasks}
               taskStats={taskStats}
               taskDistributionByOwner={taskDistributionByOwner || []}
+              onOpenProject={handleSelectProject}
+              onAddTask={(project) => openQuickTask(project.id)}
             />
           </Box>
         </Box>
@@ -218,6 +237,13 @@ export function ProjectManagementPage() {
 
         {/* Use memoized modal */}
         {projectFormModalMemo}
+        <QuickTaskModal
+          opened={quickTaskOpened}
+          onClose={() => setQuickTaskOpened(false)}
+          spaceId={spaceId}
+          projects={projects}
+          defaultProjectId={quickTaskProjectId}
+        />
       </Container>
     </>
   );

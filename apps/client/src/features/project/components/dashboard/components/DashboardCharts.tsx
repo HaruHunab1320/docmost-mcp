@@ -53,6 +53,8 @@ interface DashboardChartsProps {
   projectWithMostTasks: MostActiveProject | null;
   taskStats: TaskStats;
   taskDistributionByOwner: TaskOwnerDistribution[];
+  onOpenProject?: (project: Project) => void;
+  onAddTask?: (project: Project) => void;
 }
 
 export function DashboardCharts({
@@ -60,6 +62,8 @@ export function DashboardCharts({
   projectWithMostTasks,
   taskStats,
   taskDistributionByOwner,
+  onOpenProject,
+  onAddTask,
 }: DashboardChartsProps) {
   const { t } = useTranslation();
   const theme = useMantineTheme();
@@ -83,29 +87,38 @@ export function DashboardCharts({
               </Text>
             ) : (
               <Stack gap="xs">
-                {projectCompletionRates
-                  .slice(0, 5)
-                  .map(
-                    ({
-                      project,
-                      totalCount,
-                      completedCount,
-                      completionRate,
-                    }) => (
-                      <div key={project.id}>
-                        <Group justify="space-between" mb={5}>
-                          <Group>
-                            <Text size="sm" fw={500}>
-                              {project.name}
-                            </Text>
-                            <Text size="xs" c="dimmed">
-                              ({completedCount}/{totalCount} {t("tasks")})
-                            </Text>
-                          </Group>
+                {projectCompletionRates.slice(0, 5).map(
+                  ({ project, totalCount, completedCount, completionRate }) => (
+                    <div key={project.id}>
+                      <Group justify="space-between" mb={5} align="center">
+                        <Group>
+                          <Text
+                            size="sm"
+                            fw={500}
+                            style={{ cursor: onOpenProject ? "pointer" : "default" }}
+                            onClick={() => onOpenProject?.(project)}
+                          >
+                            {project.name}
+                          </Text>
+                          <Text size="xs" c="dimmed">
+                            ({completedCount}/{totalCount} {t("tasks")})
+                          </Text>
+                        </Group>
+                        <Group gap="xs">
+                          {onAddTask && (
+                            <Badge
+                              variant="light"
+                              style={{ cursor: "pointer" }}
+                              onClick={() => onAddTask(project)}
+                            >
+                              {t("Add task")}
+                            </Badge>
+                          )}
                           <Text size="xs" fw={700}>
                             {completionRate.toFixed(0)}%
                           </Text>
                         </Group>
+                      </Group>
                         <Progress
                           value={completionRate}
                           size="sm"
@@ -119,9 +132,9 @@ export function DashboardCharts({
                                   : "red"
                           }
                         />
-                      </div>
-                    )
-                  )}
+                    </div>
+                  )
+                )}
               </Stack>
             )}
           </Card>

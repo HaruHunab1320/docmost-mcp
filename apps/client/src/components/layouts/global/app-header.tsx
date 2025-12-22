@@ -1,4 +1,4 @@
-import { Badge, Group, Text, Tooltip } from "@mantine/core";
+import { ActionIcon, Badge, Group, Text, Tooltip } from "@mantine/core";
 import classes from "./app-header.module.css";
 import React from "react";
 import TopMenu from "@/components/layouts/global/top-menu.tsx";
@@ -16,6 +16,7 @@ import useTrial from "@/ee/hooks/use-trial.tsx";
 import { isCloud } from "@/lib/config.ts";
 import { ThemeSwitcher } from "@/features/user/components/theme-switcher";
 import { QuickCapture } from "@/features/gtd/components/quick-capture";
+import { IconKeyboard } from "@tabler/icons-react";
 // import { MCPEventIndicator } from "@/features/websocket/components/mcp-event-indicator.tsx";
 
 const links = [
@@ -33,6 +34,15 @@ export function AppHeader() {
   const { isTrial, trialDaysLeft } = useTrial();
 
   const isHomeRoute = location.pathname.startsWith("/home");
+  const isMac = React.useMemo(() => {
+    if (typeof navigator === "undefined") return false;
+    return /Mac|iPod|iPhone|iPad/.test(navigator.platform);
+  }, []);
+  const captureShortcut = isMac ? "Cmd+K" : "Ctrl+K";
+  const triageShortcut = isMac ? "Cmd+Shift+K" : "Ctrl+Shift+K";
+  const shortcutLabel = t("Shortcuts: {{items}}", {
+    items: `${captureShortcut} capture, ${triageShortcut} triage`,
+  });
 
   const items = links.map((link) => (
     <Link key={link.label} to={link.link} className={classes.link}>
@@ -101,6 +111,11 @@ export function AppHeader() {
                 : `${trialDaysLeft} days left`}
             </Badge>
           )}
+          <Tooltip label={shortcutLabel} withArrow position="bottom">
+            <ActionIcon variant="default" size={30} aria-label={shortcutLabel}>
+              <IconKeyboard size={16} />
+            </ActionIcon>
+          </Tooltip>
           <ThemeSwitcher />
           {/* <MCPEventIndicator /> */}
           <TopMenu />

@@ -80,15 +80,28 @@ This matrix catalogs current UI surfaces and indicates if they appear complete, 
 3) Align server permissions and UI affordances to prevent broken or hidden actions.
 4) Add regression checks for the highest-use flows: auth, page creation, edits, search, tasks.
 
-## UI QA Checklist (Manual)
+## Raven Docs UI Audit Checklist (Manual)
 
-- Auth: sign up, login, password reset, setup workspace.
-- Spaces: create, edit, delete, member roles, space settings.
-- Pages: create, move, delete, sidebar navigation, history, search.
-- Editor: formatting, embeds, diagrams, comments, attachments, mentions.
-- Projects: create project, create task, board/list views, task drawer, labels, assignees.
-- Attachments: upload, filter by space, download, delete.
-- MCP: list tools, create page, list pages, call tool.
+| Area | Steps | Status | Notes |
+| --- | --- | --- | --- |
+| Auth | Sign up, login, password reset, setup workspace. |  |  |
+| Spaces | Create/edit/delete space, switch space, member roles, space settings. |  |  |
+| Sidebar | Project list expands, project pages show under project, pages tree works. |  |  |
+| Inbox | Quick capture creates task, bucket filters work, start triage button works. |  |  |
+| Today | Due-today list renders, open triage, open review, daily note button. |  |  |
+| Triage | Select all/none, bulk assign, do today, set priority, move to Waiting/Someday. |  |  |
+| Review | Weekly checklist toggles, open weekly review page, suggestions render. |  |  |
+| Waiting/Someday | Bucket lists render, return to inbox for single and bulk. |  |  |
+| Projects | Create project, open board, create task, open task drawer, assign project. |  |  |
+| Tasks | Edit title, status, due date, priority, assignee, bucket tag, delete/complete. |  |  |
+| Pages | Create page, move page, delete page, page history, page search. |  |  |
+| Editor | Formatting, embeds, diagrams, task list, mentions, comments. |  |  |
+| Attachments | Upload, view, download, delete; filter by space. |  |  |
+| Search | Global search, space-scoped search, open result. |  |  |
+| Settings | Account preferences, theme switching, API keys UI. |  |  |
+| Themes | Light/dark and all themes switch cleanly, backgrounds match surfaces. |  |  |
+| Responsiveness | Sidebar toggles, header, layout on mobile/tablet. |  |  |
+| MCP UI | MCP test pages load, navigation tool works. |  |  |
 
 ## Runtime Blockers
 

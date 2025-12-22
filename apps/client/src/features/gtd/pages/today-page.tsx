@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { Button, Container, Group, Text, Title } from "@mantine/core";
+import { Button, Container, Group, Stack, Text, Title } from "@mantine/core";
 import { useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useTasksBySpace } from "@/features/project/hooks/use-tasks";
@@ -8,6 +8,7 @@ import { DailyNoteButton } from "@/features/gtd/components/daily-note-button";
 import { Link } from "react-router-dom";
 import APP_ROUTE from "@/lib/app-route";
 import { JournalCapture } from "@/features/gtd/components/journal-capture";
+import { ShortcutHint } from "@/features/gtd/components/shortcut-hint";
 
 function isToday(date: Date) {
   const now = new Date();
@@ -46,26 +47,29 @@ export function TodayPage() {
 
   return (
     <Container size="md" py="xl">
-      <Group mb="md" justify="space-between">
-        <Title order={2}>{t("Today")}</Title>
-        <Group>
-          <Button
-            component={Link}
-            to={APP_ROUTE.SPACE.TRIAGE(spaceId)}
-            variant="subtle"
-          >
-            {t("Open triage")}
-          </Button>
-          <Button
-            component={Link}
-            to={APP_ROUTE.SPACE.REVIEW(spaceId)}
-            variant="subtle"
-          >
-            {t("Review")}
-          </Button>
-          <DailyNoteButton spaceId={spaceId} />
+      <Stack gap="xs" mb="md">
+        <Group justify="space-between">
+          <Title order={2}>{t("Today")}</Title>
+          <Group>
+            <Button
+              component={Link}
+              to={APP_ROUTE.SPACE.TRIAGE(spaceId)}
+              variant="subtle"
+            >
+              {t("Open triage")}
+            </Button>
+            <Button
+              component={Link}
+              to={APP_ROUTE.SPACE.REVIEW(spaceId)}
+              variant="subtle"
+            >
+              {t("Review")}
+            </Button>
+            <DailyNoteButton spaceId={spaceId} />
+          </Group>
         </Group>
-      </Group>
+        <ShortcutHint />
+      </Stack>
 
       {isLoading ? (
         <Text size="sm" c="dimmed">

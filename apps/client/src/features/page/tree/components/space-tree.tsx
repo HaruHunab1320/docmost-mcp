@@ -62,11 +62,16 @@ import MovePageModal from "../../components/move-page-modal.tsx";
 interface SpaceTreeProps {
   spaceId: string;
   readOnly: boolean;
+  excludedPageIds?: string[];
 }
 
 const openTreeNodesAtom = atom<OpenMap>({});
 
-export default function SpaceTree({ spaceId, readOnly }: SpaceTreeProps) {
+export default function SpaceTree({
+  spaceId,
+  readOnly,
+  excludedPageIds = [],
+}: SpaceTreeProps) {
   const { pageSlug } = useParams();
   const { data, setData, controllers } =
     useTreeMutation<TreeApi<SpaceTreeNode>>(spaceId);
@@ -97,7 +102,9 @@ export default function SpaceTree({ spaceId, readOnly }: SpaceTreeProps) {
 
   useEffect(() => {
     if (pagesData?.pages && !hasNextPage) {
-      const allItems = pagesData.pages.flatMap((page) => page.items);
+      const allItems = pagesData.pages
+        .flatMap((page) => page.items)
+        .filter((item) => !excludedPageIds.includes(item.id));
       const treeData = buildTree(allItems);
 
       console.log(

@@ -172,10 +172,10 @@ export function TaskDrawer({
     { open: openEmojiPicker, close: closeEmojiPicker },
   ] = useDisclosure(false);
   const [isHoveringEmoji, setIsHoveringEmoji] = useState(false);
-  const bucketValue = spaceId && task ? getTaskBucket(spaceId, task.id) : "";
 
   // Use the useTask hook to fetch task data
   const { data: task, isLoading, refetch } = useTask(taskId);
+  const bucketValue = spaceId && task ? getTaskBucket(spaceId, task.id) : "";
 
   const updateTaskMutation = useUpdateTaskMutation();
   const createPageMutation = useCreatePageMutation();

@@ -21,11 +21,13 @@
 
 .sectionPages {
     margin-bottom: 0;
-    overflow-y: hidden;
+    min-height: 0;
+    flex: 1 1 auto;
 
     .pages {
         height: 100%;
         padding-bottom: 26px;
+        overflow-y: auto;
     }
 }
 
@@ -79,6 +81,8 @@
 }
 
 .projectRow {
+    display: flex;
+    align-items: center;
     width: 100%;
     padding: rem(6px) var(--mantine-spacing-xs);
     border-radius: var(--mantine-radius-sm);
@@ -87,6 +91,18 @@
 
     &:hover {
         background-color: light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-6));
+    }
+}
+
+.projectLink {
+    flex: 1;
+    padding-left: rem(4px);
+    border-radius: var(--mantine-radius-sm);
+    text-align: left;
+    color: inherit;
+
+    &:hover {
+        background-color: transparent;
     }
 }
 
@@ -130,4 +146,13 @@
 .activeButton {
     background-color: light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-6));
     color: light-dark(var(--mantine-color-gray-7), var(--mantine-color-dark-0));
+}
+
+.sectionProjects {
+    flex: 0 1 auto;
+    max-height: 40vh;
+}
+
+.sectionProjects .pages {
+    max-height: 40vh;
 }

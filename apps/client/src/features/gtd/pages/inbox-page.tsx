@@ -1,5 +1,13 @@
 import { useMemo } from "react";
-import { Button, Checkbox, Container, Group, Text, Title } from "@mantine/core";
+import {
+  Button,
+  Checkbox,
+  Container,
+  Group,
+  Stack,
+  Text,
+  Title,
+} from "@mantine/core";
 import { Link, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useTasksBySpace } from "@/features/project/hooks/use-tasks";
@@ -7,6 +15,7 @@ import { GtdTaskList } from "@/features/gtd/components/gtd-task-list";
 import APP_ROUTE from "@/lib/app-route";
 import { getTaskBucket } from "@/features/gtd/utils/task-buckets";
 import { useState } from "react";
+import { ShortcutHint } from "@/features/gtd/components/shortcut-hint";
 
 export function InboxPage() {
   const { t } = useTranslation();
@@ -41,28 +50,31 @@ export function InboxPage() {
 
   return (
     <Container size="md" py="xl">
-      <Group mb="md" justify="space-between" align="center">
-        <Title order={2}>{t("Inbox")}</Title>
-        <Group>
-          <Checkbox
-            label={t("Show Waiting")}
-            checked={showWaiting}
-            onChange={(event) => setShowWaiting(event.currentTarget.checked)}
-          />
-          <Checkbox
-            label={t("Show Someday")}
-            checked={showSomeday}
-            onChange={(event) => setShowSomeday(event.currentTarget.checked)}
-          />
+      <Stack gap="xs" mb="md">
+        <Group justify="space-between" align="center">
+          <Title order={2}>{t("Inbox")}</Title>
+          <Group>
+            <Checkbox
+              label={t("Show Waiting")}
+              checked={showWaiting}
+              onChange={(event) => setShowWaiting(event.currentTarget.checked)}
+            />
+            <Checkbox
+              label={t("Show Someday")}
+              checked={showSomeday}
+              onChange={(event) => setShowSomeday(event.currentTarget.checked)}
+            />
+          </Group>
+          <Button
+            component={Link}
+            to={APP_ROUTE.SPACE.TRIAGE(spaceId)}
+            variant="subtle"
+          >
+            {t("Start triage")}
+          </Button>
         </Group>
-        <Button
-          component={Link}
-          to={APP_ROUTE.SPACE.TRIAGE(spaceId)}
-          variant="subtle"
-        >
-          {t("Start triage")}
-        </Button>
-      </Group>
+        <ShortcutHint />
+      </Stack>
 
       {isLoading ? (
         <Text size="sm" c="dimmed">

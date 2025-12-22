@@ -4,6 +4,7 @@ import { useProjects } from "../../hooks/use-projects";
 import { Project, Task } from "../../types";
 import { useWorkspaceUsers } from "@/features/user/hooks/use-workspace-users";
 import { useCurrentWorkspace } from "@/features/workspace/hooks/use-current-workspace";
+import { getProjectsArray } from "../../utils/project-data";
 
 /**
  * Hook to fetch and organize dashboard data
@@ -30,53 +31,7 @@ export function useDashboardData({ spaceId }: { spaceId: string }) {
 
   // Handle both possible structures from the API
   const projects = useMemo(() => {
-    let projectArray: Project[] = [];
-
-    console.log("DASHBOARD HOOK DEBUG - Raw projects data:", projectsData);
-
-    if (projectsData) {
-      if (Array.isArray(projectsData.data)) {
-        // Structure: { data: Project[], pagination: {...} }
-        console.log(
-          "DASHBOARD HOOK DEBUG - Using 'data' array pattern:",
-          projectsData.data
-        );
-        projectArray = projectsData.data;
-      } else if (Array.isArray(projectsData.items)) {
-        // Structure: { items: Project[], meta: {...} }
-        console.log(
-          "DASHBOARD HOOK DEBUG - Using 'items' array pattern:",
-          projectsData.items
-        );
-        projectArray = projectsData.items;
-      } else if (projectsData.data && typeof projectsData.data === "object") {
-        // Structure: { data: { items: Project[], meta: {...} } }
-        console.log(
-          "DASHBOARD HOOK DEBUG - Using nested data.items pattern:",
-          projectsData.data.items
-        );
-        projectArray = Array.isArray(projectsData.data.items)
-          ? projectsData.data.items
-          : [];
-      }
-    }
-
-    console.log(
-      "DASHBOARD HOOK DEBUG - Final processed projects array:",
-      projectArray
-    );
-
-    if (projectArray.length > 0) {
-      console.log("DASHBOARD HOOK DEBUG - First project details:", {
-        id: projectArray[0].id,
-        name: projectArray[0].name,
-        description: projectArray[0].description,
-        creatorId: projectArray[0].creatorId,
-      });
-    }
-
-    // No fallback to mock data - only return what the API provides
-    return projectArray;
+    return getProjectsArray(projectsData);
   }, [projectsData]);
 
   const allTasks = tasksData?.items || [];
