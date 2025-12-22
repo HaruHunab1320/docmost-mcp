@@ -112,7 +112,7 @@ export function AppHeader() {
             </Badge>
           )}
           <Tooltip label={shortcutLabel} withArrow position="bottom">
-            <ActionIcon variant="default" size={30} aria-label={shortcutLabel}>
+            <ActionIcon variant="subtle" size={30} aria-label={shortcutLabel}>
               <IconKeyboard size={16} />
             </ActionIcon>
           </Tooltip>

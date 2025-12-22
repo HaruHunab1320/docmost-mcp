@@ -112,7 +112,7 @@ export function ThemeSwitcher() {
       <Menu.Target>
         <Tooltip label={t("Change theme")} withArrow>
           <ActionIcon
-            variant="default"
+            variant="subtle"
             color={theme.primaryColor}
             size="md"
             aria-label={t("Toggle color scheme")}
