@@ -15,6 +15,7 @@ import { useTranslation } from "react-i18next";
 import useTrial from "@/ee/hooks/use-trial.tsx";
 import { isCloud } from "@/lib/config.ts";
 import { ThemeSwitcher } from "@/features/user/components/theme-switcher";
+import { QuickCapture } from "@/features/gtd/components/quick-capture";
 // import { MCPEventIndicator } from "@/features/websocket/components/mcp-event-indicator.tsx";
 
 const links = [
@@ -80,6 +81,10 @@ export function AppHeader() {
           <Group ml={50} gap={5} className={classes.links} visibleFrom="sm">
             {items}
           </Group>
+        </Group>
+
+        <Group wrap="nowrap">
+          <QuickCapture />
         </Group>
 
         <Group px={"xl"} wrap="nowrap">

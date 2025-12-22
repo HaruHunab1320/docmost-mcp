@@ -1,18 +1,12 @@
-import {
-  IsBoolean,
-  IsNotEmpty,
-  IsNumber,
-  IsOptional,
-  IsString,
-} from 'class-validator';
+import { IsBoolean, IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class SearchDTO {
   @IsString()
   query: string;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
-  spaceId: string;
+  spaceId?: string;
 
   @IsOptional()
   @IsString()

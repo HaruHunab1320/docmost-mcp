@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useMemo, useState, useEffect, useRef } from "react";
 import {
   Flex,
   Stack,
@@ -137,6 +137,18 @@ function BoardContent({ project, spaceId }) {
     groupBy,
     workspaceId: project.workspaceId,
   });
+
+  const labelOptions = useMemo(() => {
+    const labelsMap = new Map<string, { value: string; label: string }>();
+    tasksData?.items?.forEach((task) => {
+      (task as any).labels?.forEach((label) => {
+        if (!labelsMap.has(label.id)) {
+          labelsMap.set(label.id, { value: label.id, label: label.name });
+        }
+      });
+    });
+    return Array.from(labelsMap.values());
+  }, [tasksData?.items]);
 
   // Prevent scrolling when dragging
   useEffect(() => {
@@ -652,7 +664,10 @@ function BoardContent({ project, spaceId }) {
     <Box>
       <BoardHeader onToggleFilters={toggleFilters} />
 
-      <BoardControls isVisible={isFiltersVisible} />
+      <BoardControls
+        isVisible={isFiltersVisible}
+        labelOptions={labelOptions}
+      />
 
       {renderContent()}
 

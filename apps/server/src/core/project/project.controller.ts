@@ -135,6 +135,33 @@ export class ProjectController {
   }
 
   @HttpCode(HttpStatus.OK)
+  @Post('/create-page')
+  async createProjectPage(
+    @Body() dto: ProjectIdDto,
+    @AuthUser() user: User,
+    @AuthWorkspace() workspace: Workspace,
+  ) {
+    const project = await this.projectService.findById(dto.projectId);
+    if (!project) {
+      throw new NotFoundException('Project not found');
+    }
+
+    const ability = await this.spaceAbility.createForUser(
+      user,
+      project.spaceId,
+    );
+    if (ability.cannot(SpaceCaslAction.Edit, SpaceCaslSubject.Page)) {
+      throw new ForbiddenException();
+    }
+
+    return this.projectService.createProjectPage(
+      user.id,
+      workspace.id,
+      project.id,
+    );
+  }
+
+  @HttpCode(HttpStatus.OK)
   @Post('/update')
   async updateProject(@Body() dto: UpdateProjectDto, @AuthUser() user: User) {
     console.log('=============================================');

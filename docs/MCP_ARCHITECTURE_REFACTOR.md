@@ -57,7 +57,7 @@ async validateApiKey(key: string): Promise<ApiKeyContext> {
 The bridge should only need:
 ```bash
 # Proper .env.mcp configuration
-MCP_SERVER_URL=http://localhost:3333
+MCP_SERVER_URL=http://localhost:3000
 MCP_API_KEY=your_api_key_here
 # That's it! Everything else comes from the API key
 ```
@@ -90,4 +90,4 @@ Until this refactor is complete, users must:
 2. Configure `.env.mcp` with their hardcoded IDs
 3. Understand this limits the bridge to single-user mode
 
-This architectural change is critical for Docmost to function as a proper multi-user collaborative platform.
+This architectural change is critical for Raven Docs to function as a proper multi-user collaborative platform.

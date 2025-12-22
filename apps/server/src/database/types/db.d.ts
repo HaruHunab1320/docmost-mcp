@@ -205,6 +205,7 @@ export interface Projects {
   deletedAt: Timestamp | null;
   description: string | null;
   endDate: Timestamp | null;
+  homePageId: string | null;
   icon: string | null;
   id: Generated<string>;
   isArchived: Generated<boolean>;

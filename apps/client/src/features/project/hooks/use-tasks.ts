@@ -206,6 +206,48 @@ export function useCompleteTaskMutation() {
   });
 }
 
+export function useMoveTaskToProjectMutation() {
+  const queryClient = useQueryClient();
+  const { t } = useTranslation();
+
+  return useMutation({
+    mutationFn: ({
+      taskId,
+      projectId,
+    }: {
+      taskId: string;
+      projectId?: string;
+    }) => projectService.moveTaskToProject(taskId, projectId),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: [TASKS_QUERY_KEY, data.id] });
+
+      if (data.projectId) {
+        queryClient.invalidateQueries({
+          queryKey: [PROJECT_TASKS_QUERY_KEY, { projectId: data.projectId }],
+        });
+      }
+      if (data.spaceId) {
+        queryClient.invalidateQueries({
+          queryKey: [SPACE_TASKS_QUERY_KEY, { spaceId: data.spaceId }],
+        });
+      }
+
+      notifications.show({
+        title: t("Task updated"),
+        message: t("Task moved to project"),
+        color: "green",
+      });
+    },
+    onError: () => {
+      notifications.show({
+        title: t("Error"),
+        message: t("Failed to move task"),
+        color: "red",
+      });
+    },
+  });
+}
+
 export function useAssignTaskMutation() {
   const queryClient = useQueryClient();
   const { t } = useTranslation();

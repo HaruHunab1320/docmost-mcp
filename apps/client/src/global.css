@@ -1,0 +1,25 @@
+html,
+body,
+#root {
+  height: 100%;
+}
+
+html {
+  background-color: var(--docmost-body-bg, var(--mantine-color-body));
+}
+
+body {
+  margin: 0;
+  background-color: var(--docmost-body-bg, var(--mantine-color-body));
+  color: var(--docmost-text-color, var(--mantine-color-text));
+}
+
+[data-theme^="project89"] .mantine-AppShell-header,
+[data-theme^="project89"] .mantine-AppShell-navbar,
+[data-theme^="project89"] .mantine-AppShell-aside {
+  background-color: var(--docmost-body-bg, var(--mantine-color-body));
+}
+
+* {
+  box-sizing: border-box;
+}

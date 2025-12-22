@@ -57,7 +57,7 @@ import {
   IconEyeOff,
 } from "@tabler/icons-react";
 import { useDisclosure } from "@mantine/hooks";
-import { TaskPriority } from "../types";
+import { Label, Project, TaskPriority } from "../types";
 import { useTranslation } from "react-i18next";
 import { DateInput } from "@mantine/dates";
 import { notifications } from "@mantine/notifications";
@@ -71,11 +71,6 @@ import { useAtom } from "jotai";
 import { currentUserAtom } from "@/features/user/atoms/current-user-atom.ts";
 import api from "@/lib/api-client.ts";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
-
-// NOTE: To implement drag and drop properly, we need to install:
-// npm install @hello-pangea/dnd
-// After installation, uncomment the import below and restore the DnD functionality
-// import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 
 // Check if we're in development mode
 const isDevelopment = import.meta.env?.DEV;
@@ -111,39 +106,7 @@ const priorityOptions = [
   { value: "urgent", label: "Urgent", color: "red" },
 ];
 
-// Temporary interfaces until imports are resolved
-interface Project {
-  id: string;
-  name: string;
-  description?: string;
-  icon?: string;
-  color?: string;
-  coverImage?: string | null;
-  isArchived: boolean;
-  startDate?: string;
-  endDate?: string;
-  spaceId: string;
-  workspaceId: string;
-  creatorId?: string;
-  createdAt: string;
-  updatedAt: string;
-  metadata?: {
-    propertyOrder?: any[];
-    visibleProperties?: Record<string, boolean>;
-    customProperties?: any[];
-  };
-}
-
-interface Label {
-  id: string;
-  name: string;
-  color: string;
-  projectId: string;
-  spaceId: string;
-  workspaceId: string;
-  createdAt: string;
-  updatedAt: string;
-}
+ 
 
 export function ProjectHeader({ project, onBack }: ProjectHeaderProps) {
   const { t } = useTranslation();

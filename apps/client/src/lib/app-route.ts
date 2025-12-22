@@ -6,6 +6,12 @@ const APP_ROUTE = {
     PROJECTS: (spaceId: string) => `/s/${spaceId}/projects`,
     PAGE: (spaceSlug: string, pageSlug: string) =>
       `/s/${spaceSlug}/p/${pageSlug}`,
+    INBOX: (spaceId: string) => `/spaces/${spaceId}/inbox`,
+    TODAY: (spaceId: string) => `/spaces/${spaceId}/today`,
+    TRIAGE: (spaceId: string) => `/spaces/${spaceId}/triage`,
+    REVIEW: (spaceId: string) => `/spaces/${spaceId}/review`,
+    WAITING: (spaceId: string) => `/spaces/${spaceId}/waiting`,
+    SOMEDAY: (spaceId: string) => `/spaces/${spaceId}/someday`,
   },
   AUTH: {
     LOGIN: "/login",

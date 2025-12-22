@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Docmost MCP extension uses a specialized API key system to authenticate requests to the Master Control API. This document explains the API key system design, implementation, and usage.
+The Raven Docs MCP extension uses a specialized API key system to authenticate requests to the Master Control API. This document explains the API key system design, implementation, and usage.
 
 ## Key Components
 
@@ -91,12 +91,12 @@ The `MCPApiKeyService` provides methods for:
 
 ## MCP Bridge Configuration
 
-The MCP bridge uses the API key to authenticate with the Docmost server:
+The MCP bridge uses the API key to authenticate with the Raven Docs server:
 
 ```json
 {
   "mcpServers": {
-    "docmost": {
+    "raven-docs": {
       "command": "npx",
       "args": [
         "tsx",

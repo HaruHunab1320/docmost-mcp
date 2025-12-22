@@ -10,7 +10,6 @@ import {
   Stack,
   ScrollArea,
   Box,
-  Modal,
   TextInput,
   Textarea,
   Popover,
@@ -48,9 +47,9 @@ import classes from "../../space/components/sidebar/space-sidebar.module.css";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import clsx from "clsx";
-import { notifications } from "@mantine/notifications";
 import { ProjectTree } from "./project-tree";
 import { ProjectFileTree } from "./project-file-tree";
+import TaskFormModal from "./task-form-modal";
 
 interface ProjectFileSidebarProps {
   spaceId: string;
@@ -70,8 +69,6 @@ export function ProjectFileSidebar({
   const location = useLocation();
   const navigate = useNavigate();
   const [opened, { open, close }] = useDisclosure(false);
-  const [settingsOpened, { open: openSettings, close: closeSettings }] =
-    useDisclosure(false);
   const [activeView, setActiveView] = useState("board");
 
   const handleViewChange = (view: string) => {
@@ -273,23 +270,6 @@ export function ProjectFileSidebar({
             <Text size="xs" fw={600} c="dimmed">
               {t("FILES")}
             </Text>
-            <Tooltip label={t("Add file")}>
-              <ActionIcon
-                size="xs"
-                color="blue"
-                variant="subtle"
-                aria-label={t("Add file")}
-                onClick={() => {
-                  notifications.show({
-                    title: t("Not implemented"),
-                    message: t("Adding files is not yet implemented"),
-                    color: "yellow",
-                  });
-                }}
-              >
-                <IconPlus size={14} stroke={1.5} />
-              </ActionIcon>
-            </Tooltip>
           </Group>
 
           <div className={classes.menuItems}>
@@ -297,35 +277,18 @@ export function ProjectFileSidebar({
               <ProjectFileTree
                 projectId={projectId}
                 spaceId={spaceId}
-                onFileSelect={(fileId) => {
-                  console.log("Selected file:", fileId);
-                  // Here we're using onSelectTask to handle file selection
-                  // In a real implementation, you'd have separate handlers
-                  if (onSelectTask) {
-                    onSelectTask(fileId);
-                  }
-                }}
               />
             </ScrollArea>
           </div>
         </div>
       </div>
 
-      {/* New Task Modal would go here */}
-      <Modal
+      <TaskFormModal
         opened={opened}
         onClose={close}
-        title={t("Create new task")}
-        centered
-      >
-        <Text>{t("Task creation form will go here")}</Text>
-        <Group justify="flex-end" mt="md">
-          <Button variant="default" onClick={close}>
-            {t("Cancel")}
-          </Button>
-          <Button>{t("Create")}</Button>
-        </Group>
-      </Modal>
+        projectId={projectId}
+        spaceId={spaceId}
+      />
     </>
   );
 }

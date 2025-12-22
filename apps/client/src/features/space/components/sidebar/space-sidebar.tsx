@@ -9,17 +9,26 @@ import {
 import { spotlight } from "@mantine/spotlight";
 import {
   IconArrowDown,
+  IconChecklist,
+  IconInbox,
+  IconCalendar,
+  IconListCheck,
+  IconClipboardList,
+  IconClock,
+  IconCloud,
+  IconChevronDown,
+  IconChevronRight,
   IconDots,
   IconFileExport,
+  IconFolder,
   IconHome,
   IconPlus,
   IconSearch,
   IconSettings,
-  IconChecklist,
 } from "@tabler/icons-react";
 
 import classes from "./space-sidebar.module.css";
-import React, { useMemo } from "react";
+import React, { useState } from "react";
 import { useAtom } from "jotai";
 import { SearchSpotlight } from "@/features/search/search-spotlight.tsx";
 import { treeApiAtom } from "@/features/page/tree/atoms/tree-api-atom.ts";
@@ -27,7 +36,10 @@ import { Link, useLocation, useParams } from "react-router-dom";
 import clsx from "clsx";
 import { useDisclosure } from "@mantine/hooks";
 import SpaceSettingsModal from "@/features/space/components/settings-modal.tsx";
-import { useGetSpaceBySlugQuery } from "@/features/space/queries/space-query.ts";
+import {
+  useGetSpaceBySlugQuery,
+  useSpaceQuery,
+} from "@/features/space/queries/space-query.ts";
 import { getSpaceUrl } from "@/lib/config.ts";
 import SpaceTree from "@/features/page/tree/components/space-tree.tsx";
 import { useSpaceAbility } from "@/features/space/permissions/use-space-ability.ts";
@@ -40,6 +52,9 @@ import { useTranslation } from "react-i18next";
 import { SwitchSpace } from "./switch-space";
 import ExportModal from "@/components/common/export-modal";
 import APP_ROUTE from "@/lib/app-route";
+import { useProjects } from "@/features/project/hooks/use-projects";
+import { Project } from "@/features/project/types";
+import { ProjectLinkedPages } from "@/features/project/components/project-linked-pages";
 
 export function SpaceSidebar() {
   const { t } = useTranslation();
@@ -47,14 +62,28 @@ export function SpaceSidebar() {
   const location = useLocation();
   const [opened, { open: openSettings, close: closeSettings }] =
     useDisclosure(false);
-  const { spaceSlug } = useParams();
-  const { data: space, isLoading, isError } = useGetSpaceBySlugQuery(spaceSlug);
+  const { spaceSlug, spaceId } = useParams();
+  const { data: spaceBySlug } = useGetSpaceBySlugQuery(spaceSlug || "");
+  const { data: spaceById } = useSpaceQuery(spaceId || "");
+  const space = spaceBySlug || spaceById;
+  const resolvedSpaceSlug = spaceSlug || space?.slug;
+  const { data: projectsData } = useProjects({ spaceId: space?.id });
+  const [expandedProjects, setExpandedProjects] = useState<Record<string, boolean>>({});
 
   const spaceRules = space?.membership?.permissions;
   const spaceAbility = useSpaceAbility(spaceRules);
 
   if (!space) {
     return <></>;
+  }
+
+  let projects: Project[] = [];
+  if (projectsData) {
+    if (Array.isArray(projectsData.data)) {
+      projects = projectsData.data;
+    } else if (Array.isArray(projectsData.items)) {
+      projects = projectsData.items;
+    }
   }
 
   function handleCreatePage() {
@@ -79,10 +108,12 @@ export function SpaceSidebar() {
           <div className={classes.menuItems}>
             <UnstyledButton
               component={Link}
-              to={getSpaceUrl(spaceSlug)}
+              to={resolvedSpaceSlug ? getSpaceUrl(resolvedSpaceSlug) : "#"}
               className={clsx(
                 classes.menu,
-                location.pathname.toLowerCase() === getSpaceUrl(spaceSlug)
+                resolvedSpaceSlug &&
+                  location.pathname.toLowerCase() ===
+                    getSpaceUrl(resolvedSpaceSlug)
                   ? classes.activeButton
                   : ""
               )}
@@ -94,6 +125,126 @@ export function SpaceSidebar() {
                   stroke={2}
                 />
                 <span>{t("Overview")}</span>
+              </div>
+            </UnstyledButton>
+
+            <UnstyledButton
+              component={Link}
+              to={APP_ROUTE.SPACE.INBOX(space.id)}
+              className={clsx(
+                classes.menu,
+                location.pathname.includes(`/spaces/${space.id}/inbox`)
+                  ? classes.activeButton
+                  : ""
+              )}
+            >
+              <div className={classes.menuItemInner}>
+                <IconInbox
+                  size={18}
+                  className={classes.menuItemIcon}
+                  stroke={2}
+                />
+                <span>{t("Inbox")}</span>
+              </div>
+            </UnstyledButton>
+
+            <UnstyledButton
+              component={Link}
+              to={APP_ROUTE.SPACE.TODAY(space.id)}
+              className={clsx(
+                classes.menu,
+                location.pathname.includes(`/spaces/${space.id}/today`)
+                  ? classes.activeButton
+                  : ""
+              )}
+            >
+              <div className={classes.menuItemInner}>
+                <IconCalendar
+                  size={18}
+                  className={classes.menuItemIcon}
+                  stroke={2}
+                />
+                <span>{t("Today")}</span>
+              </div>
+            </UnstyledButton>
+
+            <UnstyledButton
+              component={Link}
+              to={APP_ROUTE.SPACE.TRIAGE(space.id)}
+              className={clsx(
+                classes.menu,
+                location.pathname.includes(`/spaces/${space.id}/triage`)
+                  ? classes.activeButton
+                  : ""
+              )}
+            >
+              <div className={classes.menuItemInner}>
+                <IconListCheck
+                  size={18}
+                  className={classes.menuItemIcon}
+                  stroke={2}
+                />
+                <span>{t("Triage")}</span>
+              </div>
+            </UnstyledButton>
+
+            <UnstyledButton
+              component={Link}
+              to={APP_ROUTE.SPACE.REVIEW(space.id)}
+              className={clsx(
+                classes.menu,
+                location.pathname.includes(`/spaces/${space.id}/review`)
+                  ? classes.activeButton
+                  : ""
+              )}
+            >
+              <div className={classes.menuItemInner}>
+                <IconClipboardList
+                  size={18}
+                  className={classes.menuItemIcon}
+                  stroke={2}
+                />
+                <span>{t("Weekly Review")}</span>
+              </div>
+            </UnstyledButton>
+
+            <UnstyledButton
+              component={Link}
+              to={APP_ROUTE.SPACE.WAITING(space.id)}
+              className={clsx(
+                classes.menu,
+                location.pathname.includes(`/spaces/${space.id}/waiting`)
+                  ? classes.activeButton
+                  : ""
+              )}
+            >
+              <div className={classes.menuItemInner}>
+                <IconClock
+                  size={18}
+                  className={classes.menuItemIcon}
+                  stroke={2}
+                />
+                <span>{t("Waiting")}</span>
+              </div>
+            </UnstyledButton>
+
+            <UnstyledButton
+              component={Link}
+              to={APP_ROUTE.SPACE.SOMEDAY(space.id)}
+              className={clsx(
+                classes.menu,
+                location.pathname.includes(`/spaces/${space.id}/someday`)
+                  ? classes.activeButton
+                  : ""
+              )}
+            >
+              <div className={classes.menuItemInner}>
+                <IconCloud
+                  size={18}
+                  className={classes.menuItemIcon}
+                  stroke={2}
+                />
+                <span>{t("Someday")}</span>
               </div>
             </UnstyledButton>
 
@@ -156,6 +307,59 @@ export function SpaceSidebar() {
                   <span>{t("New page")}</span>
                 </div>
               </UnstyledButton>
+            )}
+          </div>
+        </div>
+
+        <div className={clsx(classes.section, classes.sectionPages)}>
+          <Group className={classes.pagesHeader} justify="space-between">
+            <Text size="xs" fw={500} c="dimmed">
+              {t("Projects")}
+            </Text>
+          </Group>
+
+          <div className={classes.pages}>
+            {projects.length === 0 ? (
+              <Text size="xs" c="dimmed" className={classes.projectEmpty}>
+                {t("No projects yet")}
+              </Text>
+            ) : (
+              projects.map((project) => {
+                const isExpanded = !!expandedProjects[project.id];
+                return (
+                  <div key={project.id} className={classes.projectGroup}>
+                    <UnstyledButton
+                      className={classes.projectRow}
+                      onClick={() =>
+                        setExpandedProjects((prev) => ({
+                          ...prev,
+                          [project.id]: !isExpanded,
+                        }))
+                      }
+                    >
+                      <Group gap={6} wrap="nowrap">
+                        {isExpanded ? (
+                          <IconChevronDown size={14} />
+                        ) : (
+                          <IconChevronRight size={14} />
+                        )}
+                        <IconFolder size={14} />
+                        <Text size="sm" truncate>
+                          {project.name}
+                        </Text>
+                      </Group>
+                    </UnstyledButton>
+
+                    {isExpanded && (
+                      <ProjectLinkedPages
+                        projectId={project.id}
+                        homePageId={project.homePageId}
+                        spaceSlug={space.slug}
+                      />
+                    )}
+                  </div>
+                );
+              })
             )}
           </div>
         </div>

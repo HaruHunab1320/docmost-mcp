@@ -7,6 +7,7 @@ import CommentEditor from "@/features/comment/components/comment-editor";
 import { pageEditorAtom } from "@/features/editor/atoms/editor-atoms";
 import CommentActions from "@/features/comment/components/comment-actions";
 import CommentMenu from "@/features/comment/components/comment-menu";
+import ResolveComment from "@/features/comment/components/resolve-comment";
 import { useHover } from "@mantine/hooks";
 import {
   useDeleteCommentMutation,
@@ -78,9 +79,14 @@ function CommentListItem({ comment }: CommentListItemProps) {
             </Text>
 
             <div style={{ visibility: hovered ? "visible" : "hidden" }}>
-              {/*!comment.parentCommentId && (
-                <ResolveComment commentId={comment.id} pageId={comment.pageId} resolvedAt={comment.resolvedAt} />
-              )*/}
+              {!comment.parentCommentId &&
+                (currentUser?.user?.id === comment.creatorId ||
+                  ["owner", "admin"].includes(currentUser?.user?.role)) && (
+                  <ResolveComment
+                    commentId={comment.id}
+                    resolvedAt={comment.resolvedAt}
+                  />
+                )}
 
               {currentUser?.user?.id === comment.creatorId && (
                 <CommentMenu

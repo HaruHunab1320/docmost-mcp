@@ -9,12 +9,18 @@ import {
 } from '../../../database/types/entity.types';
 import { PaginationOptions } from '../../../lib/pagination/pagination-options';
 import { Paginated } from '../../../lib/pagination/paginated';
+import { PageService } from '../../page/services/page.service';
+import { executeTx } from '@docmost/db/utils';
+import { InjectKysely } from 'nestjs-kysely';
+import { KyselyDB } from '@docmost/db/types/kysely.types';
 
 @Injectable()
 export class ProjectService {
   constructor(
     private readonly projectRepo: ProjectRepo,
     private readonly spaceRepo: SpaceRepo,
+    private readonly pageService: PageService,
+    @InjectKysely() private readonly db: KyselyDB,
   ) {}
 
   async findById(
@@ -98,9 +104,64 @@ export class ProjectService {
       'Creating project with data:',
       JSON.stringify(projectData, null, 2),
     );
-    const result = await this.projectRepo.create(projectData);
+
+    const result = await executeTx(this.db, async (trx) => {
+      const project = await this.projectRepo.create(projectData, trx);
+      const projectPage = await this.pageService.create(
+        userId,
+        workspaceId,
+        {
+          title: project.name,
+          icon: project.icon,
+          spaceId: project.spaceId,
+        },
+        trx,
+      );
+      const updatedProject = await this.projectRepo.update(
+        project.id,
+        { homePageId: projectPage.id },
+        trx,
+      );
+
+      return updatedProject ?? project;
+    });
+
     console.log('Project created result:', JSON.stringify(result, null, 2));
     return result;
+  }
+
+  async createProjectPage(
+    userId: string,
+    workspaceId: string,
+    projectId: string,
+  ): Promise<Project | undefined> {
+    const project = await this.projectRepo.findById(projectId);
+    if (!project) {
+      throw new Error('Project not found');
+    }
+
+    if (project.homePageId) {
+      return project;
+    }
+
+    return executeTx(this.db, async (trx) => {
+      const projectPage = await this.pageService.create(
+        userId,
+        workspaceId,
+        {
+          title: project.name,
+          icon: project.icon,
+          spaceId: project.spaceId,
+        },
+        trx,
+      );
+
+      return this.projectRepo.update(
+        project.id,
+        { homePageId: projectPage.id },
+        trx,
+      );
+    });
   }
 
   async update(

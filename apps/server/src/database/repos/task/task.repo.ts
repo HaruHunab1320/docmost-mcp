@@ -32,6 +32,50 @@ export class TaskRepo {
     };
   }
 
+  private async attachLabelsToTasks(
+    tasks: Task[],
+    trx?: Transaction<DB>,
+  ): Promise<void> {
+    if (!tasks.length) {
+      return;
+    }
+
+    const taskIds = tasks.map((task) => task.id);
+    const labels = await dbOrTx(this.db, trx)
+      .selectFrom('taskLabelAssignments')
+      .innerJoin(
+        'taskLabels',
+        'taskLabels.id',
+        'taskLabelAssignments.labelId',
+      )
+      .select([
+        'taskLabelAssignments.taskId as taskId',
+        'taskLabels.id as id',
+        'taskLabels.name as name',
+        'taskLabels.color as color',
+      ])
+      .where('taskLabelAssignments.taskId', 'in', taskIds)
+      .execute();
+
+    const labelsByTaskId = new Map<
+      string,
+      { id: string; name: string; color: string }[]
+    >();
+    for (const label of labels) {
+      const existing = labelsByTaskId.get(label.taskId) || [];
+      existing.push({
+        id: label.id,
+        name: label.name,
+        color: label.color,
+      });
+      labelsByTaskId.set(label.taskId, existing);
+    }
+
+    tasks.forEach((task) => {
+      (task as any).labels = labelsByTaskId.get(task.id) || [];
+    });
+  }
+
   async findById(
     taskId: string,
     options?: {
@@ -138,6 +182,7 @@ export class TaskRepo {
       includeSubtasks?: boolean;
       includeCreator?: boolean;
       includeAssignee?: boolean;
+      includeLabels?: boolean;
     },
     trx?: Transaction<DB>,
   ): Promise<Paginated<Task>> {
@@ -208,6 +253,9 @@ export class TaskRepo {
       );
 
       const result = await paginate(query, pagination);
+      if (options?.includeLabels) {
+        await this.attachLabelsToTasks(result.data, trx);
+      }
       console.log('[TaskRepo] findByProjectId succeeded:', {
         resultCount: result?.data?.length,
         pagination: result?.pagination,
@@ -279,6 +327,7 @@ export class TaskRepo {
       includeCreator?: boolean;
       includeAssignee?: boolean;
       includeProject?: boolean;
+      includeLabels?: boolean;
     },
     trx?: Transaction<DB>,
   ): Promise<Paginated<Task>> {
@@ -353,6 +402,9 @@ export class TaskRepo {
       console.log('[TaskRepo] About to execute query for spaceId:', spaceId);
 
       const result = await paginate(query, pagination);
+      if (options?.includeLabels) {
+        await this.attachLabelsToTasks(result.data, trx);
+      }
       console.log('[TaskRepo] findBySpaceId succeeded:', {
         resultCount: result?.data?.length,
         pagination: result?.pagination,

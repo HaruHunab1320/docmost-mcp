@@ -5,9 +5,10 @@ import { TaskService } from './services/task.service';
 import { TaskController } from './task.controller';
 import { DatabaseModule } from '../../database/database.module';
 import { CaslModule } from '../casl/casl.module';
+import { PageModule } from '../page/page.module';
 
 @Module({
-  imports: [DatabaseModule, CaslModule],
+  imports: [DatabaseModule, CaslModule, PageModule],
   controllers: [ProjectController, TaskController],
   providers: [ProjectService, TaskService],
   exports: [ProjectService, TaskService],

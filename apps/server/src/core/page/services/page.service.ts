@@ -16,10 +16,10 @@ import { InjectKysely } from 'nestjs-kysely';
 import { KyselyDB } from '@docmost/db/types/kysely.types';
 import { generateJitteredKeyBetween } from 'fractional-indexing-jittered';
 import { MovePageDto } from '../dto/move-page.dto';
-import { ExpressionBuilder } from 'kysely';
+import { ExpressionBuilder, Transaction } from 'kysely';
 import { DB } from '@docmost/db/types/db';
 import { generateSlugId } from '../../../common/helpers';
-import { executeTx } from '@docmost/db/utils';
+import { dbOrTx, executeTx } from '@docmost/db/utils';
 import { AttachmentRepo } from '../../../database/repos/attachment/attachment.repo';
 
 @Injectable()
@@ -47,6 +47,7 @@ export class PageService {
     userId: string,
     workspaceId: string,
     createPageDto: CreatePageDto,
+    trx?: Transaction<DB>,
   ): Promise<Page> {
     let parentPageId = undefined;
 
@@ -63,29 +64,38 @@ export class PageService {
       parentPageId = parentPage.id;
     }
 
-    const createdPage = await this.pageRepo.insertPage({
-      slugId: generateSlugId(),
-      title: createPageDto.title,
-      position: await this.nextPagePosition(
-        createPageDto.spaceId,
-        parentPageId,
-      ),
-      icon: createPageDto.icon,
-      parentPageId: parentPageId,
-      spaceId: createPageDto.spaceId,
-      creatorId: userId,
-      workspaceId: workspaceId,
-      lastUpdatedById: userId,
-      content: createPageDto.content,
-    });
+    const createdPage = await this.pageRepo.insertPage(
+      {
+        slugId: generateSlugId(),
+        title: createPageDto.title,
+        position: await this.nextPagePosition(
+          createPageDto.spaceId,
+          parentPageId,
+          trx,
+        ),
+        icon: createPageDto.icon,
+        parentPageId: parentPageId,
+        spaceId: createPageDto.spaceId,
+        creatorId: userId,
+        workspaceId: workspaceId,
+        lastUpdatedById: userId,
+        content: createPageDto.content,
+      },
+      trx,
+    );
 
     return createdPage;
   }
 
-  async nextPagePosition(spaceId: string, parentPageId?: string) {
+  async nextPagePosition(
+    spaceId: string,
+    parentPageId?: string,
+    trx?: Transaction<DB>,
+  ) {
     let pagePosition: string;
 
-    const lastPageQuery = this.db
+    const db = dbOrTx(this.db, trx);
+    const lastPageQuery = db
       .selectFrom('pages')
       .select(['position'])
       .where('spaceId', '=', spaceId)
@@ -337,94 +347,3 @@ export class PageService {
     await this.pageRepo.deletePage(pageId);
   }
 }
-
-/*
-  // TODO: page deletion and restoration
-  async delete(pageId: string): Promise<void> {
-    await this.dataSource.transaction(async (manager: EntityManager) => {
-      const page = await manager
-        .createQueryBuilder(Page, 'page')
-        .where('page.id = :pageId', { pageId })
-        .select(['page.id', 'page.workspaceId'])
-        .getOne();
-
-      if (!page) {
-        throw new NotFoundException(`Page not found`);
-      }
-      await this.softDeleteChildrenRecursive(page.id, manager);
-      await this.pageOrderingService.removePageFromHierarchy(page, manager);
-
-      await manager.softDelete(Page, pageId);
-    });
-  }
-
-  private async softDeleteChildrenRecursive(
-    parentId: string,
-    manager: EntityManager,
-  ): Promise<void> {
-    const childrenPage = await manager
-      .createQueryBuilder(Page, 'page')
-      .where('page.parentPageId = :parentId', { parentId })
-      .select(['page.id', 'page.title', 'page.parentPageId'])
-      .getMany();
-
-    for (const child of childrenPage) {
-      await this.softDeleteChildrenRecursive(child.id, manager);
-      await manager.softDelete(Page, child.id);
-    }
-  }
-
-  async restore(pageId: string): Promise<void> {
-    await this.dataSource.transaction(async (manager: EntityManager) => {
-      const isDeleted = await manager
-        .createQueryBuilder(Page, 'page')
-        .where('page.id = :pageId', { pageId })
-        .withDeleted()
-        .getCount();
-
-      if (!isDeleted) {
-        return;
-      }
-
-      await manager.recover(Page, { id: pageId });
-
-      await this.restoreChildrenRecursive(pageId, manager);
-
-      // Fetch the page details to find out its parent and workspace
-      const restoredPage = await manager
-        .createQueryBuilder(Page, 'page')
-        .where('page.id = :pageId', { pageId })
-        .select(['page.id', 'page.title', 'page.spaceId', 'page.parentPageId'])
-        .getOne();
-
-      if (!restoredPage) {
-        throw new NotFoundException(`Restored page not found.`);
-      }
-
-      // add page back to its hierarchy
-      await this.pageOrderingService.addPageToOrder(
-        restoredPage.spaceId,
-        pageId,
-        restoredPage.parentPageId,
-      );
-    });
-  }
-
-  private async restoreChildrenRecursive(
-    parentId: string,
-    manager: EntityManager,
-  ): Promise<void> {
-    const childrenPage = await manager
-      .createQueryBuilder(Page, 'page')
-      .setLock('pessimistic_write')
-      .where('page.parentPageId = :parentId', { parentId })
-      .select(['page.id', 'page.title', 'page.parentPageId'])
-      .withDeleted()
-      .getMany();
-
-    for (const child of childrenPage) {
-      await this.restoreChildrenRecursive(child.id, manager);
-      await manager.recover(Page, { id: child.id });
-    }
-  }
-*/

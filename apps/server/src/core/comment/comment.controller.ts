@@ -12,6 +12,7 @@ import { CommentService } from './comment.service';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
 import { PageIdDto, CommentIdDto } from './dto/comments.input';
+import { ResolveCommentDto } from './dto/resolve-comment.dto';
 import { AuthUser } from '../../common/decorators/auth-user.decorator';
 import { AuthWorkspace } from '../../common/decorators/auth-workspace.decorator';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
@@ -103,8 +104,25 @@ export class CommentController {
 
   @HttpCode(HttpStatus.OK)
   @Post('update')
-  update(@Body() updateCommentDto: UpdateCommentDto, @AuthUser() user: User) {
-    //TODO: only comment creators can update their comments
+  async update(
+    @Body() updateCommentDto: UpdateCommentDto,
+    @AuthUser() user: User,
+  ) {
+    const comment = await this.commentRepo.findById(updateCommentDto.commentId);
+    if (!comment) {
+      throw new NotFoundException('Comment not found');
+    }
+
+    const page = await this.pageRepo.findById(comment.pageId);
+    if (!page) {
+      throw new NotFoundException('Page not found');
+    }
+
+    const ability = await this.spaceAbility.createForUser(user, page.spaceId);
+    if (ability.cannot(SpaceCaslAction.Read, SpaceCaslSubject.Page)) {
+      throw new ForbiddenException();
+    }
+
     return this.commentService.update(
       updateCommentDto.commentId,
       updateCommentDto,
@@ -114,8 +132,66 @@ export class CommentController {
 
   @HttpCode(HttpStatus.OK)
   @Post('delete')
-  remove(@Body() input: CommentIdDto, @AuthUser() user: User) {
-    // TODO: only comment creators and admins can delete their comments
+  async remove(@Body() input: CommentIdDto, @AuthUser() user: User) {
+    const comment = await this.commentRepo.findById(input.commentId);
+    if (!comment) {
+      throw new NotFoundException('Comment not found');
+    }
+
+    const page = await this.pageRepo.findById(comment.pageId);
+    if (!page) {
+      throw new NotFoundException('Page not found');
+    }
+
+    const ability = await this.spaceAbility.createForUser(user, page.spaceId);
+    if (ability.cannot(SpaceCaslAction.Read, SpaceCaslSubject.Page)) {
+      throw new ForbiddenException();
+    }
+
+    if (comment.creatorId !== user.id) {
+      if (
+        ability.cannot(SpaceCaslAction.Manage, SpaceCaslSubject.Settings)
+      ) {
+        throw new ForbiddenException(
+          'You can only delete your own comments',
+        );
+      }
+      await this.commentRepo.deleteComment(comment.id);
+      return;
+    }
+
     return this.commentService.remove(input.commentId, user);
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Post('resolve')
+  async resolve(@Body() input: ResolveCommentDto, @AuthUser() user: User) {
+    const comment = await this.commentRepo.findById(input.commentId);
+    if (!comment) {
+      throw new NotFoundException('Comment not found');
+    }
+
+    const page = await this.pageRepo.findById(comment.pageId);
+    if (!page) {
+      throw new NotFoundException('Page not found');
+    }
+
+    const ability = await this.spaceAbility.createForUser(user, page.spaceId);
+    if (ability.cannot(SpaceCaslAction.Read, SpaceCaslSubject.Page)) {
+      throw new ForbiddenException();
+    }
+
+    if (
+      comment.creatorId !== user.id &&
+      ability.cannot(SpaceCaslAction.Manage, SpaceCaslSubject.Settings)
+    ) {
+      throw new ForbiddenException('You can only resolve your own comments');
+    }
+
+    return this.commentService.resolve(
+      comment.id,
+      input.resolved,
+      user.id,
+    );
   }
 }

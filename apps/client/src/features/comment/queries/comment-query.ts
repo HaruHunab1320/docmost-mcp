@@ -117,17 +117,19 @@ export function useResolveCommentMutation() {
     onSuccess: (data: IComment, variables) => {
       const currentComments = queryClient.getQueryData(
         RQ_KEY(data.pageId),
-      ) as IComment[];
+      ) as IPagination<IComment> | undefined;
 
-      /*
-      if (currentComments) {
-        const updatedComments = currentComments.map((comment) =>
+      if (currentComments?.items) {
+        const updatedItems = currentComments.items.map((comment) =>
           comment.id === variables.commentId
             ? { ...comment, ...data }
             : comment,
         );
-        queryClient.setQueryData(RQ_KEY(data.pageId), updatedComments);
-      }*/
+        queryClient.setQueryData(RQ_KEY(data.pageId), {
+          ...currentComments,
+          items: updatedItems,
+        });
+      }
 
       notifications.show({ message: t("Comment resolved successfully") });
     },

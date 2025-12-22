@@ -4,7 +4,6 @@ import {
   ForbiddenException,
   HttpCode,
   HttpStatus,
-  NotImplementedException,
   Post,
   UseGuards,
 } from '@nestjs/common';
@@ -44,8 +43,11 @@ export class SearchController {
       return this.searchService.searchPage(searchDto.query, searchDto);
     }
 
-    // TODO: search all spaces user is a member of if no spaceId provided
-    throw new NotImplementedException();
+    return this.searchService.searchPagesForUser(
+      searchDto.query,
+      user.id,
+      searchDto,
+    );
   }
 
   @HttpCode(HttpStatus.OK)

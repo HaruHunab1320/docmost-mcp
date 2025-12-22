@@ -1,4 +1,5 @@
 import {
+  Badge,
   Card,
   Group,
   Text,
@@ -7,10 +8,10 @@ import {
   TextInput,
   Tooltip,
   Divider,
-  UnstyledButton,
   useMantineTheme,
 } from "@mantine/core";
 import { Task } from "../types";
+import { getTaskBucket } from "@/features/gtd/utils/task-buckets";
 import {
   IconCheck,
   IconDotsVertical,
@@ -31,6 +32,8 @@ import {
 import { useTranslation } from "react-i18next";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useUpdateTaskMutation } from "../hooks/use-tasks";
+import EmojiPicker from "@/components/ui/emoji-picker";
 
 interface TaskCardProps {
   task: Task;
@@ -51,6 +54,7 @@ export function TaskCard({
   const [hovered, setHovered] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [title, setTitle] = useState(task.title);
+  const updateTaskMutation = useUpdateTaskMutation();
 
   // Handle title edit
   const handleEditClick = (e: React.MouseEvent) => {
@@ -63,7 +67,19 @@ export function TaskCard({
   };
 
   const handleTitleBlur = () => {
-    // TODO: Save the title changes to the backend
+    const trimmedTitle = title.trim();
+    if (!trimmedTitle) {
+      setTitle(task.title);
+      setIsEditing(false);
+      return;
+    }
+
+    if (trimmedTitle !== task.title) {
+      updateTaskMutation.mutate({
+        taskId: task.id,
+        title: trimmedTitle,
+      });
+    }
     setIsEditing(false);
   };
 
@@ -74,6 +90,20 @@ export function TaskCard({
       setTitle(task.title); // Reset to original
       setIsEditing(false);
     }
+  };
+
+  const handleEmojiSelect = (emoji: any) => {
+    updateTaskMutation.mutate({
+      taskId: task.id,
+      icon: emoji.native,
+    });
+  };
+
+  const handleEmojiRemove = () => {
+    updateTaskMutation.mutate({
+      taskId: task.id,
+      icon: null,
+    });
   };
 
   // Prevent card click when clicking on menu items
@@ -95,6 +125,8 @@ export function TaskCard({
     }
   };
 
+  const bucket = task.spaceId ? getTaskBucket(task.spaceId, task.id) : undefined;
+
   return (
     <Card
       shadow="xs"
@@ -112,36 +144,40 @@ export function TaskCard({
     >
       <Group justify="space-between" wrap="nowrap" gap="sm">
         {/* Task icon/emoji */}
-        <UnstyledButton
-          onClick={(e) => {
-            e.stopPropagation();
-            // TODO: Open emoji picker
-          }}
-          style={{ flexShrink: 0, width: 24 }}
-        >
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              width: 22,
-              height: 22,
-              borderRadius: "50%",
-              backgroundColor:
-                task.status === "done" ? theme.colors.teal[5] : "transparent",
-              border:
-                task.status === "done"
-                  ? "none"
-                  : `1px solid ${theme.colors.gray[5]}`,
-            }}
-          >
-            {task.status === "done" ? (
-              <IconCheck size={14} color="white" />
-            ) : (
-              <div style={{ width: 14, height: 14 }} />
-            )}
-          </div>
-        </UnstyledButton>
+        <EmojiPicker
+          onEmojiSelect={handleEmojiSelect}
+          removeEmojiAction={handleEmojiRemove}
+          readOnly={false}
+          icon={
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                width: 22,
+                height: 22,
+                borderRadius: "50%",
+                backgroundColor:
+                  task.status === "done"
+                    ? theme.colors.teal[5]
+                    : "transparent",
+                border:
+                  task.status === "done"
+                    ? "none"
+                    : `1px solid ${theme.colors.gray[5]}`,
+                fontSize: 12,
+              }}
+            >
+              {task.status === "done" ? (
+                <IconCheck size={14} color="white" />
+              ) : task.icon ? (
+                task.icon
+              ) : (
+                <div style={{ width: 14, height: 14 }} />
+              )}
+            </div>
+          }
+        />
 
         {/* Task title or editing input */}
         {isEditing ? (
@@ -160,6 +196,12 @@ export function TaskCard({
             <Text fw={500} size="sm" lineClamp={1} style={{ flex: 1 }}>
               {task.title}
             </Text>
+
+            {bucket && (
+              <Badge size="xs" variant="light" color="gray">
+                {bucket === "waiting" ? t("Waiting") : t("Someday")}
+              </Badge>
+            )}
 
             {/* Page indicator */}
             {task.pageId && (

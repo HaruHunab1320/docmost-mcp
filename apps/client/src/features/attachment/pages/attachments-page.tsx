@@ -12,6 +12,7 @@ import { useTranslation } from "react-i18next";
 import AttachmentList from "../components/attachment-list";
 import { useLocation, useNavigate } from "react-router-dom";
 import { IconSearch } from "@tabler/icons-react";
+import { useGetSpacesQuery } from "@/features/space/queries/space-query";
 
 export default function AttachmentsPage() {
   const { t } = useTranslation();
@@ -22,19 +23,24 @@ export default function AttachmentsPage() {
   const searchParams = new URLSearchParams(location.search);
   const spaceId = searchParams.get("spaceId") || undefined;
   const pageId = searchParams.get("pageId") || undefined;
-  const [searchQuery, setSearchQuery] = useState("");
+  const queryParam = searchParams.get("query") || "";
+  const [searchQuery, setSearchQuery] = useState(queryParam);
   const [selectedSpaceId, setSelectedSpaceId] = useState(spaceId);
+  const { data: spacesData, isLoading: isSpacesLoading } =
+    useGetSpacesQuery({ limit: 200 });
 
   // Handle search
   const handleSearch = () => {
     const params = new URLSearchParams();
     if (selectedSpaceId) params.append("spaceId", selectedSpaceId);
+    if (searchQuery.trim()) params.append("query", searchQuery.trim());
     navigate({ search: params.toString() });
   };
 
   // Handle clearing filters
   const handleClearFilters = () => {
     setSelectedSpaceId(undefined);
+    setSearchQuery("");
     navigate({ search: "" });
   };
 
@@ -55,17 +61,21 @@ export default function AttachmentsPage() {
             style={{ flexGrow: 1 }}
           />
 
-          {/* 
-          TODO: Add a space selector
           <Select
             label={t("Space")}
             placeholder={t("All spaces")}
-            data={[]} // TODO: Fetch spaces
+            data={
+              spacesData?.items?.map((space) => ({
+                value: space.id,
+                label: space.name,
+              })) || []
+            }
             value={selectedSpaceId}
             onChange={setSelectedSpaceId}
             clearable
+            searchable
+            disabled={isSpacesLoading}
           />
-          */}
 
           <Button onClick={handleSearch}>{t("Search")}</Button>
           <Button variant="subtle" onClick={handleClearFilters}>
@@ -75,7 +85,7 @@ export default function AttachmentsPage() {
       </Card>
 
       <Card withBorder>
-        <AttachmentList spaceId={spaceId} pageId={pageId} />
+        <AttachmentList spaceId={spaceId} pageId={pageId} query={queryParam} />
       </Card>
     </Box>
   );

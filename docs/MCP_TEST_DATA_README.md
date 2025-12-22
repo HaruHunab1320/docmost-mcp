@@ -1,6 +1,6 @@
 # MCP Standard Integration Test Data Setup
 
-This directory contains scripts and SQL files to set up test data for testing the MCP Standard integration with Docmost.
+This directory contains scripts and SQL files to set up test data for testing the MCP Standard integration with Raven Docs.
 
 ## Prerequisites
 

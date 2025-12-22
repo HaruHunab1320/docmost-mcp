@@ -176,6 +176,11 @@ export interface DocmostTheme {
   isDark?: boolean;
   fontFamily?: string;
   headingFontFamily?: string;
+  bodyBg?: string;
+  surfaceBg?: string;
+  mutedBg?: string;
+  textColor?: string;
+  borderColor?: string;
 }
 
 // Available themes
@@ -187,6 +192,11 @@ export const DOCMOST_THEMES: DocmostTheme[] = [
     primaryColor: "blue",
     secondaryColor: "red",
     isDark: false,
+    bodyBg: "#f7f7f9",
+    surfaceBg: "#ffffff",
+    mutedBg: "#f1f3f5",
+    textColor: "#1f2933",
+    borderColor: "#e4e7eb",
   },
   {
     id: "default-dark",
@@ -195,6 +205,11 @@ export const DOCMOST_THEMES: DocmostTheme[] = [
     primaryColor: "blue",
     secondaryColor: "red",
     isDark: true,
+    bodyBg: "#111315",
+    surfaceBg: "#161a1d",
+    mutedBg: "#1f2327",
+    textColor: "#e5e7eb",
+    borderColor: "#2a2f35",
   },
   {
     id: "green-light",
@@ -203,6 +218,11 @@ export const DOCMOST_THEMES: DocmostTheme[] = [
     primaryColor: "green",
     secondaryColor: "orange",
     isDark: false,
+    bodyBg: "#f3fbf6",
+    surfaceBg: "#ffffff",
+    mutedBg: "#e7f5ec",
+    textColor: "#1e2b22",
+    borderColor: "#d8eadf",
   },
   {
     id: "green-dark",
@@ -211,6 +231,11 @@ export const DOCMOST_THEMES: DocmostTheme[] = [
     primaryColor: "green",
     secondaryColor: "orange",
     isDark: true,
+    bodyBg: "#0f1713",
+    surfaceBg: "#141c17",
+    mutedBg: "#1a231d",
+    textColor: "#e3efe7",
+    borderColor: "#27332d",
   },
   {
     id: "purple-light",
@@ -219,6 +244,11 @@ export const DOCMOST_THEMES: DocmostTheme[] = [
     primaryColor: "purple",
     secondaryColor: "teal",
     isDark: false,
+    bodyBg: "#f7f3ff",
+    surfaceBg: "#ffffff",
+    mutedBg: "#eee6ff",
+    textColor: "#2a1f3b",
+    borderColor: "#e2d7f6",
   },
   {
     id: "purple-dark",
@@ -227,6 +257,11 @@ export const DOCMOST_THEMES: DocmostTheme[] = [
     primaryColor: "purple",
     secondaryColor: "teal",
     isDark: true,
+    bodyBg: "#161020",
+    surfaceBg: "#1c1627",
+    mutedBg: "#231c32",
+    textColor: "#efe9ff",
+    borderColor: "#31283e",
   },
   {
     id: "orange-light",
@@ -235,6 +270,11 @@ export const DOCMOST_THEMES: DocmostTheme[] = [
     primaryColor: "orange",
     secondaryColor: "blue",
     isDark: false,
+    bodyBg: "#fff6ed",
+    surfaceBg: "#ffffff",
+    mutedBg: "#ffe8d1",
+    textColor: "#3b2a1a",
+    borderColor: "#f3dcc3",
   },
   {
     id: "orange-dark",
@@ -243,6 +283,11 @@ export const DOCMOST_THEMES: DocmostTheme[] = [
     primaryColor: "orange",
     secondaryColor: "blue",
     isDark: true,
+    bodyBg: "#1b140f",
+    surfaceBg: "#221a13",
+    mutedBg: "#2a2118",
+    textColor: "#f6e5d7",
+    borderColor: "#3a2c21",
   },
   {
     id: "teal-light",
@@ -251,6 +296,11 @@ export const DOCMOST_THEMES: DocmostTheme[] = [
     primaryColor: "teal",
     secondaryColor: "purple",
     isDark: false,
+    bodyBg: "#effcf9",
+    surfaceBg: "#ffffff",
+    mutedBg: "#dff7f1",
+    textColor: "#1f2f2c",
+    borderColor: "#d1eee6",
   },
   {
     id: "teal-dark",
@@ -259,6 +309,11 @@ export const DOCMOST_THEMES: DocmostTheme[] = [
     primaryColor: "teal",
     secondaryColor: "purple",
     isDark: true,
+    bodyBg: "#0f1716",
+    surfaceBg: "#141d1c",
+    mutedBg: "#1b2422",
+    textColor: "#e3f1ee",
+    borderColor: "#2a3431",
   },
   // Project 89 Themes
   {
@@ -270,6 +325,11 @@ export const DOCMOST_THEMES: DocmostTheme[] = [
     isDark: true,
     headingFontFamily: "'Orbitron', sans-serif",
     fontFamily: "'Share Tech Mono', 'Courier New', monospace",
+    bodyBg: "#070c0a",
+    surfaceBg: "#070c0a",
+    mutedBg: "#0c1411",
+    textColor: "#d7ffe9",
+    borderColor: "#1c2c25",
   },
   {
     id: "project89-tron",
@@ -280,6 +340,11 @@ export const DOCMOST_THEMES: DocmostTheme[] = [
     isDark: true,
     headingFontFamily: "'Orbitron', sans-serif",
     fontFamily: "'VT323', 'Courier New', monospace",
+    bodyBg: "#080d16",
+    surfaceBg: "#080d16",
+    mutedBg: "#0d1420",
+    textColor: "#d7efff",
+    borderColor: "#203048",
   },
 ];
 

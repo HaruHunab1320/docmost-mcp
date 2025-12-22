@@ -1,6 +1,8 @@
 import api from "@/lib/api-client";
 import { IAttachment, IPagination } from "@/lib/types";
-import { useQuery } from "@tanstack/react-query";
+import { notifications } from "@mantine/notifications";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 
 interface AttachmentsQueryParams {
   page?: number;
@@ -37,5 +39,29 @@ export const useAttachmentsQuery = (params: AttachmentsQueryParams = {}) => {
   return useQuery({
     queryKey: ["attachments", { page, limit, spaceId, pageId, type, query }],
     queryFn: () => fetchAttachments(params),
+  });
+};
+
+export const deleteAttachment = async (attachmentId: string) => {
+  await api.post("/attachments/delete", { attachmentId });
+};
+
+export const useDeleteAttachmentMutation = () => {
+  const queryClient = useQueryClient();
+  const { t } = useTranslation();
+
+  return useMutation({
+    mutationFn: deleteAttachment,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["attachments"] });
+      notifications.show({ message: t("Attachment deleted") });
+    },
+    onError: (error) => {
+      const errorMessage = error["response"]?.data?.message;
+      notifications.show({
+        message: errorMessage || t("Failed to delete attachment"),
+        color: "red",
+      });
+    },
   });
 };

@@ -1,6 +1,6 @@
-# Docmost
+# Raven Docs
 
-Open-source collaborative documentation and knowledge management platform with AI integration capabilities.
+A second-brain documentation and project management platform with AI integration capabilities.
 
 ## 🚀 Quick Start
 
@@ -26,7 +26,7 @@ This will:
 2. Create configuration files
 3. Start all services with Docker
 4. Run database migrations
-5. Launch Docmost at http://localhost:3000
+5. Launch Raven Docs at http://localhost:3000
 
 ### Manual Setup
 
@@ -52,13 +52,13 @@ This will:
    docker-compose exec docmost pnpm migration:latest
    ```
 
-5. **Access Docmost**
+5. **Access Raven Docs**
    - Open http://localhost:3000
    - Create admin account at `/auth/setup`
 
 ## 🏗️ Architecture
 
-Docmost is built with:
+Raven Docs is built with:
 - **Frontend**: React, TypeScript, Mantine UI
 - **Backend**: NestJS, TypeScript
 - **Database**: PostgreSQL
@@ -68,7 +68,7 @@ Docmost is built with:
 
 ## 🤖 AI Integration
 
-Docmost supports AI tool integration through the Model Context Protocol (MCP):
+Raven Docs supports AI tool integration through the Model Context Protocol (MCP):
 
 ### For AI Tools (Cursor, etc.)
 ```
@@ -169,4 +169,4 @@ We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guid
 
 ---
 
-Made with ❤️ by the Docmost team
+Made with ❤️ by the Raven Docs team (with deep appreciation for Docmost)

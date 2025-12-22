@@ -3,7 +3,7 @@
 # Full MCP Standard API Demo Script
 # Shows complete workflow: create space, create page, add comment
 
-API_URL="http://localhost:3333/api/mcp-standard"
+API_URL="http://localhost:3000/api/mcp-standard"
 API_KEY="${MCP_API_KEY:-your_api_key_here}"
 WORKSPACE_ID="01964ade-05e2-7c87-b4e0-fc434e340abb"
 

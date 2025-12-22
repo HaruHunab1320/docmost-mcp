@@ -8,28 +8,36 @@ import {
   Box,
   Center,
 } from "@mantine/core";
-import { useAttachmentsQuery } from "../queries/attachment-query";
+import {
+  useAttachmentsQuery,
+  useDeleteAttachmentMutation,
+} from "../queries/attachment-query";
 import Paginate from "@/components/common/paginate";
 import { formatBytes } from "@/lib";
 import { useTranslation } from "react-i18next";
 import { IconDownload, IconTrash } from "@tabler/icons-react";
 import { getFileUrl } from "@/lib/config";
+import { modals } from "@mantine/modals";
 
 interface AttachmentListProps {
   spaceId?: string;
   pageId?: string;
+  query?: string;
 }
 
 export default function AttachmentList({
   spaceId,
   pageId,
+  query,
 }: AttachmentListProps) {
   const { t } = useTranslation();
   const [page, setPage] = useState(1);
+  const deleteAttachmentMutation = useDeleteAttachmentMutation();
   const { data, isLoading } = useAttachmentsQuery({
     page,
     spaceId,
     pageId,
+    query,
   });
 
   // Function to determine icon based on file extension
@@ -76,6 +84,18 @@ export default function AttachmentList({
       </Center>
     );
   }
+
+  const handleDelete = (attachmentId: string, fileName: string) => {
+    modals.openConfirmModal({
+      title: t("Delete attachment"),
+      children: t("Are you sure you want to delete {{name}}?", {
+        name: fileName,
+      }),
+      labels: { confirm: t("Delete"), cancel: t("Cancel") },
+      confirmProps: { color: "red" },
+      onConfirm: () => deleteAttachmentMutation.mutate(attachmentId),
+    });
+  };
 
   return (
     <>
@@ -132,17 +152,17 @@ export default function AttachmentList({
                     >
                       <IconDownload size={16} />
                     </ActionIcon>
-                    {/* 
-                    TODO: Implement delete functionality
                     <ActionIcon 
                       size="sm" 
                       variant="subtle" 
-                      color="red" 
-                      onClick={() => handleDelete(attachment.id)}
+                      color="red"
+                      loading={deleteAttachmentMutation.isPending}
+                      onClick={() =>
+                        handleDelete(attachment.id, attachment.fileName)
+                      }
                     >
                       <IconTrash size={16} />
                     </ActionIcon>
-                    */}
                   </Group>
                 </Table.Td>
               </Table.Tr>

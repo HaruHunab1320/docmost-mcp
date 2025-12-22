@@ -1,34 +1,36 @@
-# Docmost Machine Control Protocol (MCP)
+# Raven Docs Machine Control Protocol (MCP)
 
 ## Introduction
 
-The Machine Control Protocol (MCP) is an initiative to add programmatic control capabilities to Docmost, allowing external systems and automation tools to interact with all Docmost functionalities.
+The Machine Control Protocol (MCP) is an initiative to add programmatic control capabilities to Raven Docs, allowing external systems and automation tools to interact with all Raven Docs functionalities.
 
 ## What is MCP?
 
 MCP is a JSON-RPC 2.0 based protocol that enables:
 
-- Creating, reading, updating, and deleting Docmost resources
-- Real-time interactions with the Docmost platform
+- Creating, reading, updating, and deleting Raven Docs resources
+- Real-time interactions with the Raven Docs platform
 - Automation of workflows
 - Integration with external systems and tools
 
 ## Why MCP?
 
-Docmost is a powerful documentation and collaboration platform, but currently lacks a comprehensive API for machine control. The MCP initiative aims to fill this gap by providing:
+Raven Docs is a powerful documentation and collaboration platform, but currently lacks a comprehensive API for machine control. The MCP initiative aims to fill this gap by providing:
 
 1. **Automation Capabilities**: Enable users to automate repetitive tasks
-2. **Integration Possibilities**: Allow Docmost to work seamlessly with other tools in the user's workflow
+2. **Integration Possibilities**: Allow Raven Docs to work seamlessly with other tools in the user's workflow
 3. **Extensibility**: Enable the development of third-party plugins and extensions
 4. **Machine-to-Machine Communication**: Support AI-driven workflows and bot interactions
 
 ## Getting Started
 
+Raven Docs supports both the standard MCP protocol at `/api/mcp-standard` and the legacy JSON-RPC MCP endpoint at `/api/mcp`. The standard MCP endpoint is recommended for new integrations.
+
 ### For Users
 
 To use the MCP API:
 
-1. Create an MCP API key from your Docmost workspace settings or via the API
+1. Create an MCP API key from your Raven Docs workspace settings or via the API
 2. Use one of our client SDKs or make direct API calls using the API key
 3. Follow the MCP API documentation for detailed instructions
 
@@ -39,12 +41,12 @@ API keys provide a secure way to authenticate with the MCP API without needing u
 If you're interested in contributing to the MCP implementation:
 
 1. Review the [MCP Implementation Plan](./mcp-implementation-plan.md)
-2. Set up the Docmost development environment following the [official documentation](https://docmost.com/docs/self-hosting/development/)
+2. Set up the upstream Docmost development environment following the [official documentation](https://docmost.com/docs/self-hosting/development/)
 3. Check the progress tracking section to identify areas where you can contribute
 
 ## Implementation Status
 
-The MCP implementation includes full support for API key authentication, making it easier to build integrations and automations with Docmost.
+The MCP implementation includes full support for API key authentication, making it easier to build integrations and automations with Raven Docs.
 
 ## Examples
 
@@ -65,7 +67,7 @@ const mcpRequest = {
 };
 
 // Sending the request with API key authentication
-const response = await fetch("https://example.docmost.com/mcp", {
+const response = await fetch("https://example.raven-docs.local/api/mcp", {
   method: "POST",
   headers: {
     "Content-Type": "application/json",
@@ -93,7 +95,7 @@ Contributions to the MCP initiative are welcome! Please check the [MCP Implement
 
 ## License
 
-The MCP implementation is part of the Docmost project and follows the same licensing terms.
+The MCP implementation is part of the Raven Docs project and follows the same licensing terms.
 
 ## API Keys
 
@@ -103,9 +105,9 @@ The MCP supports authentication via API keys, which allow applications to access
 
 API keys can be managed through the following endpoints:
 
-- `POST /api-keys`: Create a new API key
-- `GET /api-keys`: List all API keys for the current user
-- `DELETE /api-keys/:id`: Revoke an API key
+- `POST /api/api-keys`: Create a new API key
+- `GET /api/api-keys`: List all API keys for the current user
+- `DELETE /api/api-keys/:id`: Revoke an API key
 
 Only users with administrative privileges can create API keys. API keys are associated with both a user and a workspace, allowing the MCP to enforce the same permissions as the user who created the key.
 

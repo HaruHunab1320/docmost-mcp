@@ -1,6 +1,5 @@
 import {
   Box,
-  Button,
   Checkbox,
   Divider,
   Group,
@@ -15,13 +14,14 @@ import {
 import { useTranslation } from "react-i18next";
 import { useBoardContext } from "../board-context";
 import { useWorkspaceUsers } from "@/features/user/hooks/use-workspace-users";
-import { IconSearch, IconFilter } from "@tabler/icons-react";
+import { IconSearch } from "@tabler/icons-react";
 
 interface BoardControlsProps {
   isVisible: boolean;
+  labelOptions: { value: string; label: string }[];
 }
 
-export function BoardControls({ isVisible }: BoardControlsProps) {
+export function BoardControls({ isVisible, labelOptions }: BoardControlsProps) {
   const { t } = useTranslation();
   const {
     project,
@@ -71,15 +71,6 @@ export function BoardControls({ isVisible }: BoardControlsProps) {
     { value: "high", label: t("High") },
     { value: "medium", label: t("Medium") },
     { value: "low", label: t("Low") },
-  ];
-
-  // Extract unique labels from project tasks (would need to fetch or be provided)
-  // For now, we'll use a placeholder
-  const labelOptions = [
-    { value: "bug", label: t("Bug") },
-    { value: "feature", label: t("Feature") },
-    { value: "enhancement", label: t("Enhancement") },
-    { value: "documentation", label: t("Documentation") },
   ];
 
   // Sorting options
@@ -152,18 +143,20 @@ export function BoardControls({ isVisible }: BoardControlsProps) {
             />
           </Box>
 
-          <Box>
-            <Text size="sm" fw={500} mb="xs">
-              {t("Labels")}
-            </Text>
-            <MultiSelect
-              data={labelOptions}
-              value={labelFilter}
-              onChange={setLabelFilter}
-              placeholder={t("All labels")}
-              clearable
-            />
-          </Box>
+          {labelOptions.length > 0 && (
+            <Box>
+              <Text size="sm" fw={500} mb="xs">
+                {t("Labels")}
+              </Text>
+              <MultiSelect
+                data={labelOptions}
+                value={labelFilter}
+                onChange={setLabelFilter}
+                placeholder={t("All labels")}
+                clearable
+              />
+            </Box>
+          )}
         </Group>
 
         <Checkbox

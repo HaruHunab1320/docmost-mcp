@@ -31,6 +31,12 @@ import { useMCPEvents } from "@/features/websocket/hooks/use-mcp-events";
 import NavigationTestPage from "@/features/websocket/pages/navigation-test-page.tsx";
 import { ProjectManagementPage } from "@/features/project/pages/project-management-page.tsx";
 import { TasksPage } from "@/features/project/pages/tasks-page.tsx";
+import { InboxPage } from "@/features/gtd/pages/inbox-page";
+import { TodayPage } from "@/features/gtd/pages/today-page";
+import { TriagePage } from "@/features/gtd/pages/triage-page";
+import { ReviewPage } from "@/features/gtd/pages/review-page";
+import { WaitingPage } from "@/features/gtd/pages/waiting-page";
+import { SomedayPage } from "@/features/gtd/pages/someday-page";
 import ApiKeys from "@/pages/settings/workspace/api-keys.tsx";
 import { useEffect } from "react";
 
@@ -63,7 +69,7 @@ const project89CSS = `
   /* Background effects for the entire page */
   [data-theme^="project89"] body {
     position: relative;
-    background-color: rgba(0, 0, 0, 0.95); /* Restore to previous darkness level */
+    background-color: var(--docmost-body-bg);
   }
   
   /* Grid lines are removed for both themes */
@@ -472,6 +478,12 @@ export default function App() {
             element={<ProjectManagementPage />}
           />
           <Route path={"/spaces/:spaceId/tasks"} element={<TasksPage />} />
+          <Route path={"/spaces/:spaceId/inbox"} element={<InboxPage />} />
+          <Route path={"/spaces/:spaceId/today"} element={<TodayPage />} />
+          <Route path={"/spaces/:spaceId/triage"} element={<TriagePage />} />
+          <Route path={"/spaces/:spaceId/review"} element={<ReviewPage />} />
+          <Route path={"/spaces/:spaceId/waiting"} element={<WaitingPage />} />
+          <Route path={"/spaces/:spaceId/someday"} element={<SomedayPage />} />
           <Route
             path={"/spaces/:spaceId/projects/:projectId/tasks"}
             element={<TasksPage />}

@@ -1,5 +1,5 @@
 .header, .navbar, .aside {
-  background-color: light-dark(#f6f7f9, var(--mantine-color-dark-8));
+  background-color: var(--docmost-surface-bg, var(--mantine-color-body));
 }
 
 .navbar, .aside {
@@ -28,4 +28,7 @@
   }
 }
 
-
+.main {
+  background-color: var(--docmost-body-bg, var(--mantine-color-body));
+  min-height: calc(100vh - 45px);
+}

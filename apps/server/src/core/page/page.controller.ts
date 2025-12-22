@@ -114,12 +114,6 @@ export class PageController {
   }
 
   @HttpCode(HttpStatus.OK)
-  @Post('restore')
-  async restore(@Body() pageIdDto: PageIdDto) {
-    //  await this.pageService.restore(deletePageDto.id);
-  }
-
-  @HttpCode(HttpStatus.OK)
   @Post('recent')
   async getRecentPages(
     @Body() recentPageDto: RecentPageDto,
@@ -145,15 +139,21 @@ export class PageController {
     return this.pageService.getRecentPages(user.id, pagination);
   }
 
-  // TODO: scope to workspaces
   @HttpCode(HttpStatus.OK)
   @Post('/history')
   async getPageHistory(
     @Body() dto: PageIdDto,
     @Body() pagination: PaginationOptions,
     @AuthUser() user: User,
+    @AuthWorkspace() workspace: Workspace,
   ) {
     const page = await this.pageRepo.findById(dto.pageId);
+    if (!page) {
+      throw new NotFoundException('Page not found');
+    }
+    if (page.workspaceId !== workspace.id) {
+      throw new ForbiddenException();
+    }
     const ability = await this.spaceAbility.createForUser(user, page.spaceId);
     if (ability.cannot(SpaceCaslAction.Read, SpaceCaslSubject.Page)) {
       throw new ForbiddenException();

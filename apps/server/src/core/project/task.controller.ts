@@ -176,6 +176,7 @@ export class TaskController {
             includeSubtasks,
             includeCreator: true,
             includeAssignee: true,
+            includeLabels: true,
           },
         );
         console.log('[TaskController] Got result from taskService:', {
@@ -272,17 +273,18 @@ export class TaskController {
 
       let result;
       try {
-        result = await this.taskService.findBySpaceId(
-          spaceId,
-          { page, limit },
-          {
-            status,
-            searchTerm,
-            includeCreator: true,
-            includeAssignee: true,
-            includeProject: true,
-          },
-        );
+      result = await this.taskService.findBySpaceId(
+        spaceId,
+        { page, limit },
+        {
+          status,
+          searchTerm,
+          includeCreator: true,
+          includeAssignee: true,
+          includeLabels: true,
+          includeProject: true,
+        },
+      );
         console.log('[TaskController] Got result from taskService:', {
           hasResult: !!result,
           dataLength: result?.data?.length,

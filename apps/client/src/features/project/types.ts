@@ -14,6 +14,7 @@ export interface Project {
   icon?: string;
   color?: string;
   coverImage?: string | null;
+  homePageId?: string | null;
   isArchived: boolean;
   startDate?: string;
   endDate?: string;
@@ -22,6 +23,11 @@ export interface Project {
   creatorId?: string;
   createdAt: string;
   updatedAt: string;
+  metadata?: {
+    propertyOrder?: any[];
+    visibleProperties?: Record<string, boolean>;
+    customProperties?: any[];
+  };
   creator?: {
     id: string;
     name: string;

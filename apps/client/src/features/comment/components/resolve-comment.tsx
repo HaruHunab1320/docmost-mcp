@@ -3,10 +3,13 @@ import { IconCircleCheck } from "@tabler/icons-react";
 import { modals } from "@mantine/modals";
 import { useResolveCommentMutation } from "@/features/comment/queries/comment-query";
 import { useTranslation } from "react-i18next";
+import { useAtomValue } from "jotai";
+import { pageEditorAtom } from "@/features/editor/atoms/editor-atoms";
 
-function ResolveComment({ commentId, pageId, resolvedAt }) {
+function ResolveComment({ commentId, resolvedAt }) {
   const { t } = useTranslation();
   const resolveCommentMutation = useResolveCommentMutation();
+  const editor = useAtomValue(pageEditorAtom);
 
   const isResolved = resolvedAt != null;
   const iconColor = isResolved ? "green" : "gray";
@@ -26,8 +29,9 @@ function ResolveComment({ commentId, pageId, resolvedAt }) {
         commentId,
         resolved: !isResolved,
       });
-      //TODO: remove comment mark
-      // Remove comment thread from state on resolve
+      if (!isResolved) {
+        editor?.commands.unsetComment(commentId);
+      }
     } catch (error) {
       console.error("Failed to toggle resolved state:", error);
     }

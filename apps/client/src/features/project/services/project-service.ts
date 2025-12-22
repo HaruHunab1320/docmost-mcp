@@ -143,6 +143,13 @@ export const projectService = {
     }
   },
 
+  async createProjectPage(projectId: string): Promise<Project> {
+    const { data } = await api.post(`${PROJECTS_ENDPOINT}/create-page`, {
+      projectId,
+    });
+    return data;
+  },
+
   async deleteProject(projectId: string): Promise<{ success: boolean }> {
     const { data } = await api.post(`${PROJECTS_ENDPOINT}/delete`, {
       projectId,

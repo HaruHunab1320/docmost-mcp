@@ -74,8 +74,10 @@ export function DocmostThemeProvider({ children }: ThemeProviderProps) {
     try {
       themeBeingApplied = true;
 
-      // Set color scheme
-      setColorScheme(theme.isDark ? "dark" : "light");
+      const desiredScheme = theme.isDark ? "dark" : "light";
+      if (colorScheme !== desiredScheme) {
+        setColorScheme(desiredScheme);
+      }
 
       // Apply CSS custom properties
       document.documentElement.setAttribute("data-theme", theme.id);
@@ -86,6 +88,27 @@ export function DocmostThemeProvider({ children }: ThemeProviderProps) {
       document.documentElement.setAttribute(
         "data-theme-secondary",
         theme.secondaryColor || "red"
+      );
+
+      document.documentElement.style.setProperty(
+        "--docmost-body-bg",
+        theme.bodyBg || "var(--mantine-color-body)"
+      );
+      document.documentElement.style.setProperty(
+        "--docmost-surface-bg",
+        theme.surfaceBg || "var(--mantine-color-body)"
+      );
+      document.documentElement.style.setProperty(
+        "--docmost-muted-bg",
+        theme.mutedBg || "var(--mantine-color-gray-1)"
+      );
+      document.documentElement.style.setProperty(
+        "--docmost-text-color",
+        theme.textColor || "var(--mantine-color-text)"
+      );
+      document.documentElement.style.setProperty(
+        "--docmost-border-color",
+        theme.borderColor || "var(--mantine-color-default-border)"
       );
 
       // Apply font family if specified
@@ -223,6 +246,7 @@ export function DocmostThemeProvider({ children }: ThemeProviderProps) {
     try {
       const theme = getThemeById(themeId);
       setActiveTheme(theme);
+      document.documentElement.setAttribute("data-theme", themeId);
       document.documentElement.setAttribute("data-theme-id", themeId);
       document.documentElement.setAttribute(
         "data-theme-primary",
@@ -232,7 +256,30 @@ export function DocmostThemeProvider({ children }: ThemeProviderProps) {
         "data-theme-secondary",
         theme.secondaryColor || "red"
       );
-      setColorScheme(theme.isDark ? "dark" : "light");
+      document.documentElement.style.setProperty(
+        "--docmost-body-bg",
+        theme.bodyBg || "var(--mantine-color-body)"
+      );
+      document.documentElement.style.setProperty(
+        "--docmost-surface-bg",
+        theme.surfaceBg || "var(--mantine-color-body)"
+      );
+      document.documentElement.style.setProperty(
+        "--docmost-muted-bg",
+        theme.mutedBg || "var(--mantine-color-gray-1)"
+      );
+      document.documentElement.style.setProperty(
+        "--docmost-text-color",
+        theme.textColor || "var(--mantine-color-text)"
+      );
+      document.documentElement.style.setProperty(
+        "--docmost-border-color",
+        theme.borderColor || "var(--mantine-color-default-border)"
+      );
+      const desiredScheme = theme.isDark ? "dark" : "light";
+      if (colorScheme !== desiredScheme) {
+        setColorScheme(desiredScheme);
+      }
     } catch (error) {
       console.error("Error setting theme:", error);
     }
@@ -255,7 +302,7 @@ export function DocmostThemeProvider({ children }: ThemeProviderProps) {
         setThemeById("default-light");
       }
     }
-  }, [user, colorScheme]);
+  }, [user]);
 
   // Update theme when user preferences change
   useEffect(() => {

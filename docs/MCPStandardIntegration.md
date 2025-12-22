@@ -1,10 +1,10 @@
-# MCP Standard Integration in Docmost
+# MCP Standard Integration in Raven Docs
 
-The standard Model Context Protocol (MCP) has been integrated directly into the Docmost server, eliminating the need for a separate bridge server.
+The standard Model Context Protocol (MCP) has been integrated directly into the Raven Docs server, eliminating the need for a separate bridge server.
 
 ## What's New
 
-Instead of running a separate MCP bridge server, the Docmost server now includes built-in support for the standard MCP protocol at `/api/mcp-standard/*` endpoints. This provides better performance and simplifies deployment.
+Instead of running a separate MCP bridge server, the Raven Docs server now includes built-in support for the standard MCP protocol at `/api/mcp-standard/*` endpoints. This provides better performance and simplifies deployment.
 
 ## Configuration for AI Tools
 
@@ -15,8 +15,8 @@ Add to your `.cursorrules` or MCP configuration:
 ```json
 {
   "mcpServers": {
-    "docmost": {
-      "url": "http://localhost:3333/api/mcp-standard",
+    "raven-docs": {
+      "url": "http://localhost:3000/api/mcp-standard",
       "apiKey": "mcp_your_api_key_here"
     }
   }
@@ -48,7 +48,7 @@ Authorization: Bearer mcp_your_api_key_here
 
 ### Available Tools
 
-The integration provides access to all Docmost functionality through standard MCP tools:
+The integration provides access to all Raven Docs functionality through standard MCP tools:
 
 #### Space Management
 - `space_list` - List all spaces
@@ -86,7 +86,7 @@ The integration provides access to all Docmost functionality through standard MC
 
 ```javascript
 // Initialize connection
-const response = await fetch('http://localhost:3333/api/mcp-standard/initialize', {
+const response = await fetch('http://localhost:3000/api/mcp-standard/initialize', {
   method: 'POST',
   headers: {
     'Content-Type': 'application/json'
@@ -98,7 +98,7 @@ const response = await fetch('http://localhost:3333/api/mcp-standard/initialize'
 });
 
 // List available tools
-const tools = await fetch('http://localhost:3333/api/mcp-standard/list_tools', {
+const tools = await fetch('http://localhost:3000/api/mcp-standard/list_tools', {
   method: 'POST',
   headers: {
     'Content-Type': 'application/json'
@@ -106,7 +106,7 @@ const tools = await fetch('http://localhost:3333/api/mcp-standard/list_tools', {
 });
 
 // Call a tool (requires authentication)
-const result = await fetch('http://localhost:3333/api/mcp-standard/call_tool', {
+const result = await fetch('http://localhost:3000/api/mcp-standard/call_tool', {
   method: 'POST',
   headers: {
     'Content-Type': 'application/json',
@@ -145,7 +145,7 @@ The integrated implementation is fully compatible with the bridge server's proto
 
 ## Benefits
 
-- **No separate server needed** - Everything runs in the main Docmost process
+- **No separate server needed** - Everything runs in the main Raven Docs process
 - **Better performance** - Direct integration eliminates network overhead
 - **Simplified deployment** - One less service to manage
 - **Consistent authentication** - Uses the same API key system

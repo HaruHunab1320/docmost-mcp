@@ -71,7 +71,9 @@ export default function GlobalAppShell({
 
   const location = useLocation();
   const isSettingsRoute = location.pathname.startsWith("/settings");
-  const isSpaceRoute = location.pathname.startsWith("/s/");
+  const isSpaceRoute =
+    location.pathname.startsWith("/s/") ||
+    location.pathname.startsWith("/spaces/");
   const isProjectRoute = location.pathname.includes("/projects");
   const isHomeRoute = location.pathname.startsWith("/home");
   const isPageRoute = location.pathname.includes("/p/");
@@ -127,7 +129,7 @@ export default function GlobalAppShell({
           {isSettingsRoute && <SettingsSidebar />}
         </AppShell.Navbar>
       )}
-      <AppShell.Main>
+      <AppShell.Main className={classes.main}>
         {isSettingsRoute ? (
           <Container size={800}>{children}</Container>
         ) : (

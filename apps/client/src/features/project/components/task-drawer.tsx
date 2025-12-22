@@ -28,6 +28,11 @@ import {
   FileInput,
 } from "@mantine/core";
 import { Task, TaskPriority, TaskStatus } from "../types";
+import {
+  clearTaskBucket,
+  getTaskBucket,
+  setTaskBucket,
+} from "@/features/gtd/utils/task-buckets";
 import { useTranslation } from "react-i18next";
 import {
   IconChevronLeft,
@@ -87,6 +92,7 @@ import { useDisclosure } from "@mantine/hooks";
 import EmojiPicker from "@/components/ui/emoji-picker";
 import { api } from "@/lib/api";
 import { notifications } from "@mantine/notifications";
+import { useCreatePageMutation } from "@/features/page/queries/page-query";
 // Lazy load Picker from emoji-mart to avoid SSR issues
 const Picker = lazy(() => import("@emoji-mart/react"));
 
@@ -166,11 +172,13 @@ export function TaskDrawer({
     { open: openEmojiPicker, close: closeEmojiPicker },
   ] = useDisclosure(false);
   const [isHoveringEmoji, setIsHoveringEmoji] = useState(false);
+  const bucketValue = spaceId && task ? getTaskBucket(spaceId, task.id) : "";
 
   // Use the useTask hook to fetch task data
   const { data: task, isLoading, refetch } = useTask(taskId);
 
   const updateTaskMutation = useUpdateTaskMutation();
+  const createPageMutation = useCreatePageMutation();
   const assignTaskMutation = useAssignTaskMutation();
   const completeTaskMutation = useCompleteTaskMutation();
 
@@ -369,6 +377,48 @@ export function TaskDrawer({
       // Close the drawer before navigating
       onClose();
       navigate(pageUrlMatch[1]);
+    }
+  };
+
+  const handleCreatePageForTask = async () => {
+    if (!task || createPageMutation.isPending) return;
+
+    try {
+      const content = JSON.stringify({
+        type: "doc",
+        content: task.description
+          ? [
+              {
+                type: "paragraph",
+                content: [{ type: "text", text: task.description }],
+              },
+            ]
+          : [],
+      });
+
+      const newPage = await createPageMutation.mutateAsync({
+        title: task.title,
+        content,
+        spaceId: task.spaceId,
+        icon: task.icon || "📝",
+      });
+
+      if (newPage?.id) {
+        await updateTaskMutation.mutateAsync({
+          taskId: task.id,
+          pageId: newPage.id,
+        });
+      }
+
+      if (newPage?.slugId) {
+        onClose();
+        navigate(`/s/${task.spaceId}/p/${newPage.slugId}`);
+      }
+    } catch (error) {
+      notifications.show({
+        message: t("Failed to create page for task"),
+        color: "red",
+      });
     }
   };
 
@@ -1374,6 +1424,36 @@ export function TaskDrawer({
                 </Flex>
               </Group>
 
+              <Group justify="apart" mb="xs">
+                <Text fw={500} size="sm" style={{ width: "100px" }}>
+                  {t("Bucket")}
+                </Text>
+                <Select
+                  data={[
+                    { value: "none", label: t("None") },
+                    { value: "waiting", label: t("Waiting") },
+                    { value: "someday", label: t("Someday") },
+                  ]}
+                  value={bucketValue || "none"}
+                  onChange={(value) => {
+                    if (!spaceId || !task) return;
+                    if (!value || value === "none") {
+                      clearTaskBucket(spaceId, task.id);
+                      return;
+                    }
+                    setTaskBucket(spaceId, task.id, value as any);
+                  }}
+                  size="sm"
+                  styles={{
+                    input: {
+                      border: "none",
+                      padding: 0,
+                      backgroundColor: "transparent",
+                    },
+                  }}
+                />
+              </Group>
+
               <Button
                 variant="subtle"
                 leftSection={<IconPlus size={14} />}
@@ -1473,7 +1553,6 @@ export function TaskDrawer({
                     }}
                     onClick={openAsFullPage}
                   >
-                    {/* This is a placeholder for the actual editor */}
                     <Text size="sm">
                       {t("Click to edit content (opens page editor)")}
                     </Text>
@@ -1492,12 +1571,8 @@ export function TaskDrawer({
                       borderRadius: theme.radius.sm,
                       border: `1px solid ${colorScheme === "dark" ? theme.colors.dark[4] : theme.colors.gray[3]}`,
                     }}
-                    onClick={() => {
-                      // TODO: Create or open page editor
-                      console.log("Create new page for task");
-                    }}
+                    onClick={handleCreatePageForTask}
                   >
-                    {/* This is a placeholder for the actual editor */}
                     <Text size="sm">{t("Click to add content")}</Text>
                   </Box>
                 </Box>

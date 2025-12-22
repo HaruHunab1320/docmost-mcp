@@ -1,0 +1,11 @@
+.input {
+  width: 360px;
+
+  @media (max-width: 900px) {
+    width: 240px;
+  }
+
+  @media (max-width: 600px) {
+    display: none;
+  }
+}

@@ -3,7 +3,7 @@
 # MCP Standard API Test Script
 # Tests the integrated MCP Standard endpoints
 
-API_URL="http://localhost:3333/api/mcp-standard"
+API_URL="http://localhost:3000/api/mcp-standard"
 API_KEY="${MCP_API_KEY:-your_api_key_here}"
 
 echo "Testing MCP Standard Integration..."

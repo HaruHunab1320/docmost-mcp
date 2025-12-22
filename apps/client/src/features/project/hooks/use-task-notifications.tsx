@@ -8,6 +8,7 @@ import { useInterval } from "@mantine/hooks";
 import { Task } from "../types";
 import { useCurrentWorkspace } from "@/features/workspace/hooks/use-current-workspace";
 import useCurrentUser from "@/features/user/hooks/use-current-user";
+import { useCurrentSpace } from "@/features/space/hooks/use-current-space";
 import dayjs from "dayjs";
 import calendar from "dayjs/plugin/calendar";
 import relativeTime from "dayjs/plugin/relativeTime";
@@ -25,18 +26,15 @@ interface UseTaskNotificationsParams {
 // Custom hook to get tasks assigned to a specific user
 function useTasksByAssignee(userId: string, enabled: boolean = true) {
   const { data: workspace } = useCurrentWorkspace();
+  const { data: space } = useCurrentSpace();
 
   return useQuery({
     queryKey: ["tasks-by-assignee", userId],
     queryFn: async () => {
-      // Get all tasks from the workspace and filter for assigned tasks
-      // Get current workspace data
-      if (!workspace?.id) return null;
-      
-      // For now, we'll use the workspace ID as a placeholder
-      // This would need to be updated to use the actual active space
+      if (!space?.id) return null;
+
       const response = await projectService.listTasksBySpace({
-        spaceId: workspace.id,
+        spaceId: space.id,
       });
 
       // Filter to only include tasks assigned to the specified user
@@ -52,7 +50,7 @@ function useTasksByAssignee(userId: string, enabled: boolean = true) {
 
       return response;
     },
-    enabled: !!userId && !!workspace?.id && enabled,
+    enabled: !!userId && !!workspace?.id && !!space?.id && enabled,
   });
 }
 

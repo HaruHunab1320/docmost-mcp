@@ -1,14 +1,18 @@
-# Docmost MCP Extensions Documentation
+# Raven Docs MCP Extensions Documentation
 
 ## Overview
 
-This collection of documents provides comprehensive documentation for the Model Context Protocol (MCP) and Master Control API extensions developed for Docmost by HaruHunab1320.
+This collection of documents provides comprehensive documentation for the Model Context Protocol (MCP) and Master Control API extensions developed for Raven Docs by HaruHunab1320.
 
-These extensions enable AI assistants to interact directly with Docmost, allowing for automated content management, real-time collaboration between AI and humans, and programmatic control of the user interface.
+These extensions enable AI assistants to interact directly with Raven Docs, allowing for automated content management, real-time collaboration between AI and humans, and programmatic control of the user interface.
 
 ## Available Documentation
 
-### 1. [Codebase Review](./CodebaseReview.md)
+### 0. [Architecture Overview](./ArchitectureOverview.md)
+
+System map, module breakdown, data flows, and MCP integration summary.
+
+### 1. [Codebase Review](../CodebaseReview.md)
 
 A high-level overview of the entire codebase, focusing on:
 - System architecture
@@ -16,7 +20,7 @@ A high-level overview of the entire codebase, focusing on:
 - Extension components
 - Potential issues and next steps
 
-### 2. [API Key Authentication System](./APIKeySystem.md)
+### 2. [API Key Authentication System](../APIKeySystem.md)
 
 Detailed explanation of the API key authentication system:
 - Key structure and generation
@@ -55,7 +59,7 @@ Details on the real-time event system:
 
 ### Master Control API
 
-The Master Control API provides a JSON-RPC 2.0 interface to all Docmost functionality. It serves as the foundation for the MCP integration, allowing AI assistants and other clients to programmatically:
+The Master Control API provides a JSON-RPC 2.0 interface to all Raven Docs functionality. It serves as the foundation for the MCP integration, allowing AI assistants and other clients to programmatically:
 
 - Manage spaces, pages, and comments
 - Upload and manage attachments
@@ -110,4 +114,7 @@ To contribute to the MCP extensions:
 
 ## License
 
-The Docmost MCP extensions are licensed under the same license as the core Docmost project (AGPL 3.0). 
+The Raven Docs MCP extensions are licensed under the same license as the core Docmost project (AGPL 3.0). 
+### 6. [UI Audit Matrix](./UIAudit.md)
+
+Current UI surface status (complete/partial/unverified) with follow-up checklist.

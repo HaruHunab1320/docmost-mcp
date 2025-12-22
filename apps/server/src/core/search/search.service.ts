@@ -23,7 +23,7 @@ export class SearchService {
     searchParams: SearchDTO,
   ): Promise<SearchResponseDto[]> {
     if (query.length < 1) {
-      return;
+      return [];
     }
     const searchQuery = tsquery(query.trim() + '*');
 
@@ -54,16 +54,53 @@ export class SearchService {
       .offset(searchParams.offset || 0)
       .execute();
 
-    const searchResults = queryResults.map((result) => {
-      if (result.highlight) {
-        result.highlight = result.highlight
-          .replace(/\r\n|\r|\n/g, ' ')
-          .replace(/\s+/g, ' ');
-      }
-      return result;
-    });
+    return this.normalizeResults(queryResults);
+  }
 
-    return searchResults;
+  async searchPagesForUser(
+    query: string,
+    userId: string,
+    searchParams: SearchDTO,
+  ): Promise<SearchResponseDto[]> {
+    if (query.length < 1) {
+      return [];
+    }
+
+    const userSpaceIds = await this.spaceMemberRepo.getUserSpaceIds(userId);
+    if (!userSpaceIds?.length) {
+      return [];
+    }
+
+    const searchQuery = tsquery(query.trim() + '*');
+
+    const queryResults = await this.db
+      .selectFrom('pages')
+      .select([
+        'id',
+        'slugId',
+        'title',
+        'icon',
+        'parentPageId',
+        'creatorId',
+        'createdAt',
+        'updatedAt',
+        sql<number>`ts_rank(tsv, to_tsquery(${searchQuery}))`.as('rank'),
+        sql<string>`ts_headline('english', text_content, to_tsquery(${searchQuery}),'MinWords=9, MaxWords=10, MaxFragments=3')`.as(
+          'highlight',
+        ),
+      ])
+      .select((eb) => this.pageRepo.withSpace(eb))
+      .where('spaceId', 'in', userSpaceIds)
+      .where('tsv', '@@', sql<string>`to_tsquery(${searchQuery})`)
+      .$if(Boolean(searchParams.creatorId), (qb) =>
+        qb.where('creatorId', '=', searchParams.creatorId),
+      )
+      .orderBy('rank', 'desc')
+      .limit(searchParams.limit | 20)
+      .offset(searchParams.offset || 0)
+      .execute();
+
+    return this.normalizeResults(queryResults);
   }
 
   async searchSuggestions(
@@ -123,5 +160,16 @@ export class SearchService {
     }
 
     return { users, groups, pages };
+  }
+
+  private normalizeResults(results: SearchResponseDto[]) {
+    return results.map((result) => {
+      if (result.highlight) {
+        result.highlight = result.highlight
+          .replace(/\r\n|\r|\n/g, ' ')
+          .replace(/\s+/g, ' ');
+      }
+      return result;
+    });
   }
 }

@@ -48,6 +48,7 @@ export class TaskService {
       includeSubtasks?: boolean;
       includeCreator?: boolean;
       includeAssignee?: boolean;
+      includeLabels?: boolean;
     },
   ): Promise<Paginated<Task>> {
     console.log('[TaskService] findByProjectId called with:', {
@@ -99,6 +100,7 @@ export class TaskService {
       includeCreator?: boolean;
       includeAssignee?: boolean;
       includeProject?: boolean;
+      includeLabels?: boolean;
     },
   ): Promise<Paginated<Task>> {
     console.log('[TaskService] findBySpaceId called with:', {

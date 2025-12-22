@@ -2,7 +2,7 @@
 
 ## Overview
 
-We have successfully integrated the standard Model Context Protocol (MCP) directly into the Docmost server, eliminating the need for users to run a separate bridge server. This provides a better user experience and simplifies deployment.
+We have successfully integrated the standard Model Context Protocol (MCP) directly into the Raven Docs server, eliminating the need for users to run a separate bridge server. This provides a better user experience and simplifies deployment.
 
 ## What Was Done
 
@@ -41,7 +41,7 @@ Successfully demonstrated a complete workflow:
 
 ## Benefits
 
-1. **No Separate Server Required** - Everything runs in the main Docmost process
+1. **No Separate Server Required** - Everything runs in the main Raven Docs process
 2. **Better Performance** - Direct integration eliminates network overhead
 3. **Simplified Deployment** - One less service to manage
 4. **Consistent Authentication** - Uses the same API key system
@@ -53,7 +53,7 @@ Successfully demonstrated a complete workflow:
 
 Configure your AI tool to connect to:
 ```
-URL: http://localhost:3333/api/mcp-standard
+URL: http://localhost:3000/api/mcp-standard
 API Key: mcp_your_api_key_here
 ```
 
@@ -73,7 +73,7 @@ All standard MCP endpoints are available:
 
 ### Available Tools
 
-The integration provides 20 tools covering all Docmost functionality:
+The integration provides 20 tools covering all Raven Docs functionality:
 - Space management (create, list, update, delete)
 - Page management (create, list, update, delete, move)
 - User management (list, get, update)
@@ -93,12 +93,12 @@ MCP Standard Service
     ↓ Internal JSON-RPC
 MCP Service (Master Control Program)
     ↓ Business Logic
-Docmost Core Services
+Raven Docs Core Services
 ```
 
 ### Key Design Decisions
 
-1. **Protocol Translation**: The MCP Standard Service translates between the standard MCP protocol and Docmost's internal Master Control Program API
+1. **Protocol Translation**: The MCP Standard Service translates between the standard MCP protocol and Raven Docs's internal Master Control Program API
 2. **Authentication Reuse**: Leverages existing MCPApiKeyGuard for consistent authentication
 3. **Error Handling**: Proper error formatting for both protocols
 4. **Response Format**: Standard MCP format with content arrays
@@ -120,4 +120,4 @@ No other changes are needed - the protocol is fully compatible.
 
 ## Conclusion
 
-The MCP Standard integration is complete and fully functional. Users no longer need to run a separate bridge server, and AI tools can connect directly to Docmost using the industry-standard Model Context Protocol. This significantly improves the user experience while maintaining full compatibility with existing tools and workflows.
+The MCP Standard integration is complete and fully functional. Users no longer need to run a separate bridge server, and AI tools can connect directly to Raven Docs using the industry-standard Model Context Protocol. This significantly improves the user experience while maintaining full compatibility with existing tools and workflows.

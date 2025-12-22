@@ -25,9 +25,15 @@ import {
   IconCalendarTime,
   IconColumns,
   IconArrowsSort,
+  IconFileText,
 } from "@tabler/icons-react";
 import { useBoardContext } from "../board-context";
 import { useTranslation } from "react-i18next";
+import { useSpaceQuery } from "@/features/space/queries/space-query";
+import { usePageQuery } from "@/features/page/queries/page-query";
+import { buildPageUrl } from "@/features/page/page.utils";
+import { useNavigate } from "react-router-dom";
+import { useCreateProjectPageMutation } from "@/features/project/hooks/use-projects";
 
 interface BoardHeaderProps {
   onToggleFilters: () => void;
@@ -35,6 +41,7 @@ interface BoardHeaderProps {
 
 export function BoardHeader({ onToggleFilters }: BoardHeaderProps) {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const {
     project,
     viewMode,
@@ -46,6 +53,13 @@ export function BoardHeader({ onToggleFilters }: BoardHeaderProps) {
     sortOrder,
     setSortOrder,
   } = useBoardContext();
+  const createProjectPageMutation = useCreateProjectPageMutation();
+  const homePageId =
+    project.homePageId || createProjectPageMutation.data?.homePageId || "";
+  const { data: space } = useSpaceQuery(project.spaceId);
+  const { data: projectPage } = usePageQuery({
+    pageId: homePageId,
+  });
 
   // Handle sort selection
   const handleSortChange = (value: string) => {
@@ -136,6 +150,37 @@ export function BoardHeader({ onToggleFilters }: BoardHeaderProps) {
         )}
 
         <Group>
+          {homePageId ? (
+            <Button
+              variant="light"
+              size="sm"
+              leftSection={<IconFileText size={16} />}
+              disabled={!space || !projectPage}
+              onClick={() =>
+                space &&
+                projectPage &&
+                navigate(
+                  buildPageUrl(
+                    space.slug,
+                    projectPage.slugId || projectPage.id,
+                    projectPage.title
+                  )
+                )
+              }
+            >
+              {t("Project page")}
+            </Button>
+          ) : (
+            <Button
+              variant="light"
+              size="sm"
+              leftSection={<IconFileText size={16} />}
+              loading={createProjectPageMutation.isPending}
+              onClick={() => createProjectPageMutation.mutate(project.id)}
+            >
+              {t("Create project page")}
+            </Button>
+          )}
           {/* Sort Button Menu */}
           <Menu position="bottom-end" withArrow shadow="md">
             <Menu.Target>

@@ -1,22 +1,5 @@
-// Define interface locally to avoid import issues
-interface Project {
-  id: string;
-  name: string;
-  description?: string;
-  icon?: string;
-  color?: string;
-  coverImage?: string | null;
-  isArchived: boolean;
-  startDate?: string;
-  endDate?: string;
-  spaceId: string;
-  workspaceId: string;
-  creatorId?: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
 import { Board } from "./board";
+import { Project } from "../types";
 
 interface ProjectBoardProps {
   project: Project;

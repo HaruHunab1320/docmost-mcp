@@ -1,17 +1,20 @@
 <div align="center">
-    <h1><b>Docmost</b></h1>
+    <h1><b>Raven Docs</b></h1>
     <p>
-        Open-source collaborative wiki and documentation software.
+        A second-brain workspace for docs, projects, and GTD-style planning.
         <br />
-        <a href="https://docmost.com"><strong>Website</strong></a> | 
-        <a href="https://docmost.com/docs"><strong>Documentation</strong></a>
+        <a href="https://github.com/docmost/docmost"><strong>Upstream Docmost</strong></a>
     </p>
 </div>
 <br />
 
 ## Getting started
 
-To get started with Docmost, please refer to our [documentation](https://docmost.com/docs).
+To get started with Raven Docs, see `README-NEW.md` for setup and use the upstream Docmost docs for baseline reference.
+
+## Origin
+
+Raven Docs is built on the Docmost codebase and continues to evolve with its own product direction.
 
 ## Features
 
@@ -26,15 +29,18 @@ To get started with Docmost, please refer to our [documentation](https://docmost
 - File attachments
 - Embeds (Airtable, Loom, Miro and more)
 - Translations (10+ languages)
+- Projects and task management
+- GTD-style Inbox, Triage, Waiting, Someday, and Weekly Review views
+- Daily notes and journal capture
 - AI Integration via Model Context Protocol (MCP) *(HaruHunab1320 extension)*
 
 ## API Integrations (HaruHunab1320 Extensions)
 
-> **Note**: The following API integrations are extensions developed by HaruHunab1320 and are not part of the official Docmost project.
+> **Note**: The following API integrations are extensions developed by HaruHunab1320 and are not part of the upstream Docmost project.
 
 ### Master Control API
 
-Docmost provides a powerful JSON-RPC 2.0 API that allows programmatic access to all core functionality. This API enables:
+Raven Docs provides a powerful JSON-RPC 2.0 API that allows programmatic access to all core functionality. This API enables:
 
 - Managing spaces, pages, and comments
 - User and workspace administration
@@ -63,9 +69,9 @@ API documentation is available at `/api/mcp/openapi.json` when running the serve
 
 ### Model Context Protocol (MCP) Integration
 
-This extension implements a bridge between Docmost and AI assistants using the Model Context Protocol.
+This extension implements a bridge between Raven Docs and AI assistants using the Model Context Protocol.
 
-Docmost integrates with AI assistants through the [Model Context Protocol](https://modelcontextprotocol.ai/), allowing AI models to:
+Raven Docs integrates with AI assistants through the [Model Context Protocol](https://modelcontextprotocol.ai/), allowing AI models to:
 
 - Create, read, update, and delete content
 - Get contextual information about workspaces, spaces, and pages
@@ -77,37 +83,32 @@ This integration enables seamless AI-assisted workflows within your documentatio
 
 #### Using with Cursor
 
-The MCP bridge allows AI assistants like Claude in Cursor to interact directly with your Docmost instance:
+Raven Docs exposes the standard MCP protocol directly at `/api/mcp-standard`, so no separate bridge process is required:
 
-1. Configure your Cursor settings to use the MCP bridge:
+1. Configure your Cursor settings to use the built-in MCP server:
    ```json
    {
      "mcpServers": {
-       "docmost": {
-         "command": "npx",
-         "args": [
-           "tsx",
-           "./packages/mcp-bridge/src/index.ts"
-         ],
-         "env": {
-           "MCP_DEBUG": "true",
-           "MCP_SERVER_URL": "http://localhost:3000",
-           "MCP_API_KEY": "your_api_key_here",
-           "NODE_ENV": "development"
-         }
+       "raven-docs": {
+         "url": "http://localhost:3000/api/mcp-standard",
+         "apiKey": "your_api_key_here"
        }
      }
    }
    ```
 
-2. Create an API key for your Docmost server:
+2. Create an API key for your Raven Docs server:
    ```sh
-   ./register-mcp-api-key.sh "Cursor MCP Bridge"
+   ./register-mcp-api-key.sh "Cursor MCP"
    ```
 
 3. Use the generated API key in your Cursor configuration.
 
-4. Start using tools directly from Cursor to interact with your Docmost content!
+4. Start using tools directly from Cursor to interact with your Raven Docs content!
+
+#### Legacy MCP Bridge (Optional)
+
+The standalone bridge server is still present for legacy workflows at `packages/mcp-bridge`, but the built-in standard MCP endpoint is the recommended path.
 
 #### Available MCP Tools
 
@@ -125,7 +126,7 @@ The MCP bridge provides the following tool categories:
 - `workspace_create`, `workspace_list`, `workspace_update`, `workspace_delete`, `workspace_addMember`, `workspace_removeMember`: Manage workspaces
 
 **UI Control**
-- `ui_navigate`: Navigate to specific destinations in the Docmost interface
+- `ui_navigate`: Navigate to specific destinations in the Raven Docs interface
 
 Each tool accepts specific parameters and can be called directly from AI assistants that support the Model Context Protocol.
 
@@ -137,7 +138,7 @@ Each tool accepts specific parameters and can be called directly from AI assista
 </p>
 
 ### License
-Docmost core is licensed under the open-source AGPL 3.0 license.  
+Raven Docs inherits the Docmost core licensed under the open-source AGPL 3.0 license.  
 Enterprise features are available under an enterprise license (Enterprise Edition).  
 
 All files in the following directories are licensed under the Docmost Enterprise license defined in `packages/ee/License`.
@@ -147,4 +148,4 @@ All files in the following directories are licensed under the Docmost Enterprise
 
 ### Contributing
 
-See the [development documentation](https://docmost.com/docs/self-hosting/development)
+See the upstream [development documentation](https://docmost.com/docs/self-hosting/development)

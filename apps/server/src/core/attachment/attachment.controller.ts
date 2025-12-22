@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  Body,
   Controller,
   ForbiddenException,
   Get,
@@ -49,6 +50,7 @@ import { AttachmentRepo } from '@docmost/db/repos/attachment/attachment.repo';
 import { validate as isValidUUID } from 'uuid';
 import { EnvironmentService } from '../../integrations/environment/environment.service';
 import { PaginationOptions } from '@docmost/db/pagination/pagination-options';
+import { AttachmentIdDto } from './dto/attachment.input';
 
 @Controller()
 export class AttachmentController {
@@ -126,6 +128,60 @@ export class AttachmentController {
     );
 
     return attachments;
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  @Post('attachments/delete')
+  async deleteAttachment(
+    @Body() input: AttachmentIdDto,
+    @AuthUser() user: User,
+    @AuthWorkspace() workspace: Workspace,
+  ) {
+    if (!isValidUUID(input.attachmentId)) {
+      throw new BadRequestException('Invalid attachment id');
+    }
+
+    const attachment = await this.attachmentRepo.findById(input.attachmentId);
+    if (!attachment || attachment.workspaceId !== workspace.id) {
+      throw new NotFoundException('Attachment not found');
+    }
+
+    if (attachment.spaceId) {
+      const spaceAbility = await this.spaceAbility.createForUser(
+        user,
+        attachment.spaceId,
+      );
+      if (spaceAbility.cannot(SpaceCaslAction.Manage, SpaceCaslSubject.Page)) {
+        throw new ForbiddenException(
+          'You do not have permission to delete this attachment',
+        );
+      }
+    } else {
+      const ability = this.workspaceAbility.createForUser(user, workspace);
+      if (
+        ability.cannot(
+          WorkspaceCaslAction.Manage,
+          WorkspaceCaslSubject.Attachment,
+        )
+      ) {
+        throw new ForbiddenException(
+          'You do not have permission to delete this attachment',
+        );
+      }
+    }
+
+    try {
+      await this.storageService.delete(attachment.filePath);
+    } catch (error) {
+      this.logger.warn(
+        `Failed to delete attachment file from storage: ${attachment.filePath}`,
+        error,
+      );
+    }
+
+    await this.attachmentRepo.deleteAttachmentById(attachment.id);
+    return { success: true };
   }
 
   @UseGuards(JwtAuthGuard)

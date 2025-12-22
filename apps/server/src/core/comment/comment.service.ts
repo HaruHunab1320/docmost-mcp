@@ -126,4 +126,24 @@ export class CommentService {
 
     await this.commentRepo.deleteComment(commentId);
   }
+
+  async resolve(
+    commentId: string,
+    resolved: boolean,
+    userId: string,
+  ): Promise<Comment> {
+    const comment = await this.commentRepo.findById(commentId);
+    if (!comment) {
+      throw new NotFoundException('Comment not found');
+    }
+
+    const resolvedAt = resolved ? new Date() : null;
+
+    await this.commentRepo.updateComment({ resolvedAt }, commentId);
+
+    return {
+      ...comment,
+      resolvedAt,
+    };
+  }
 }

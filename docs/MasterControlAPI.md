@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Master Control API is a JSON-RPC 2.0 compliant server that provides programmatic access to all Docmost functionality. It serves as the foundation for the MCP integration, enabling AI assistants and other clients to interact with Docmost's features in a standardized way.
+The Master Control API is a JSON-RPC 2.0 compliant server that provides programmatic access to all Raven Docs functionality. It serves as the foundation for the MCP integration, enabling AI assistants and other clients to interact with Raven Docs features in a standardized way.
 
 ## Architecture
 

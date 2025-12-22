@@ -74,6 +74,43 @@
     margin-bottom: rem(5px);
 }
 
+.projectGroup {
+    margin-bottom: rem(6px);
+}
+
+.projectRow {
+    width: 100%;
+    padding: rem(6px) var(--mantine-spacing-xs);
+    border-radius: var(--mantine-radius-sm);
+    font-weight: 500;
+    color: light-dark(var(--mantine-color-gray-7), var(--mantine-color-dark-0));
+
+    &:hover {
+        background-color: light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-6));
+    }
+}
+
+.projectChildren {
+    margin-left: rem(18px);
+    padding-left: rem(6px);
+    border-left: rem(1px) solid light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-5));
+}
+
+.projectPageItem {
+    padding: rem(4px) var(--mantine-spacing-xs);
+    border-radius: var(--mantine-radius-sm);
+    color: light-dark(var(--mantine-color-gray-7), var(--mantine-color-dark-0));
+    cursor: pointer;
+
+    &:hover {
+        background-color: light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-6));
+    }
+}
+
+.projectEmpty {
+    padding: rem(6px) var(--mantine-spacing-xs);
+}
+
 .pageLink {
     display: block;
     padding: rem(8px) var(--mantine-spacing-xs);

@@ -6,8 +6,6 @@ import {
   currentUserAtom,
 } from "@/features/user/atoms/current-user-atom";
 import { useEffect, useRef } from "react";
-import { getThemeById } from "@/theme";
-import { useMantineColorScheme } from "@mantine/core";
 
 // Create a variable to track if theme has been manually set during this session
 let manualThemeApplied = false;
@@ -17,7 +15,6 @@ let manualThemeApplied = false;
  */
 export default function useCurrentUser() {
   const [, setCurrentUser] = useAtom(currentUserAtom);
-  const { setColorScheme } = useMantineColorScheme();
   const initialLoadRef = useRef(true);
 
   const query = useQuery({
@@ -35,36 +32,13 @@ export default function useCurrentUser() {
       // Apply theme if user has a preference AND no manual theme has been set
       if (
         query.data.user?.settings?.preferences?.themeId &&
-        !manualThemeApplied
+        !manualThemeApplied &&
+        initialLoadRef.current
       ) {
-        const themeId = query.data.user.settings.preferences.themeId;
-
-        try {
-          const selectedTheme = getThemeById(themeId);
-
-          // Apply the theme's colors to document for CSS variables
-          document.documentElement.setAttribute(
-            "data-theme-primary",
-            selectedTheme.primaryColor
-          );
-          document.documentElement.setAttribute(
-            "data-theme-secondary",
-            selectedTheme.secondaryColor || "red"
-          );
-
-          // Set Mantine color scheme based on theme
-          setColorScheme(selectedTheme.isDark ? "dark" : "light");
-
-          // If this is the initial load, apply theme but don't mark as manual
-          if (initialLoadRef.current) {
-            initialLoadRef.current = false;
-          }
-        } catch (error) {
-          console.error("Error applying theme:", error);
-        }
+        initialLoadRef.current = false;
       }
     }
-  }, [query.data, setCurrentUser, setColorScheme]);
+  }, [query.data, setCurrentUser]);
 
   return query;
 }

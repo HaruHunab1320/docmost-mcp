@@ -213,6 +213,37 @@ export function useUpdateProjectMutation() {
   });
 }
 
+export function useCreateProjectPageMutation() {
+  const queryClient = useQueryClient();
+  const { t } = useTranslation();
+
+  return useMutation({
+    mutationFn: (projectId: string) =>
+      projectService.createProjectPage(projectId),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({
+        queryKey: [PROJECT_QUERY_KEY, data.id],
+      });
+      queryClient.invalidateQueries({
+        queryKey: [PROJECTS_QUERY_KEY, { spaceId: data.spaceId }],
+      });
+
+      notifications.show({
+        title: t("Project page created"),
+        message: t("Project page is ready to open"),
+        color: "green",
+      });
+    },
+    onError: () => {
+      notifications.show({
+        title: t("Error"),
+        message: t("Failed to create project page"),
+        color: "red",
+      });
+    },
+  });
+}
+
 export function useArchiveProjectMutation() {
   const queryClient = useQueryClient();
   const { t } = useTranslation();

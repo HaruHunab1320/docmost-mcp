@@ -2,7 +2,7 @@
 
 ## Current State
 
-Docmost currently supports basic task management through the editor with the following features:
+Raven Docs currently supports basic task management through the editor with the following features.
 
 ### Basic Task Management
 - **Task Lists (To-Do Lists)**: 

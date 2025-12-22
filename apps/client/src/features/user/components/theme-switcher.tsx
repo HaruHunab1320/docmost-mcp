@@ -35,40 +35,23 @@ export function ThemeSwitcher() {
   const [user, setUser] = useAtom(userAtom);
   const theme = useMantineTheme();
   const [opened, setOpened] = useState(false);
+  const systemScheme = useColorScheme();
 
   const isDark = colorScheme === "dark";
 
   const lightThemes = DOCMOST_THEMES.filter((theme) => !theme.isDark);
   const darkThemes = DOCMOST_THEMES.filter((theme) => theme.isDark);
 
-  // Toggle between light and dark mode only
-  const toggleColorScheme = async () => {
-    const newColorScheme = isDark ? "light" : "dark";
-    setColorScheme(newColorScheme);
-
-    // Find the corresponding theme with the same primary color
-    const baseThemeId = activeTheme.id;
-    const baseParts = baseThemeId.split("-");
+  const applyLightOrDarkTheme = async (scheme: "light" | "dark") => {
+    const baseParts = activeTheme.id.split("-");
     const baseColor = baseParts[0];
-
-    // If we're switching to dark, find a dark theme with the same base color
-    // Otherwise, find a light theme with the same base color
-    const newThemeId = `${baseColor}-${newColorScheme}`;
-
-    // Only update if the theme exists
-    const newTheme = DOCMOST_THEMES.find((t) => t.id === newThemeId);
-    if (newTheme) {
-      try {
-        // Mark as manually set to prevent override
-        setManualThemeApplied(true);
-
-        const updatedUser = await updateUser({ themeId: newThemeId });
-        setUser(updatedUser);
-        setThemeById(newThemeId);
-      } catch (error) {
-        console.error("Failed to update theme:", error);
-      }
+    const newThemeId = `${baseColor}-${scheme}`;
+    if (DOCMOST_THEMES.some((theme) => theme.id === newThemeId)) {
+      await applyTheme(newThemeId);
+      return;
     }
+
+    await applyTheme(scheme === "light" ? "default-light" : "default-dark");
   };
 
   // Apply a specific theme
@@ -146,14 +129,14 @@ export function ThemeSwitcher() {
         <Menu.Label>{t("Color mode")}</Menu.Label>
         <Menu.Item
           leftSection={<IconSun style={{ width: rem(16), height: rem(16) }} />}
-          onClick={() => setColorScheme("light")}
+          onClick={() => applyLightOrDarkTheme("light")}
           color={colorScheme === "light" ? theme.primaryColor : undefined}
         >
           {t("Light")}
         </Menu.Item>
         <Menu.Item
           leftSection={<IconMoon style={{ width: rem(16), height: rem(16) }} />}
-          onClick={() => setColorScheme("dark")}
+          onClick={() => applyLightOrDarkTheme("dark")}
           color={colorScheme === "dark" ? theme.primaryColor : undefined}
         >
           {t("Dark")}
@@ -162,7 +145,10 @@ export function ThemeSwitcher() {
           leftSection={
             <IconDeviceDesktop style={{ width: rem(16), height: rem(16) }} />
           }
-          onClick={() => setColorScheme("auto")}
+          onClick={async () => {
+            setColorScheme("auto");
+            await applyLightOrDarkTheme(systemScheme === "dark" ? "dark" : "light");
+          }}
           color={colorScheme === "auto" ? theme.primaryColor : undefined}
         >
           {t("System")}

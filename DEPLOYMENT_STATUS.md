@@ -1,4 +1,4 @@
-# Docmost Deployment Status Report
+# Raven Docs Deployment Status Report
 
 ## ✅ Completed Improvements
 
@@ -75,4 +75,4 @@ docker build -f Dockerfile.production -t docmost:latest .
 
 ## 🎯 Recommendation
 
-The core functionality is solid and the MCP integration works well. The main blocker for a smooth deployment experience is the Mantine UI compatibility issue. Once fixed, Docmost will be ready for production deployment with the simplified setup process we've created.
+The core functionality is solid and the MCP integration works well. The main blocker for a smooth deployment experience is the Mantine UI compatibility issue. Once fixed, Raven Docs will be ready for production deployment with the simplified setup process we've created.

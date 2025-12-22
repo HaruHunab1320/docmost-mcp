@@ -1,6 +1,6 @@
 .header {
     height: 45px;
-    background-color: var(--mantine-color-body);
+    background-color: var(--docmost-surface-bg, var(--mantine-color-body));
     padding-left: var(--mantine-spacing-md);
     padding-right: var(--mantine-spacing-md);
     position: fixed;

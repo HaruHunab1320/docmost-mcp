@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Model Context Protocol (MCP) integration in Docmost enables AI assistants like Claude to directly interact with the documentation platform. This document explains how the MCP integration works, its architecture, and how to extend it.
+The Model Context Protocol (MCP) integration in Raven Docs enables AI assistants like Claude to directly interact with the documentation platform. This document explains how the MCP integration works, its architecture, and how to extend it.
 
 ## What is the Model Context Protocol?
 
@@ -15,16 +15,18 @@ The [Model Context Protocol](https://modelcontextprotocol.ai/) (MCP) is a standa
 
 ## Architecture
 
-The MCP integration for Docmost consists of three main components:
+Raven Docs now supports the standard MCP protocol directly in the server at `/api/mcp-standard`. The standalone MCP bridge remains available for legacy workflows, but the built-in endpoint is the recommended path.
+
+The MCP integration for Raven Docs consists of three main components:
 
 ### 1. MCP Bridge (`packages/mcp-bridge/`)
 
-The MCP Bridge acts as an adapter between AI assistants and the Docmost API:
+The MCP Bridge acts as an adapter between AI assistants and the Raven Docs API:
 
 ```
 ┌─────────────┐      ┌───────────────┐      ┌─────────────┐
 │             │      │               │      │             │
-│ AI Assistant│<────>│   MCP Bridge  │<────>│ Docmost API │
+│ AI Assistant│<────>│   MCP Bridge  │<────>│ Raven Docs API │
 │             │      │               │      │             │
 └─────────────┘      └───────────────┘      └─────────────┘
      (Cursor)          (MCP Server)          (JSON-RPC API)
@@ -32,7 +34,7 @@ The MCP Bridge acts as an adapter between AI assistants and the Docmost API:
 
 ### 2. Master Control API (`apps/server/src/integrations/mcp/`)
 
-A JSON-RPC 2.0 API that provides a uniform interface to all Docmost functionality.
+A JSON-RPC 2.0 API that provides a uniform interface to all Raven Docs functionality.
 
 ### 3. WebSocket Events (`apps/client/src/features/websocket/`)
 
@@ -48,7 +50,7 @@ The MCP Bridge is implemented using the `@modelcontextprotocol/sdk` package and 
    - Initializes the MCP protocol server
    - Registers tools based on resource definitions
    - Handles parameter transformation
-   - Routes requests to the Docmost API
+   - Routes requests to the Raven Docs API
 
 2. **Resource Definitions** (`resources.ts`):
    - Defines Zod schemas for all resources
@@ -56,7 +58,7 @@ The MCP Bridge is implemented using the `@modelcontextprotocol/sdk` package and 
    - Maps tool parameters to API parameters
 
 3. **API Client** (`api.ts`):
-   - Handles communication with the Docmost API
+   - Handles communication with the Raven Docs API
    - Formats requests as JSON-RPC
    - Manages authentication
 
