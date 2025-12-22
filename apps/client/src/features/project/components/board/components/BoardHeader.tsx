@@ -90,7 +90,7 @@ export function BoardHeader({ onToggleFilters }: BoardHeaderProps) {
             {
               value: "kanban",
               label: (
-                <Group gap={5}>
+                <Group gap={5} wrap="nowrap">
                   <IconLayoutColumns size={16} />
                   <Text size="sm">{t("Kanban")}</Text>
                 </Group>
@@ -99,7 +99,7 @@ export function BoardHeader({ onToggleFilters }: BoardHeaderProps) {
             {
               value: "swimlane",
               label: (
-                <Group gap={5}>
+                <Group gap={5} wrap="nowrap">
                   <IconLayoutRows size={16} />
                   <Text size="sm">{t("Swimlane")}</Text>
                 </Group>
@@ -108,7 +108,7 @@ export function BoardHeader({ onToggleFilters }: BoardHeaderProps) {
             {
               value: "list",
               label: (
-                <Group gap={5}>
+                <Group gap={5} wrap="nowrap">
                   <IconList size={16} />
                   <Text size="sm">{t("List")}</Text>
                 </Group>
@@ -117,7 +117,7 @@ export function BoardHeader({ onToggleFilters }: BoardHeaderProps) {
             {
               value: "timeline",
               label: (
-                <Group gap={5}>
+                <Group gap={5} wrap="nowrap">
                   <IconCalendar size={16} />
                   <Text size="sm">{t("Timeline")}</Text>
                 </Group>
@@ -126,7 +126,7 @@ export function BoardHeader({ onToggleFilters }: BoardHeaderProps) {
             {
               value: "columns",
               label: (
-                <Group gap={5}>
+                <Group gap={5} wrap="nowrap">
                   <IconTable size={16} />
                   <Text size="sm">{t("Columns")}</Text>
                 </Group>

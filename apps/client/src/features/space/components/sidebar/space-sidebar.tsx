@@ -349,11 +349,12 @@ export function SpaceSidebar() {
                       </ActionIcon>
                       <UnstyledButton
                         className={classes.projectLink}
-                        onClick={() =>
+                        onClick={(event) => {
+                          event.stopPropagation();
                           navigate(
                             `${APP_ROUTE.SPACE.PROJECTS(space.id)}?projectId=${project.id}`
-                          )
-                        }
+                          );
+                        }}
                       >
                         <Group gap={6} wrap="nowrap">
                           <IconFolder size={14} />
@@ -394,7 +395,7 @@ export function SpaceSidebar() {
 
                 <Tooltip label={t("Create page")} withArrow position="right">
                   <ActionIcon
-                    variant="default"
+                    variant="subtle"
                     size={18}
                     onClick={handleCreatePage}
                     aria-label={t("Create page")}
@@ -451,7 +452,7 @@ function SpaceMenu({ spaceId, onSpaceSettings }: SpaceMenuProps) {
             position="top"
           >
             <ActionIcon
-              variant="default"
+              variant="subtle"
               size={18}
               aria-label={t("Space menu")}
             >

@@ -14,6 +14,7 @@ import {
 import {
   IconChecklist,
   IconChevronRight,
+  IconChevronDown,
   IconHome,
   IconPlus,
   IconSearch,
@@ -38,6 +39,8 @@ import SpaceSettingsModal from "@/features/space/components/settings-modal";
 import { SearchSpotlight } from "@/features/search/search-spotlight";
 import ProjectFormModal from "./project-form-modal";
 import { useCurrentWorkspace } from "@/features/workspace/hooks/use-current-workspace";
+import { getProjectsArray } from "../utils/project-data";
+import { ProjectLinkedPages } from "./project-linked-pages";
 
 interface ProjectSidebarProps {
   spaceId: string;
@@ -62,18 +65,9 @@ export function ProjectSidebar({
   ] = useDisclosure(false);
   const [settingsOpened, { open: openSettings, close: closeSettings }] =
     useDisclosure(false);
+  const [expandedProjects, setExpandedProjects] = useState<Record<string, boolean>>({});
 
-  // Handle both possible structures from the API
-  let projects: Project[] = [];
-  if (projectsData) {
-    if (Array.isArray(projectsData.data)) {
-      // Structure: { data: Project[], pagination: {...} }
-      projects = projectsData.data;
-    } else if (Array.isArray(projectsData.items)) {
-      // Structure: { items: Project[], meta: {...} }
-      projects = projectsData.items;
-    }
-  }
+  const projects: Project[] = getProjectsArray(projectsData);
 
   const handleDeleteProject = (project: Project) => {
     modals.openConfirmModal({
@@ -259,61 +253,94 @@ export function ProjectSidebar({
                   {t("No projects found")}
                 </Text>
               ) : (
-                projects.map((project) => (
-                  <Group key={project.id} wrap="nowrap" gap={0}>
-                    <UnstyledButton
-                      className={`${classes.menu} ${
-                        activeProjectId === project.id
-                          ? classes.activeButton
-                          : ""
-                      }`}
-                      onClick={() => onSelectProject(project)}
-                      style={{ flex: 1 }}
-                    >
-                      <div className={classes.menuItemInner}>
-                        {activeProjectId === project.id ? (
-                          <IconFolderFilled
-                            size={16}
-                            className={classes.menuItemIcon}
-                            stroke={1.5}
-                          />
-                        ) : (
-                          <IconFolder
-                            size={16}
-                            className={classes.menuItemIcon}
-                            stroke={1.5}
-                          />
-                        )}
-                        <Text size="sm" truncate>
-                          {project.name}
-                        </Text>
-                      </div>
-                    </UnstyledButton>
-                    <Menu shadow="md" position="bottom-end" withinPortal>
-                      <Menu.Target>
+                projects.map((project) => {
+                  const isExpanded = !!expandedProjects[project.id];
+                  return (
+                    <Stack key={project.id} gap={4}>
+                      <Group wrap="nowrap" gap={0}>
                         <ActionIcon
                           variant="subtle"
                           size="sm"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <IconDotsVertical size={14} />
-                        </ActionIcon>
-                      </Menu.Target>
-                      <Menu.Dropdown>
-                        <Menu.Item
-                          color="red"
-                          leftSection={<IconTrash size={14} />}
                           onClick={(e) => {
                             e.stopPropagation();
-                            handleDeleteProject(project);
+                            setExpandedProjects((prev) => ({
+                              ...prev,
+                              [project.id]: !isExpanded,
+                            }));
                           }}
+                          aria-label={
+                            isExpanded ? t("Collapse project") : t("Expand project")
+                          }
                         >
-                          {t("Delete")}
-                        </Menu.Item>
-                      </Menu.Dropdown>
-                    </Menu>
-                  </Group>
-                ))
+                          {isExpanded ? (
+                            <IconChevronDown size={14} />
+                          ) : (
+                            <IconChevronRight size={14} />
+                          )}
+                        </ActionIcon>
+                        <UnstyledButton
+                          className={`${classes.menu} ${
+                            activeProjectId === project.id
+                              ? classes.activeButton
+                              : ""
+                          }`}
+                          onClick={() => onSelectProject(project)}
+                          style={{ flex: 1 }}
+                        >
+                          <div className={classes.menuItemInner}>
+                            {activeProjectId === project.id ? (
+                              <IconFolderFilled
+                                size={16}
+                                className={classes.menuItemIcon}
+                                stroke={1.5}
+                              />
+                            ) : (
+                              <IconFolder
+                                size={16}
+                                className={classes.menuItemIcon}
+                                stroke={1.5}
+                              />
+                            )}
+                            <Text size="sm" truncate>
+                              {project.name}
+                            </Text>
+                          </div>
+                        </UnstyledButton>
+                        <Menu shadow="md" position="bottom-end" withinPortal>
+                          <Menu.Target>
+                            <ActionIcon
+                              variant="subtle"
+                              size="sm"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <IconDotsVertical size={14} />
+                            </ActionIcon>
+                          </Menu.Target>
+                          <Menu.Dropdown>
+                            <Menu.Item
+                              color="red"
+                              leftSection={<IconTrash size={14} />}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteProject(project);
+                              }}
+                            >
+                              {t("Delete")}
+                            </Menu.Item>
+                          </Menu.Dropdown>
+                        </Menu>
+                      </Group>
+                      {isExpanded && space && (
+                        <ProjectLinkedPages
+                          projectId={project.id}
+                          homePageId={project.homePageId}
+                          spaceSlug={space.slug}
+                          spaceId={space.id}
+                        />
+                      )}
+                    </Stack>
+                  );
+                })
               )}
             </Stack>
           </ScrollArea>

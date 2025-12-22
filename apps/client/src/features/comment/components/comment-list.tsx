@@ -83,15 +83,32 @@ function CommentList() {
     return <div>{t("Error loading comments.")}</div>;
   }
 
-  if (!comments || comments.items.length === 0) {
-    return <>{t("No comments yet.")}</>;
-  }
-
   return (
     <>
-      {comments.items
-        .filter((comment) => comment.parentCommentId === null)
-        .map(renderComments)}
+      {!comments || comments.items.length === 0 ? (
+        <CommentEditorWithActions
+          commentId=""
+          onSave={async (_commentId: string, content: string) => {
+            if (!page?.id || !content) return;
+            try {
+              setIsLoading(true);
+              await createCommentMutation.mutateAsync({
+                pageId: page.id,
+                content: JSON.stringify(content),
+              });
+            } catch (error) {
+              console.error("Failed to post comment:", error);
+            } finally {
+              setIsLoading(false);
+            }
+          }}
+          isLoading={isLoading}
+        />
+      ) : (
+        comments.items
+          .filter((comment) => comment.parentCommentId === null)
+          .map(renderComments)
+      )}
     </>
   );
 }
@@ -144,7 +161,9 @@ const CommentEditorWithActions = ({ commentId, onSave, isLoading }) => {
         onUpdate={setContent}
         editable={true}
       />
-      {focused && <CommentActions onSave={handleSave} isLoading={isLoading} />}
+      {(focused || content) && (
+        <CommentActions onSave={handleSave} isLoading={isLoading} />
+      )}
     </div>
   );
 };

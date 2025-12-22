@@ -73,6 +73,7 @@
 .pagesHeader {
     padding-left: calc(var(--mantine-spacing-md) + rem(2px));
     padding-right: var(--mantine-spacing-md);
+    padding-top: rem(4px);
     margin-bottom: rem(5px);
 }
 
@@ -151,8 +152,15 @@
 .sectionProjects {
     flex: 0 1 auto;
     max-height: 40vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
 }
 
 .sectionProjects .pages {
     max-height: 40vh;
+    height: auto;
+    overflow-y: auto;
+    flex: 1 1 auto;
+    min-height: 0;
 }
