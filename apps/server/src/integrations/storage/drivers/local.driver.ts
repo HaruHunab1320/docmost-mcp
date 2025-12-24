@@ -47,6 +47,14 @@ export class LocalDriver implements StorageDriver {
     throw new Error('Signed URLs are not supported for local storage.');
   }
 
+  async getUploadSignedUrl(
+    filePath: string,
+    expireIn: number,
+    contentType?: string,
+  ): Promise<string> {
+    throw new Error('Signed URLs are not supported for local storage.');
+  }
+
   getUrl(filePath: string): string {
     return this._fullPath(filePath);
   }

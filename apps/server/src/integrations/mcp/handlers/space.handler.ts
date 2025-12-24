@@ -520,4 +520,258 @@ export class SpaceHandler {
       throw createInternalError(error?.message || String(error));
     }
   }
+
+  /**
+   * Handles space.members operation
+   */
+  async listMembers(params: any, userId: string): Promise<any> {
+    this.logger.debug(`Processing space.members operation for user ${userId}`);
+
+    if (!params.spaceId) {
+      throw createInvalidParamsError('spaceId is required');
+    }
+
+    if (!params.workspaceId) {
+      throw createInvalidParamsError('workspaceId is required');
+    }
+
+    try {
+      const authUser = await this.userService.findById(
+        userId,
+        params.workspaceId,
+      );
+
+      if (!authUser) {
+        throw createPermissionDeniedError(
+          'User not found in the specified workspace',
+        );
+      }
+
+      const ability = await this.spaceAbility.createForUser(
+        authUser,
+        params.spaceId,
+      );
+      if (ability.cannot(SpaceCaslAction.Read, SpaceCaslSubject.Member)) {
+        throw createPermissionDeniedError(
+          'You do not have permission to view members in this space',
+        );
+      }
+
+      return this.spaceMemberService.getSpaceMembers(
+        params.spaceId,
+        params.workspaceId,
+        {
+          page: params.page || 1,
+          limit: params.limit || 20,
+          query: params.query || '',
+        },
+      );
+    } catch (error: any) {
+      this.logger.error(
+        `Error listing space members: ${error?.message || 'Unknown error'}`,
+        error?.stack,
+      );
+      if (error?.code && typeof error.code === 'number') {
+        throw error;
+      }
+      throw createInternalError(error?.message || String(error));
+    }
+  }
+
+  /**
+   * Handles space.membersAdd operation
+   */
+  async addMembers(params: any, userId: string): Promise<any> {
+    this.logger.debug(`Processing space.membersAdd operation for user ${userId}`);
+
+    if (!params.spaceId) {
+      throw createInvalidParamsError('spaceId is required');
+    }
+
+    if (!params.workspaceId) {
+      throw createInvalidParamsError('workspaceId is required');
+    }
+
+    if (
+      (!params.userIds || params.userIds.length === 0) &&
+      (!params.groupIds || params.groupIds.length === 0)
+    ) {
+      throw createInvalidParamsError('userIds or groupIds is required');
+    }
+
+    try {
+      const authUser = await this.userService.findById(
+        userId,
+        params.workspaceId,
+      );
+      if (!authUser) {
+        throw createPermissionDeniedError(
+          'User not found in the specified workspace',
+        );
+      }
+
+      const ability = await this.spaceAbility.createForUser(
+        authUser,
+        params.spaceId,
+      );
+      if (ability.cannot(SpaceCaslAction.Manage, SpaceCaslSubject.Member)) {
+        throw createPermissionDeniedError(
+          'You do not have permission to manage space members',
+        );
+      }
+
+      await this.spaceMemberService.addMembersToSpaceBatch(
+        {
+          spaceId: params.spaceId,
+          userIds: params.userIds || [],
+          groupIds: params.groupIds || [],
+          role: params.role,
+        },
+        authUser,
+        params.workspaceId,
+      );
+
+      return { success: true };
+    } catch (error: any) {
+      this.logger.error(
+        `Error adding space members: ${error?.message || 'Unknown error'}`,
+        error?.stack,
+      );
+      if (error?.code && typeof error.code === 'number') {
+        throw error;
+      }
+      throw createInternalError(error?.message || String(error));
+    }
+  }
+
+  /**
+   * Handles space.membersRemove operation
+   */
+  async removeMember(params: any, userId: string): Promise<any> {
+    this.logger.debug(
+      `Processing space.membersRemove operation for user ${userId}`,
+    );
+
+    if (!params.spaceId) {
+      throw createInvalidParamsError('spaceId is required');
+    }
+
+    if (!params.workspaceId) {
+      throw createInvalidParamsError('workspaceId is required');
+    }
+
+    if (!params.userId && !params.groupId) {
+      throw createInvalidParamsError('userId or groupId is required');
+    }
+
+    try {
+      const authUser = await this.userService.findById(
+        userId,
+        params.workspaceId,
+      );
+      if (!authUser) {
+        throw createPermissionDeniedError(
+          'User not found in the specified workspace',
+        );
+      }
+
+      const ability = await this.spaceAbility.createForUser(
+        authUser,
+        params.spaceId,
+      );
+      if (ability.cannot(SpaceCaslAction.Manage, SpaceCaslSubject.Member)) {
+        throw createPermissionDeniedError(
+          'You do not have permission to manage space members',
+        );
+      }
+
+      await this.spaceMemberService.removeMemberFromSpace(
+        {
+          spaceId: params.spaceId,
+          userId: params.userId,
+          groupId: params.groupId,
+        },
+        params.workspaceId,
+      );
+
+      return { success: true };
+    } catch (error: any) {
+      this.logger.error(
+        `Error removing space member: ${error?.message || 'Unknown error'}`,
+        error?.stack,
+      );
+      if (error?.code && typeof error.code === 'number') {
+        throw error;
+      }
+      throw createInternalError(error?.message || String(error));
+    }
+  }
+
+  /**
+   * Handles space.changeMemberRole operation
+   */
+  async changeMemberRole(params: any, userId: string): Promise<any> {
+    this.logger.debug(
+      `Processing space.changeMemberRole operation for user ${userId}`,
+    );
+
+    if (!params.spaceId) {
+      throw createInvalidParamsError('spaceId is required');
+    }
+
+    if (!params.workspaceId) {
+      throw createInvalidParamsError('workspaceId is required');
+    }
+
+    if (!params.role) {
+      throw createInvalidParamsError('role is required');
+    }
+
+    if (!params.userId && !params.groupId) {
+      throw createInvalidParamsError('userId or groupId is required');
+    }
+
+    try {
+      const authUser = await this.userService.findById(
+        userId,
+        params.workspaceId,
+      );
+      if (!authUser) {
+        throw createPermissionDeniedError(
+          'User not found in the specified workspace',
+        );
+      }
+
+      const ability = await this.spaceAbility.createForUser(
+        authUser,
+        params.spaceId,
+      );
+      if (ability.cannot(SpaceCaslAction.Manage, SpaceCaslSubject.Member)) {
+        throw createPermissionDeniedError(
+          'You do not have permission to manage space members',
+        );
+      }
+
+      await this.spaceMemberService.updateSpaceMemberRole(
+        {
+          spaceId: params.spaceId,
+          userId: params.userId,
+          groupId: params.groupId,
+          role: params.role,
+        },
+        params.workspaceId,
+      );
+
+      return { success: true };
+    } catch (error: any) {
+      this.logger.error(
+        `Error changing space member role: ${error?.message || 'Unknown error'}`,
+        error?.stack,
+      );
+      if (error?.code && typeof error.code === 'number') {
+        throw error;
+      }
+      throw createInternalError(error?.message || String(error));
+    }
+  }
 }

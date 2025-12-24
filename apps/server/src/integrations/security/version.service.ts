@@ -7,11 +7,13 @@ export class VersionService {
   constructor() {}
 
   async getVersion() {
-    const url = `https://api.github.com/repos/docmost/docmost/releases/latest`;
+    const releaseRepo = process.env.RELEASES_REPO || 'raven-docs/raven-docs';
+    const releaseUrl = `https://github.com/${releaseRepo}/releases`;
+    const apiUrl = `https://api.github.com/repos/${releaseRepo}/releases/latest`;
 
     let latestVersion = 0;
     try {
-      const response = await fetch(url);
+      const response = await fetch(apiUrl);
       if (!response.ok) return;
       const data = await response.json();
       latestVersion = data?.tag_name?.replace('v', '');
@@ -22,7 +24,7 @@ export class VersionService {
     return {
       currentVersion: packageJson?.version,
       latestVersion: latestVersion,
-      releaseUrl: 'https://github.com/docmost/docmost/releases',
+      releaseUrl,
     };
   }
 }

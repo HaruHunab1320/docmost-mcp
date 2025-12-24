@@ -767,6 +767,534 @@
         }
       ],
       "relatedMethods": ["context.set", "context.get", "context.delete", "context.list"]
+    },
+    {
+      "name": "project.list",
+      "description": "List projects in a space",
+      "category": "Project Management",
+      "parameters": {
+        "spaceId": { "type": "string", "description": "ID of the space" },
+        "page": { "type": "number", "description": "Page number" },
+        "limit": { "type": "number", "description": "Items per page" },
+        "includeArchived": { "type": "boolean", "description": "Include archived projects" },
+        "searchTerm": { "type": "string", "description": "Search term" }
+      },
+      "returns": {
+        "projects": { "type": "array", "description": "List of projects" },
+        "pagination": { "type": "object", "description": "Pagination info" }
+      },
+      "errors": [
+        { "code": "INVALID_PARAMS", "message": "Invalid params", "resolution": "Provide spaceId" },
+        { "code": "PERMISSION_DENIED", "message": "Permission denied", "resolution": "Request access" }
+      ],
+      "examples": [
+        {
+          "description": "List projects in a space",
+          "request": {
+            "jsonrpc": "2.0",
+            "method": "project.list",
+            "params": { "spaceId": "space_123", "limit": 20 },
+            "id": 1
+          },
+          "response": {
+            "jsonrpc": "2.0",
+            "result": { "projects": [], "pagination": { "page": 1, "limit": 20, "total": 0, "totalPages": 0 } },
+            "id": 1
+          }
+        }
+      ],
+      "relatedMethods": ["project.get", "project.create", "project.update"]
+    },
+    {
+      "name": "project.get",
+      "description": "Get a project by ID",
+      "category": "Project Management",
+      "parameters": {
+        "projectId": { "type": "string", "description": "ID of the project" }
+      },
+      "returns": {
+        "project": { "type": "object", "description": "Project details" }
+      },
+      "errors": [
+        { "code": "RESOURCE_NOT_FOUND", "message": "Project not found", "resolution": "Check the projectId" },
+        { "code": "PERMISSION_DENIED", "message": "Permission denied", "resolution": "Request access" }
+      ],
+      "examples": [
+        {
+          "description": "Get a project",
+          "request": {
+            "jsonrpc": "2.0",
+            "method": "project.get",
+            "params": { "projectId": "project_123" },
+            "id": 1
+          },
+          "response": {
+            "jsonrpc": "2.0",
+            "result": { "id": "project_123", "name": "Alpha" },
+            "id": 1
+          }
+        }
+      ],
+      "relatedMethods": ["project.list", "project.update", "project.delete"]
+    },
+    {
+      "name": "project.create",
+      "description": "Create a new project",
+      "category": "Project Management",
+      "parameters": {
+        "name": { "type": "string", "description": "Project name" },
+        "description": { "type": "string", "description": "Project description" },
+        "spaceId": { "type": "string", "description": "ID of the space" },
+        "workspaceId": { "type": "string", "description": "ID of the workspace" },
+        "icon": { "type": "string", "description": "Project icon" },
+        "color": { "type": "string", "description": "Project color" }
+      },
+      "returns": {
+        "project": { "type": "object", "description": "Created project" }
+      },
+      "errors": [
+        { "code": "INVALID_PARAMS", "message": "Invalid params", "resolution": "Provide name, spaceId, workspaceId" },
+        { "code": "PERMISSION_DENIED", "message": "Permission denied", "resolution": "Request access" }
+      ],
+      "examples": [
+        {
+          "description": "Create a project",
+          "request": {
+            "jsonrpc": "2.0",
+            "method": "project.create",
+            "params": { "name": "Beta", "spaceId": "space_123", "workspaceId": "ws_123" },
+            "id": 1
+          },
+          "response": {
+            "jsonrpc": "2.0",
+            "result": { "id": "project_456", "name": "Beta" },
+            "id": 1
+          }
+        }
+      ],
+      "relatedMethods": ["project.update", "project.createPage"]
+    },
+    {
+      "name": "project.update",
+      "description": "Update a project",
+      "category": "Project Management",
+      "parameters": {
+        "projectId": { "type": "string", "description": "ID of the project" },
+        "name": { "type": "string", "description": "Project name" },
+        "description": { "type": "string", "description": "Project description" },
+        "icon": { "type": "string", "description": "Project icon" },
+        "color": { "type": "string", "description": "Project color" },
+        "coverImage": { "type": "string", "description": "Cover image URL" }
+      },
+      "returns": {
+        "project": { "type": "object", "description": "Updated project" }
+      },
+      "errors": [
+        { "code": "RESOURCE_NOT_FOUND", "message": "Project not found", "resolution": "Check the projectId" },
+        { "code": "PERMISSION_DENIED", "message": "Permission denied", "resolution": "Request access" }
+      ],
+      "examples": [
+        {
+          "description": "Update a project name",
+          "request": {
+            "jsonrpc": "2.0",
+            "method": "project.update",
+            "params": { "projectId": "project_123", "name": "Alpha v2" },
+            "id": 1
+          },
+          "response": {
+            "jsonrpc": "2.0",
+            "result": { "id": "project_123", "name": "Alpha v2" },
+            "id": 1
+          }
+        }
+      ],
+      "relatedMethods": ["project.get", "project.list"]
+    },
+    {
+      "name": "project.archive",
+      "description": "Archive or unarchive a project",
+      "category": "Project Management",
+      "parameters": {
+        "projectId": { "type": "string", "description": "ID of the project" },
+        "isArchived": { "type": "boolean", "description": "Archive state" }
+      },
+      "returns": {
+        "project": { "type": "object", "description": "Updated project" }
+      },
+      "errors": [
+        { "code": "RESOURCE_NOT_FOUND", "message": "Project not found", "resolution": "Check the projectId" },
+        { "code": "PERMISSION_DENIED", "message": "Permission denied", "resolution": "Request access" }
+      ],
+      "examples": [
+        {
+          "description": "Archive a project",
+          "request": {
+            "jsonrpc": "2.0",
+            "method": "project.archive",
+            "params": { "projectId": "project_123", "isArchived": true },
+            "id": 1
+          },
+          "response": {
+            "jsonrpc": "2.0",
+            "result": { "id": "project_123", "isArchived": true },
+            "id": 1
+          }
+        }
+      ],
+      "relatedMethods": ["project.update", "project.list"]
+    },
+    {
+      "name": "project.delete",
+      "description": "Delete a project",
+      "category": "Project Management",
+      "parameters": {
+        "projectId": { "type": "string", "description": "ID of the project" }
+      },
+      "returns": {
+        "success": { "type": "boolean", "description": "Whether the project was deleted" }
+      },
+      "errors": [
+        { "code": "RESOURCE_NOT_FOUND", "message": "Project not found", "resolution": "Check the projectId" },
+        { "code": "PERMISSION_DENIED", "message": "Permission denied", "resolution": "Request access" }
+      ],
+      "examples": [
+        {
+          "description": "Delete a project",
+          "request": {
+            "jsonrpc": "2.0",
+            "method": "project.delete",
+            "params": { "projectId": "project_123" },
+            "id": 1
+          },
+          "response": {
+            "jsonrpc": "2.0",
+            "result": { "success": true },
+            "id": 1
+          }
+        }
+      ],
+      "relatedMethods": ["project.get", "project.list"]
+    },
+    {
+      "name": "project.createPage",
+      "description": "Create a project home page (if missing)",
+      "category": "Project Management",
+      "parameters": {
+        "projectId": { "type": "string", "description": "ID of the project" },
+        "workspaceId": { "type": "string", "description": "ID of the workspace" }
+      },
+      "returns": {
+        "project": { "type": "object", "description": "Updated project" }
+      },
+      "errors": [
+        { "code": "RESOURCE_NOT_FOUND", "message": "Project not found", "resolution": "Check the projectId" },
+        { "code": "PERMISSION_DENIED", "message": "Permission denied", "resolution": "Request access" }
+      ],
+      "examples": [
+        {
+          "description": "Create a project page",
+          "request": {
+            "jsonrpc": "2.0",
+            "method": "project.createPage",
+            "params": { "projectId": "project_123", "workspaceId": "ws_123" },
+            "id": 1
+          },
+          "response": {
+            "jsonrpc": "2.0",
+            "result": { "id": "project_123", "homePageId": "page_123" },
+            "id": 1
+          }
+        }
+      ],
+      "relatedMethods": ["project.get", "page.create"]
+    },
+    {
+      "name": "task.list",
+      "description": "List tasks by project or space",
+      "category": "Task Management",
+      "parameters": {
+        "projectId": { "type": "string", "description": "ID of the project" },
+        "spaceId": { "type": "string", "description": "ID of the space" },
+        "page": { "type": "number", "description": "Page number" },
+        "limit": { "type": "number", "description": "Items per page" },
+        "status": { "type": "array", "description": "Status filter" },
+        "bucket": { "type": "array", "description": "Bucket filter" },
+        "searchTerm": { "type": "string", "description": "Search term" }
+      },
+      "returns": {
+        "tasks": { "type": "array", "description": "List of tasks" },
+        "pagination": { "type": "object", "description": "Pagination info" }
+      },
+      "errors": [
+        { "code": "INVALID_PARAMS", "message": "Invalid params", "resolution": "Provide projectId or spaceId" },
+        { "code": "PERMISSION_DENIED", "message": "Permission denied", "resolution": "Request access" }
+      ],
+      "examples": [
+        {
+          "description": "List tasks for a space",
+          "request": {
+            "jsonrpc": "2.0",
+            "method": "task.list",
+            "params": { "spaceId": "space_123", "limit": 20 },
+            "id": 1
+          },
+          "response": {
+            "jsonrpc": "2.0",
+            "result": { "tasks": [], "pagination": { "page": 1, "limit": 20, "total": 0, "totalPages": 0 } },
+            "id": 1
+          }
+        }
+      ],
+      "relatedMethods": ["task.get", "task.create", "task.update"]
+    },
+    {
+      "name": "task.get",
+      "description": "Get a task by ID",
+      "category": "Task Management",
+      "parameters": {
+        "taskId": { "type": "string", "description": "ID of the task" }
+      },
+      "returns": {
+        "task": { "type": "object", "description": "Task details" }
+      },
+      "errors": [
+        { "code": "RESOURCE_NOT_FOUND", "message": "Task not found", "resolution": "Check the taskId" },
+        { "code": "PERMISSION_DENIED", "message": "Permission denied", "resolution": "Request access" }
+      ],
+      "examples": [
+        {
+          "description": "Get a task",
+          "request": {
+            "jsonrpc": "2.0",
+            "method": "task.get",
+            "params": { "taskId": "task_123" },
+            "id": 1
+          },
+          "response": {
+            "jsonrpc": "2.0",
+            "result": { "id": "task_123", "title": "Draft spec" },
+            "id": 1
+          }
+        }
+      ],
+      "relatedMethods": ["task.list", "task.update", "task.delete"]
+    },
+    {
+      "name": "task.create",
+      "description": "Create a new task",
+      "category": "Task Management",
+      "parameters": {
+        "title": { "type": "string", "description": "Task title" },
+        "description": { "type": "string", "description": "Task description" },
+        "status": { "type": "string", "description": "Task status" },
+        "priority": { "type": "string", "description": "Task priority" },
+        "bucket": { "type": "string", "description": "Task bucket" },
+        "dueDate": { "type": "string", "description": "Due date (ISO)" },
+        "projectId": { "type": "string", "description": "Project ID" },
+        "parentTaskId": { "type": "string", "description": "Parent task ID" },
+        "pageId": { "type": "string", "description": "Linked page ID" },
+        "assigneeId": { "type": "string", "description": "Assignee user ID" },
+        "spaceId": { "type": "string", "description": "Space ID" },
+        "workspaceId": { "type": "string", "description": "Workspace ID" }
+      },
+      "returns": {
+        "task": { "type": "object", "description": "Created task" }
+      },
+      "errors": [
+        { "code": "INVALID_PARAMS", "message": "Invalid params", "resolution": "Provide title, spaceId, workspaceId" },
+        { "code": "PERMISSION_DENIED", "message": "Permission denied", "resolution": "Request access" }
+      ],
+      "examples": [
+        {
+          "description": "Create a task",
+          "request": {
+            "jsonrpc": "2.0",
+            "method": "task.create",
+            "params": { "title": "Draft spec", "spaceId": "space_123", "workspaceId": "ws_123" },
+            "id": 1
+          },
+          "response": {
+            "jsonrpc": "2.0",
+            "result": { "id": "task_456", "title": "Draft spec" },
+            "id": 1
+          }
+        }
+      ],
+      "relatedMethods": ["task.update", "task.list"]
+    },
+    {
+      "name": "task.update",
+      "description": "Update a task",
+      "category": "Task Management",
+      "parameters": {
+        "taskId": { "type": "string", "description": "ID of the task" },
+        "title": { "type": "string", "description": "Task title" },
+        "description": { "type": "string", "description": "Task description" },
+        "status": { "type": "string", "description": "Task status" },
+        "priority": { "type": "string", "description": "Task priority" },
+        "bucket": { "type": "string", "description": "Task bucket" },
+        "dueDate": { "type": "string", "description": "Due date (ISO)" },
+        "assigneeId": { "type": "string", "description": "Assignee user ID" },
+        "pageId": { "type": "string", "description": "Linked page ID" },
+        "estimatedTime": { "type": "number", "description": "Estimated time" },
+        "position": { "type": "string", "description": "Position key" }
+      },
+      "returns": {
+        "task": { "type": "object", "description": "Updated task" }
+      },
+      "errors": [
+        { "code": "RESOURCE_NOT_FOUND", "message": "Task not found", "resolution": "Check the taskId" },
+        { "code": "PERMISSION_DENIED", "message": "Permission denied", "resolution": "Request access" }
+      ],
+      "examples": [
+        {
+          "description": "Update a task title",
+          "request": {
+            "jsonrpc": "2.0",
+            "method": "task.update",
+            "params": { "taskId": "task_123", "title": "Spec v2" },
+            "id": 1
+          },
+          "response": {
+            "jsonrpc": "2.0",
+            "result": { "id": "task_123", "title": "Spec v2" },
+            "id": 1
+          }
+        }
+      ],
+      "relatedMethods": ["task.get", "task.list"]
+    },
+    {
+      "name": "task.delete",
+      "description": "Delete a task",
+      "category": "Task Management",
+      "parameters": {
+        "taskId": { "type": "string", "description": "ID of the task" }
+      },
+      "returns": {
+        "success": { "type": "boolean", "description": "Whether the task was deleted" }
+      },
+      "errors": [
+        { "code": "RESOURCE_NOT_FOUND", "message": "Task not found", "resolution": "Check the taskId" },
+        { "code": "PERMISSION_DENIED", "message": "Permission denied", "resolution": "Request access" }
+      ],
+      "examples": [
+        {
+          "description": "Delete a task",
+          "request": {
+            "jsonrpc": "2.0",
+            "method": "task.delete",
+            "params": { "taskId": "task_123" },
+            "id": 1
+          },
+          "response": {
+            "jsonrpc": "2.0",
+            "result": { "success": true },
+            "id": 1
+          }
+        }
+      ],
+      "relatedMethods": ["task.get", "task.list"]
+    },
+    {
+      "name": "task.complete",
+      "description": "Mark a task complete or incomplete",
+      "category": "Task Management",
+      "parameters": {
+        "taskId": { "type": "string", "description": "ID of the task" },
+        "isCompleted": { "type": "boolean", "description": "Completion state" }
+      },
+      "returns": {
+        "task": { "type": "object", "description": "Updated task" }
+      },
+      "errors": [
+        { "code": "RESOURCE_NOT_FOUND", "message": "Task not found", "resolution": "Check the taskId" },
+        { "code": "PERMISSION_DENIED", "message": "Permission denied", "resolution": "Request access" }
+      ],
+      "examples": [
+        {
+          "description": "Complete a task",
+          "request": {
+            "jsonrpc": "2.0",
+            "method": "task.complete",
+            "params": { "taskId": "task_123", "isCompleted": true },
+            "id": 1
+          },
+          "response": {
+            "jsonrpc": "2.0",
+            "result": { "id": "task_123", "isCompleted": true },
+            "id": 1
+          }
+        }
+      ],
+      "relatedMethods": ["task.update"]
+    },
+    {
+      "name": "task.assign",
+      "description": "Assign or unassign a task",
+      "category": "Task Management",
+      "parameters": {
+        "taskId": { "type": "string", "description": "ID of the task" },
+        "assigneeId": { "type": "string", "description": "Assignee user ID" }
+      },
+      "returns": {
+        "task": { "type": "object", "description": "Updated task" }
+      },
+      "errors": [
+        { "code": "RESOURCE_NOT_FOUND", "message": "Task not found", "resolution": "Check the taskId" },
+        { "code": "PERMISSION_DENIED", "message": "Permission denied", "resolution": "Request access" }
+      ],
+      "examples": [
+        {
+          "description": "Assign a task",
+          "request": {
+            "jsonrpc": "2.0",
+            "method": "task.assign",
+            "params": { "taskId": "task_123", "assigneeId": "user_123" },
+            "id": 1
+          },
+          "response": {
+            "jsonrpc": "2.0",
+            "result": { "id": "task_123", "assigneeId": "user_123" },
+            "id": 1
+          }
+        }
+      ],
+      "relatedMethods": ["task.update"]
+    },
+    {
+      "name": "task.moveToProject",
+      "description": "Move a task to another project",
+      "category": "Task Management",
+      "parameters": {
+        "taskId": { "type": "string", "description": "ID of the task" },
+        "projectId": { "type": "string", "description": "Target project ID" }
+      },
+      "returns": {
+        "task": { "type": "object", "description": "Updated task" }
+      },
+      "errors": [
+        { "code": "RESOURCE_NOT_FOUND", "message": "Task not found", "resolution": "Check the taskId" },
+        { "code": "PERMISSION_DENIED", "message": "Permission denied", "resolution": "Request access" }
+      ],
+      "examples": [
+        {
+          "description": "Move a task to another project",
+          "request": {
+            "jsonrpc": "2.0",
+            "method": "task.moveToProject",
+            "params": { "taskId": "task_123", "projectId": "project_456" },
+            "id": 1
+          },
+          "response": {
+            "jsonrpc": "2.0",
+            "result": { "id": "task_123", "projectId": "project_456" },
+            "id": 1
+          }
+        }
+      ],
+      "relatedMethods": ["task.update", "project.get"]
     }
   ]
-} 
+}  

@@ -2,6 +2,8 @@ import { Module, forwardRef, MiddlewareConsumer, RequestMethod } from '@nestjs/c
 import { MCPController } from './mcp.controller';
 import { MCPService } from './mcp.service';
 import { PageHandler } from './handlers/page.handler';
+import { ProjectHandler } from './handlers/project.handler';
+import { TaskHandler } from './handlers/task.handler';
 import { SpaceHandler } from './handlers/space.handler';
 import { UserHandler } from './handlers/user.handler';
 import { GroupHandler } from './handlers/group.handler';
@@ -11,7 +13,12 @@ import { CommentHandler } from './handlers/comment.handler';
 import { SystemHandler } from './handlers/system.handler';
 import { ContextHandler } from './handlers/context.handler';
 import { UIHandler } from './handlers/ui.handler';
+import { ApprovalHandler } from './handlers/approval.handler';
+import { SearchHandler } from './handlers/search.handler';
+import { ImportHandler } from './handlers/import.handler';
+import { ExportHandler } from './handlers/export.handler';
 import { PageModule } from '../../core/page/page.module';
+import { ProjectModule } from '../../core/project/project.module';
 import { SpaceModule } from '../../core/space/space.module';
 import { UserModule } from '../../core/user/user.module';
 import { GroupModule } from '../../core/group/group.module';
@@ -34,6 +41,11 @@ import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { EnvironmentModule } from '../../integrations/environment/environment.module';
 import { DatabaseModule } from '../../database/database.module';
 import { WorkspaceInjectionMiddleware } from './middleware/workspace-injection.middleware';
+import { MCPApprovalService } from './services/mcp-approval.service';
+import { ImportModule } from '../../integrations/import/import.module';
+import { ExportModule } from '../../integrations/export/export.module';
+import { SearchModule } from '../../core/search/search.module';
+import { StorageModule } from '../../integrations/storage/storage.module';
 
 /**
  * Machine Control Protocol (MCP) Module
@@ -45,6 +57,7 @@ import { WorkspaceInjectionMiddleware } from './middleware/workspace-injection.m
   imports: [
     // Import modules that contain services needed by handlers
     PageModule,
+    ProjectModule,
     SpaceModule,
     UserModule,
     GroupModule,
@@ -55,6 +68,10 @@ import { WorkspaceInjectionMiddleware } from './middleware/workspace-injection.m
     TokenModule,
     EnvironmentModule,
     DatabaseModule,
+    ImportModule,
+    ExportModule,
+    SearchModule,
+    StorageModule,
     EventEmitterModule.forRoot(),
   ],
   controllers: [MCPController, ApiKeyController],
@@ -62,6 +79,8 @@ import { WorkspaceInjectionMiddleware } from './middleware/workspace-injection.m
     MCPService,
     // Register all handlers
     PageHandler,
+    ProjectHandler,
+    TaskHandler,
     SpaceHandler,
     UserHandler,
     GroupHandler,
@@ -71,9 +90,14 @@ import { WorkspaceInjectionMiddleware } from './middleware/workspace-injection.m
     SystemHandler,
     ContextHandler,
     UIHandler,
+    ApprovalHandler,
+    SearchHandler,
+    ImportHandler,
+    ExportHandler,
     // Register services
     MCPSchemaService,
     MCPContextService,
+    MCPApprovalService,
     // Register WebSocket components
     {
       provide: MCPWebSocketGateway,

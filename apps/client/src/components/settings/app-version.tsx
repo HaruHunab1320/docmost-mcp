@@ -14,10 +14,13 @@ export default function AppVersion() {
     hasUpdate =
       appVersion &&
       parseFloat(appVersion.latestVersion) > 0 &&
-      semverGt(appVersion.latestVersion, appVersion.currentVersion);
+      semverGt(appVersion.latestVersion, appVersion.currentVersion) &&
+      Boolean(appVersion.releaseUrl);
   } catch (err) {
     console.error(err);
   }
+
+  const releaseUrl = appVersion?.releaseUrl;
 
   return (
     <div className={classes.text}>
@@ -34,21 +37,20 @@ export default function AppVersion() {
           size={16}
           position="middle-end"
           style={{ cursor: "pointer" }}
-          disabled={!hasUpdate}
+          disabled={!hasUpdate || !releaseUrl}
           onClick={() => {
-            window.open(
-              "https://github.com/docmost/docmost/releases",
-              "_blank",
-            );
+            if (releaseUrl) {
+              window.open(releaseUrl, "_blank");
+            }
           }}
         >
           <Text
             size="sm"
             c="dimmed"
-            component="a"
+            component={releaseUrl ? "a" : "span"}
             mr={45}
-            href="https://github.com/docmost/docmost/releases"
-            target="_blank"
+            href={releaseUrl}
+            target={releaseUrl ? "_blank" : undefined}
           >
             v{APP_VERSION}
           </Text>

@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectKysely } from '../../../lib/kysely/nestjs-kysely';
 import { Kysely, Transaction } from 'kysely';
-import { DB, TaskStatus } from '../../types/db';
+import { DB, TaskBucket, TaskStatus } from '../../types/db';
 import { InsertableTask, Task, UpdatableTask } from '../../types/entity.types';
 import { dbOrTx } from '../../utils';
 import { PaginationOptions } from '../../../lib/pagination/pagination-options';
@@ -178,6 +178,7 @@ export class TaskRepo {
     pagination: PaginationOptions,
     options?: {
       status?: TaskStatus[];
+      bucket?: TaskBucket[];
       searchTerm?: string;
       includeSubtasks?: boolean;
       includeCreator?: boolean;
@@ -213,6 +214,10 @@ export class TaskRepo {
 
       if (options?.status && options.status.length > 0) {
         query = query.where('tasks.status', 'in', options.status);
+      }
+
+      if (options?.bucket && options.bucket.length > 0) {
+        query = query.where('tasks.bucket', 'in', options.bucket);
       }
 
       if (options?.searchTerm) {
@@ -323,6 +328,7 @@ export class TaskRepo {
     pagination: PaginationOptions,
     options?: {
       status?: TaskStatus[];
+      bucket?: TaskBucket[];
       searchTerm?: string;
       includeCreator?: boolean;
       includeAssignee?: boolean;
@@ -354,6 +360,10 @@ export class TaskRepo {
 
       if (options?.status && options.status.length > 0) {
         query = query.where('tasks.status', 'in', options.status);
+      }
+
+      if (options?.bucket && options.bucket.length > 0) {
+        query = query.where('tasks.bucket', 'in', options.bucket);
       }
 
       if (options?.searchTerm) {
@@ -531,6 +541,12 @@ export class TaskRepo {
         updateData.assigneeId !== undefined
           ? this.isValidUuid(updateData.assigneeId)
             ? updateData.assigneeId
+            : null
+          : undefined,
+      pageId:
+        updateData.pageId !== undefined
+          ? this.isValidUuid(updateData.pageId)
+            ? updateData.pageId
             : null
           : undefined,
     };

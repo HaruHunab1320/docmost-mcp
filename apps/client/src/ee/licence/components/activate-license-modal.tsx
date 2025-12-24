@@ -65,7 +65,7 @@ export function ActivateLicenseForm({ onClose }: ActivateLicenseFormProps) {
     <form onSubmit={form.onSubmit(handleSubmit)}>
       <Textarea
         label={t("License key")}
-        description="Enter a valid enterprise license key. Contact sales@docmost.com to purchase one."
+        description="Enter a valid enterprise license key. Contact Raven Docs support to purchase one."
         placeholder={t("e.g eyJhb.....")}
         variant="filled"
         autosize

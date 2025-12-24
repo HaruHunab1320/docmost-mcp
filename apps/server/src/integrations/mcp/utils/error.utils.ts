@@ -19,6 +19,7 @@ export enum MCPErrorCode {
   PERMISSION_DENIED = -32002,
   VALIDATION_ERROR = -32003,
   RESOURCE_EXISTS = -32004,
+  APPROVAL_REQUIRED = -32005,
 }
 
 /**
@@ -129,6 +130,20 @@ export function createPermissionDeniedError(details?: any): MCPError {
   return createMCPError(
     MCPErrorCode.PERMISSION_DENIED,
     'Permission denied',
+    details,
+  );
+}
+
+/**
+ * Create an approval required error
+ *
+ * @param details Error details
+ * @returns The MCP error object
+ */
+export function createApprovalRequiredError(details?: any): MCPError {
+  return createMCPError(
+    MCPErrorCode.APPROVAL_REQUIRED,
+    'Approval required',
     details,
   );
 }

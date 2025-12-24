@@ -7,5 +7,6 @@ import { DatabaseModule } from '../../database/database.module';
   imports: [DatabaseModule],
   controllers: [SearchController],
   providers: [SearchService],
+  exports: [SearchService],
 })
 export class SearchModule {}

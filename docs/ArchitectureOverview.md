@@ -8,7 +8,7 @@ Raven Docs is a monorepo with two primary apps and shared packages:
 
 - Backend: NestJS server (`apps/server`)
 - Frontend: React + Vite client (`apps/client`)
-- Shared packages: editor extension, MCP bridge, enterprise features (`packages/*`)
+- Shared packages: editor extension, enterprise features (`packages/*`)
 
 ### High-Level Diagram
 
@@ -20,7 +20,7 @@ flowchart LR
   end
 
   subgraph Server["Server (NestJS)"]
-    API["HTTP API\n(core + MCP + MCP Standard)"]
+    API["HTTP API\n(core + MCP Standard)"]
     RT["WebSockets\n(Collaboration + MCP events)"]
     CORE["Core Modules\n(auth, users, spaces, pages, comments, projects)"]
     INTEG["Integrations\n(storage, mail, queue, import/export, telemetry)"]
@@ -50,7 +50,6 @@ apps/
   server/            NestJS API + WebSockets
 packages/
   editor-ext/        Editor extension package
-  mcp-bridge/        Legacy MCP bridge server
   ee/                Enterprise modules
 docs/                Project and MCP documentation
 ```
@@ -74,8 +73,8 @@ Located under `apps/server/src/integrations`:
 - `queue`, `telemetry`, `security`, `health`
 - `import`, `export`, `static`
 - MCP:
-  - Custom JSON-RPC MCP: `apps/server/src/integrations/mcp`
   - Standard MCP protocol: `apps/server/src/integrations/mcp-standard`
+  - Internal JSON-RPC Master Control API: `apps/server/src/integrations/mcp`
 
 ### Real-time Systems
 - Collaboration via Hocuspocus/Yjs: `apps/server/src/collaboration`
@@ -101,11 +100,7 @@ Located under `apps/client/src/features`:
 
 Two paths exist:
 
-1) Legacy MCP Bridge (`packages/mcp-bridge`)
-   - Runs a separate MCP server process.
-   - Translates MCP calls into Raven Docs JSON-RPC.
-
-2) MCP Standard Integration (`apps/server/src/integrations/mcp-standard`)
+1) MCP Standard Integration (`apps/server/src/integrations/mcp-standard`)
    - Built-in server endpoints at `/api/mcp-standard/*`.
    - Uses existing MCP API key auth and internal MCP services.
 

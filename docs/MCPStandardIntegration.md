@@ -46,22 +46,62 @@ All endpoints (except `initialize` and `list_tools`) require authentication via 
 Authorization: Bearer mcp_your_api_key_here
 ```
 
+### Approval Flow
+
+Some sensitive operations require explicit approval. If you call one of those
+methods without an approval token, the server returns an `APPROVAL_REQUIRED`
+error with an `approvalToken` and `expiresAt`. You can either:
+
+1. Call the same tool again with `approvalToken` in the arguments, or
+2. Use `approval_request` and `approval_confirm` explicitly.
+
 ### Available Tools
 
 The integration provides access to all Raven Docs functionality through standard MCP tools:
 
 #### Space Management
 - `space_list` - List all spaces
+- `space_get` - Get space details
 - `space_create` - Create a new space
 - `space_update` - Update space details
+- `space_update_permissions` - Update space member permissions
+- `space_members` - List space members
+- `space_members_add` - Add members to a space
+- `space_members_remove` - Remove a space member
+- `space_change_member_role` - Change a space member role
 - `space_delete` - Delete a space
 
 #### Page Management
 - `page_list` - List pages in a space
+- `page_get` - Get page details
 - `page_create` - Create a new page
 - `page_update` - Update page content
 - `page_delete` - Delete a page
 - `page_move` - Move a page
+- `page_search` - Search pages
+- `page_get_history` - Get page history
+- `page_restore` - Restore a page history version
+
+#### Project Management
+- `project_list` - List projects in a space
+- `project_get` - Get project details
+- `project_create` - Create a project
+- `project_update` - Update a project
+- `project_archive` - Archive or unarchive a project
+- `project_delete` - Delete a project
+- `project_create_page` - Create a project home page
+
+#### Task Management
+- `task_list` - List tasks by project or space
+- `task_get` - Get task details
+- `task_create` - Create a task
+- `task_update` - Update a task
+- `task_delete` - Delete a task
+- `task_complete` - Mark a task complete/incomplete
+- `task_assign` - Assign or unassign a task
+- `task_move_to_project` - Move a task to another project
+- `task_bucket_set` - Set a task bucket
+- `task_bucket_clear` - Clear a task bucket
 
 #### User Management
 - `user_list` - List workspace users
@@ -70,17 +110,76 @@ The integration provides access to all Raven Docs functionality through standard
 
 #### Comments
 - `comment_create` - Create a comment
+- `comment_get` - Get comment details
 - `comment_list` - List comments
 - `comment_update` - Update a comment
 - `comment_delete` - Delete a comment
+- `comment_resolve` - Resolve or unresolve a comment
 
 #### Groups
 - `group_create` - Create a group
 - `group_list` - List groups
+- `group_get` - Get group details
+- `group_update` - Update a group
+- `group_delete` - Delete a group
 - `group_addMember` - Add member to group
+- `group_remove_member` - Remove member from group
+
+#### Workspaces
+- `workspace_list` - List workspaces
+- `workspace_get` - Get workspace details
+- `workspace_create` - Create a workspace
+- `workspace_update` - Update a workspace
+- `workspace_delete` - Delete a workspace
+- `workspace_add_member` - Invite a workspace member
+- `workspace_remove_member` - Remove a workspace member
+- `workspace_members` - List workspace members
+- `workspace_change_member_role` - Change a workspace member role
+- `workspace_delete_member` - Delete a workspace member
+- `workspace_invites` - List workspace invites
+- `workspace_invite_info` - Get invite info
+- `workspace_invite_create` - Create invites
+- `workspace_invite_resend` - Resend an invite
+- `workspace_invite_revoke` - Revoke an invite
+- `workspace_invite_link` - Get invite link
+- `workspace_check_hostname` - Check hostname availability
+
+#### Attachments
+- `attachment_list` - List attachments
+- `attachment_get` - Get attachment details
+- `attachment_upload` - Upload an attachment
+- `attachment_download` - Download an attachment
+- `attachment_delete` - Delete an attachment
+
+#### Search
+- `search_query` - Search pages
+- `search_suggest` - Get search suggestions
+
+#### Import
+- `import_request_upload` - Request a presigned upload URL
+- `import_page` - Import a page from storage
+
+#### Export
+- `export_page` - Export a page
+- `export_space` - Export a space
+
+#### Approvals
+- `approval_request` - Request approval for a sensitive operation
+- `approval_confirm` - Confirm an approval token
 
 #### Navigation
 - `ui_navigate` - Navigate to specific UI locations
+
+#### System
+- `system_list_methods` - List MCP methods
+- `system_get_method_schema` - Get MCP method schema
+
+#### Context
+- `context_set` - Set a context value
+- `context_get` - Get a context value
+- `context_delete` - Delete a context key
+- `context_list` - List context keys
+- `context_clear` - Clear context for the session
 
 ### Example Usage
 

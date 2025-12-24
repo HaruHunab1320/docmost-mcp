@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Master Control API is a JSON-RPC 2.0 compliant server that provides programmatic access to all Raven Docs functionality. It serves as the foundation for the MCP integration, enabling AI assistants and other clients to interact with Raven Docs features in a standardized way.
+The Master Control API is a JSON-RPC 2.0 compliant server used internally by the MCP Standard service to access Raven Docs functionality. External integrations should use `/api/mcp-standard/*`.
 
 ## Architecture
 
@@ -10,7 +10,7 @@ The Master Control API follows a layered architecture:
 
 ```
 ┌─────────────────┐
-│ MCP Controller  │ ← HTTP Endpoint (/api/mcp)
+│ MCP Controller  │ ← Internal HTTP Endpoint (/api/mcp)
 └────────┬────────┘
          │
          ▼
@@ -32,7 +32,7 @@ The Master Control API follows a layered architecture:
 ### Core Components
 
 1. **MCP Controller** (`mcp.controller.ts`):
-   - Exposes the HTTP endpoint `/api/mcp`
+   - Internal HTTP endpoint `/api/mcp` used by the MCP Standard service
    - Handles authentication through guards
    - Validates the JSON-RPC request structure
    - Delegates processing to the MCP service
@@ -451,6 +451,31 @@ Below is a reference of all available methods in the Master Control API:
 | `page.delete` | Delete a page | `pageId`, `workspaceId` | Success indicator |
 | `page.move` | Move a page | `pageId`, `parentId?`, `targetSpaceId?`, `workspaceId` | Updated page object |
 
+### Project Methods
+
+| Method | Description | Parameters | Returns |
+|--------|-------------|------------|---------|
+| `project.list` | List projects in a space | `spaceId`, `page?`, `limit?`, `includeArchived?`, `searchTerm?` | Array of project objects |
+| `project.get` | Get project details | `projectId` | Project object |
+| `project.create` | Create a project | `name`, `spaceId`, `workspaceId`, `description?`, `icon?`, `color?`, `startDate?`, `endDate?` | Created project object |
+| `project.update` | Update a project | `projectId`, `name?`, `description?`, `icon?`, `color?`, `coverImage?`, `startDate?`, `endDate?` | Updated project object |
+| `project.archive` | Archive or unarchive a project | `projectId`, `isArchived` | Updated project object |
+| `project.delete` | Delete a project | `projectId` | Success indicator |
+| `project.createPage` | Create project home page | `projectId`, `workspaceId` | Updated project object |
+
+### Task Methods
+
+| Method | Description | Parameters | Returns |
+|--------|-------------|------------|---------|
+| `task.list` | List tasks by project or space | `projectId?`, `spaceId?`, `page?`, `limit?`, `status?`, `bucket?`, `searchTerm?`, `includeSubtasks?` | Array of task objects |
+| `task.get` | Get task details | `taskId` | Task object |
+| `task.create` | Create a task | `title`, `spaceId`, `workspaceId`, `description?`, `status?`, `priority?`, `bucket?`, `dueDate?`, `projectId?`, `parentTaskId?`, `pageId?`, `assigneeId?`, `estimatedTime?` | Created task object |
+| `task.update` | Update a task | `taskId`, `title?`, `description?`, `status?`, `priority?`, `bucket?`, `dueDate?`, `assigneeId?`, `pageId?`, `estimatedTime?`, `position?` | Updated task object |
+| `task.delete` | Delete a task | `taskId` | Success indicator |
+| `task.complete` | Mark task complete/incomplete | `taskId`, `isCompleted` | Updated task object |
+| `task.assign` | Assign or unassign a task | `taskId`, `assigneeId?` | Updated task object |
+| `task.moveToProject` | Move task to another project | `taskId`, `projectId?` | Updated task object |
+
 ### Comment Methods
 
 | Method | Description | Parameters | Returns |
@@ -510,9 +535,11 @@ Below is a reference of all available methods in the Master Control API:
 4. **Rate Limiting**: Requests are subject to rate limiting
 5. **Audit Logging**: All operations are logged for auditing purposes
 
-## Example Usage
+## Example Usage (Internal)
 
-Using the API with fetch:
+This endpoint is internal. External integrations should use `/api/mcp-standard/*`.
+
+Example request:
 
 ```javascript
 const response = await fetch("https://your-docmost-instance.com/api/mcp", {

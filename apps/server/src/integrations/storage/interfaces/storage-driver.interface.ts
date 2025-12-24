@@ -9,6 +9,12 @@ export interface StorageDriver {
 
   getSignedUrl(filePath: string, expireIn: number): Promise<string>;
 
+  getUploadSignedUrl(
+    filePath: string,
+    expireIn: number,
+    contentType?: string,
+  ): Promise<string>;
+
   delete(filePath: string): Promise<void>;
 
   getDriver(): any;

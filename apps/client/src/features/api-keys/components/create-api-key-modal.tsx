@@ -148,7 +148,7 @@ export function CreateApiKeyModal({ opened, onClose }: CreateApiKeyModalProps) {
 
           <Text size="sm" c="dimmed">
             {t(
-              "API keys allow external applications to access Docmost via the Machine Control Protocol (MCP)."
+              "API keys allow external applications to access Raven Docs via the Machine Control Protocol (MCP)."
             )}
           </Text>
 

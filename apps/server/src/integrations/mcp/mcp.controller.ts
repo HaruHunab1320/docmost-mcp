@@ -26,6 +26,8 @@ import { Public } from '../../common/decorators/public.decorator';
  * This controller handles incoming HTTP requests for the MCP API.
  * It validates the requests and forwards them to the MCP service
  * for processing.
+ *
+ * TODO(raven-docs): Legacy JSON-RPC endpoint. Keep for internal MCP Standard use only.
  */
 @UseGuards(MCPAuthGuard, MCPPermissionGuard)
 @Controller('mcp')

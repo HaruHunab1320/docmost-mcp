@@ -15,34 +15,25 @@ The [Model Context Protocol](https://modelcontextprotocol.ai/) (MCP) is a standa
 
 ## Architecture
 
-Raven Docs now supports the standard MCP protocol directly in the server at `/api/mcp-standard`. The standalone MCP bridge remains available for legacy workflows, but the built-in endpoint is the recommended path.
+Raven Docs supports the standard MCP protocol directly in the server at `/api/mcp-standard`. The JSON-RPC Master Control API is internal and used by the MCP standard service.
 
 The MCP integration for Raven Docs consists of three main components:
 
-### 1. MCP Bridge (`packages/mcp-bridge/`)
+### 1. MCP Standard Service (`apps/server/src/integrations/mcp-standard/`)
 
-The MCP Bridge acts as an adapter between AI assistants and the Raven Docs API:
-
-```
-┌─────────────┐      ┌───────────────┐      ┌─────────────┐
-│             │      │               │      │             │
-│ AI Assistant│<────>│   MCP Bridge  │<────>│ Raven Docs API │
-│             │      │               │      │             │
-└─────────────┘      └───────────────┘      └─────────────┘
-     (Cursor)          (MCP Server)          (JSON-RPC API)
-```
+The MCP Standard service exposes `/api/mcp-standard/*` endpoints for AI assistants.
 
 ### 2. Master Control API (`apps/server/src/integrations/mcp/`)
 
-A JSON-RPC 2.0 API that provides a uniform interface to all Raven Docs functionality.
+A JSON-RPC 2.0 API used internally by the MCP standard service.
 
 ### 3. WebSocket Events (`apps/client/src/features/websocket/`)
 
 Real-time event system that notifies clients about changes made through the MCP API.
 
-## MCP Bridge Implementation
+## MCP Standard Implementation
 
-The MCP Bridge is implemented using the `@modelcontextprotocol/sdk` package and consists of:
+The MCP Standard service translates standard MCP calls into the internal Master Control API:
 
 ### Main Components
 
@@ -64,7 +55,7 @@ The MCP Bridge is implemented using the `@modelcontextprotocol/sdk` package and 
 
 ### Tool Registration Process
 
-Each tool in the MCP Bridge follows this registration pattern:
+Each tool in the MCP Standard service follows this registration pattern:
 
 ```typescript
 server.tool(
@@ -93,7 +84,7 @@ server.tool(
 
 ### Parameter Handling
 
-The MCP Bridge includes special handling for various parameter types:
+The MCP Standard service includes special handling for various parameter types:
 
 1. **Comment Content Transformation**:
    ```typescript
@@ -143,7 +134,7 @@ The Master Control API is built on NestJS and implements the JSON-RPC 2.0 specif
 
 ### Request Flow
 
-1. Client sends a JSON-RPC request to `/api/mcp`
+1. Client sends a standard MCP request to `/api/mcp-standard/*`
 2. Request is authenticated using JWT or API key
 3. Request is validated according to JSON-RPC spec
 4. Method is resolved to a handler (e.g., "space.list" → SpaceHandler.listSpaces)

@@ -318,8 +318,8 @@ export default function MCPTestPage() {
             Using the MCP Navigation Tool
           </Title>
           <Text size="sm">
-            The navigation tool can be used by an agent to control the Docmost
-            UI. When a navigation event is emitted:
+            The navigation tool can be used by an agent to control the Raven
+            Docs UI. When a navigation event is emitted:
           </Text>
           <ul>
             <li>The client receives the event</li>

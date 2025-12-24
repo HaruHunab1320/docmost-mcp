@@ -154,8 +154,15 @@ export class TaskController {
       }
 
       // Fetch tasks
-      const { page, limit, projectId, status, searchTerm, includeSubtasks } =
-        dto;
+      const {
+        page,
+        limit,
+        projectId,
+        status,
+        bucket,
+        searchTerm,
+        includeSubtasks,
+      } = dto;
       console.log(
         '[TaskController] Calling taskService.findByProjectId with:',
         {
@@ -172,6 +179,7 @@ export class TaskController {
           { page, limit },
           {
             status,
+            bucket,
             searchTerm,
             includeSubtasks,
             includeCreator: true,
@@ -264,7 +272,7 @@ export class TaskController {
       }
 
       // Fetch tasks
-      const { page, limit, spaceId, status, searchTerm } = dto;
+      const { page, limit, spaceId, status, bucket, searchTerm } = dto;
       console.log('[TaskController] Calling taskService.findBySpaceId with:', {
         spaceId,
         page,
@@ -278,6 +286,7 @@ export class TaskController {
         { page, limit },
         {
           status,
+          bucket,
           searchTerm,
           includeCreator: true,
           includeAssignee: true,

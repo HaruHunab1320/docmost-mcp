@@ -10,13 +10,21 @@ import { CommentHandler } from './handlers/comment.handler';
 import { SystemHandler } from './handlers/system.handler';
 import { ContextHandler } from './handlers/context.handler';
 import { UIHandler } from './handlers/ui.handler';
+import { ProjectHandler } from './handlers/project.handler';
+import { TaskHandler } from './handlers/task.handler';
+import { ApprovalHandler } from './handlers/approval.handler';
+import { SearchHandler } from './handlers/search.handler';
+import { ImportHandler } from './handlers/import.handler';
+import { ExportHandler } from './handlers/export.handler';
 import { User } from '@docmost/db/types/entity.types';
 import {
   createInternalError,
   createInvalidRequestError,
   createMethodNotFoundError,
   createParseError,
+  createApprovalRequiredError,
 } from './utils/error.utils';
+import { MCPApprovalService } from './services/mcp-approval.service';
 
 /**
  * Machine Control Protocol (MCP) Service
@@ -40,6 +48,13 @@ export class MCPService {
     private readonly systemHandler: SystemHandler,
     private readonly contextHandler: ContextHandler,
     private readonly uiHandler: UIHandler,
+    private readonly projectHandler: ProjectHandler,
+    private readonly taskHandler: TaskHandler,
+    private readonly approvalHandler: ApprovalHandler,
+    private readonly approvalService: MCPApprovalService,
+    private readonly searchHandler: SearchHandler,
+    private readonly importHandler: ImportHandler,
+    private readonly exportHandler: ExportHandler,
   ) {}
 
   /**
@@ -68,6 +83,40 @@ export class MCPService {
       );
 
       let result: any;
+
+      if (
+        resource !== 'approval' &&
+        this.approvalService.requiresApproval(request.method)
+      ) {
+        const approvalToken = request.params?.approvalToken as string | undefined;
+        if (!approvalToken) {
+          const approval = await this.approvalService.createApproval(
+            user.id,
+            request.method,
+            request.params || {},
+          );
+          throw createApprovalRequiredError({
+            message: 'Approval required for this operation',
+            approvalToken: approval.token,
+            expiresAt: approval.expiresAt,
+            method: request.method,
+          });
+        }
+
+        const approved = await this.approvalService.consumeApproval(
+          user.id,
+          request.method,
+          request.params || {},
+          approvalToken,
+        );
+
+        if (!approved) {
+          throw createApprovalRequiredError({
+            message: 'Approval token invalid or expired',
+            method: request.method,
+          });
+        }
+      }
 
       // Handle UI navigation as a special case first
       if (
@@ -135,6 +184,22 @@ export class MCPService {
               user.id,
             );
             break;
+          case 'project':
+            this.logger.debug(`MCPService: Delegating to project handler`);
+            result = await this.handleProjectRequest(
+              operation,
+              request.params,
+              user.id,
+            );
+            break;
+          case 'task':
+            this.logger.debug(`MCPService: Delegating to task handler`);
+            result = await this.handleTaskRequest(
+              operation,
+              request.params,
+              user.id,
+            );
+            break;
           case 'system':
             this.logger.debug(`MCPService: Delegating to system handler`);
             result = await this.handleSystemRequest(operation, request.params);
@@ -154,6 +219,38 @@ export class MCPService {
           case String(resource).trim().toLowerCase() === 'ui' ? resource : '':
             this.logger.debug(`MCPService: Delegating to UI handler`);
             result = await this.handleUIRequest(
+              operation,
+              request.params,
+              user.id,
+            );
+            break;
+          case 'approval':
+            this.logger.debug(`MCPService: Delegating to approval handler`);
+            result = await this.handleApprovalRequest(
+              operation,
+              request.params,
+              user.id,
+            );
+            break;
+          case 'search':
+            this.logger.debug(`MCPService: Delegating to search handler`);
+            result = await this.handleSearchRequest(
+              operation,
+              request.params,
+              user.id,
+            );
+            break;
+          case 'import':
+            this.logger.debug(`MCPService: Delegating to import handler`);
+            result = await this.handleImportRequest(
+              operation,
+              request.params,
+              user.id,
+            );
+            break;
+          case 'export':
+            this.logger.debug(`MCPService: Delegating to export handler`);
+            result = await this.handleExportRequest(
               operation,
               request.params,
               user.id,
@@ -248,6 +345,14 @@ export class MCPService {
         return this.spaceHandler.deleteSpace(params, userId);
       case 'updatePermissions':
         return this.spaceHandler.updatePermissions(params, userId);
+      case 'members':
+        return this.spaceHandler.listMembers(params, userId);
+      case 'membersAdd':
+        return this.spaceHandler.addMembers(params, userId);
+      case 'membersRemove':
+        return this.spaceHandler.removeMember(params, userId);
+      case 'changeMemberRole':
+        return this.spaceHandler.changeMemberRole(params, userId);
       default:
         throw createMethodNotFoundError(`space.${operation}`);
     }
@@ -339,6 +444,26 @@ export class MCPService {
         return this.workspaceHandler.addMember(params, userId);
       case 'removeMember':
         return this.workspaceHandler.removeMember(params, userId);
+      case 'members':
+        return this.workspaceHandler.listMembers(params, userId);
+      case 'changeMemberRole':
+        return this.workspaceHandler.changeMemberRole(params, userId);
+      case 'deleteMember':
+        return this.workspaceHandler.deleteMember(params, userId);
+      case 'invites':
+        return this.workspaceHandler.listInvites(params, userId);
+      case 'inviteInfo':
+        return this.workspaceHandler.inviteInfo(params, userId);
+      case 'inviteCreate':
+        return this.workspaceHandler.inviteCreate(params, userId);
+      case 'inviteResend':
+        return this.workspaceHandler.inviteResend(params, userId);
+      case 'inviteRevoke':
+        return this.workspaceHandler.inviteRevoke(params, userId);
+      case 'inviteLink':
+        return this.workspaceHandler.inviteLink(params, userId);
+      case 'checkHostname':
+        return this.workspaceHandler.checkHostname(params, userId);
       default:
         throw createMethodNotFoundError(`workspace.${operation}`);
     }
@@ -397,8 +522,78 @@ export class MCPService {
         return this.commentHandler.updateComment(params, userId);
       case 'delete':
         return this.commentHandler.deleteComment(params, userId);
+      case 'resolve':
+        return this.commentHandler.resolveComment(params, userId);
       default:
         throw createMethodNotFoundError(`comment.${operation}`);
+    }
+  }
+
+  /**
+   * Handle project-related requests
+   *
+   * @param operation The operation to perform
+   * @param params The operation parameters
+   * @param userId The ID of the authenticated user
+   * @returns The operation result
+   */
+  private async handleProjectRequest(
+    operation: string,
+    params: any,
+    userId: string,
+  ): Promise<any> {
+    switch (operation) {
+      case 'get':
+        return this.projectHandler.getProject(params, userId);
+      case 'list':
+        return this.projectHandler.listProjects(params, userId);
+      case 'create':
+        return this.projectHandler.createProject(params, userId);
+      case 'update':
+        return this.projectHandler.updateProject(params, userId);
+      case 'delete':
+        return this.projectHandler.deleteProject(params, userId);
+      case 'archive':
+        return this.projectHandler.archiveProject(params, userId);
+      case 'createPage':
+        return this.projectHandler.createProjectPage(params, userId);
+      default:
+        throw createMethodNotFoundError(`project.${operation}`);
+    }
+  }
+
+  /**
+   * Handle task-related requests
+   *
+   * @param operation The operation to perform
+   * @param params The operation parameters
+   * @param userId The ID of the authenticated user
+   * @returns The operation result
+   */
+  private async handleTaskRequest(
+    operation: string,
+    params: any,
+    userId: string,
+  ): Promise<any> {
+    switch (operation) {
+      case 'get':
+        return this.taskHandler.getTask(params, userId);
+      case 'list':
+        return this.taskHandler.listTasks(params, userId);
+      case 'create':
+        return this.taskHandler.createTask(params, userId);
+      case 'update':
+        return this.taskHandler.updateTask(params, userId);
+      case 'delete':
+        return this.taskHandler.deleteTask(params, userId);
+      case 'complete':
+        return this.taskHandler.completeTask(params, userId);
+      case 'assign':
+        return this.taskHandler.assignTask(params, userId);
+      case 'moveToProject':
+        return this.taskHandler.moveToProject(params, userId);
+      default:
+        throw createMethodNotFoundError(`task.${operation}`);
     }
   }
 
@@ -471,6 +666,83 @@ export class MCPService {
         return this.uiHandler.navigate(params, userId);
       default:
         throw createMethodNotFoundError(`ui.${operation}`);
+    }
+  }
+
+  /**
+   * Handle approval-related requests
+   *
+   * @param operation The operation to perform
+   * @param params The operation parameters
+   * @param userId The ID of the authenticated user
+   * @returns The operation result
+   */
+  private async handleApprovalRequest(
+    operation: string,
+    params: any,
+    userId: string,
+  ): Promise<any> {
+    switch (operation) {
+      case 'request':
+        return this.approvalHandler.requestApproval(params, userId);
+      case 'confirm':
+        return this.approvalHandler.confirmApproval(params, userId);
+      default:
+        throw createMethodNotFoundError(`approval.${operation}`);
+    }
+  }
+
+  /**
+   * Handle search-related requests
+   */
+  private async handleSearchRequest(
+    operation: string,
+    params: any,
+    userId: string,
+  ): Promise<any> {
+    switch (operation) {
+      case 'query':
+        return this.searchHandler.searchPages(params, userId);
+      case 'suggest':
+        return this.searchHandler.searchSuggestions(params, userId);
+      default:
+        throw createMethodNotFoundError(`search.${operation}`);
+    }
+  }
+
+  /**
+   * Handle import-related requests
+   */
+  private async handleImportRequest(
+    operation: string,
+    params: any,
+    userId: string,
+  ): Promise<any> {
+    switch (operation) {
+      case 'requestUpload':
+        return this.importHandler.requestUpload(params, userId);
+      case 'page':
+        return this.importHandler.importPage(params, userId);
+      default:
+        throw createMethodNotFoundError(`import.${operation}`);
+    }
+  }
+
+  /**
+   * Handle export-related requests
+   */
+  private async handleExportRequest(
+    operation: string,
+    params: any,
+    userId: string,
+  ): Promise<any> {
+    switch (operation) {
+      case 'page':
+        return this.exportHandler.exportPage(params, userId);
+      case 'space':
+        return this.exportHandler.exportSpace(params, userId);
+      default:
+        throw createMethodNotFoundError(`export.${operation}`);
     }
   }
 

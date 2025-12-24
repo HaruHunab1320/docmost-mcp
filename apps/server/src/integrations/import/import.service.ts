@@ -32,9 +32,25 @@ export class ImportService {
   ): Promise<void> {
     const file = await filePromise;
     const fileBuffer = await file.toBuffer();
-    const fileExtension = path.extname(file.filename).toLowerCase();
+    return this.importPageFromBuffer(
+      fileBuffer,
+      file.filename,
+      userId,
+      spaceId,
+      workspaceId,
+    );
+  }
+
+  async importPageFromBuffer(
+    fileBuffer: Buffer,
+    fileNameWithExtension: string,
+    userId: string,
+    spaceId: string,
+    workspaceId: string,
+  ): Promise<void> {
+    const fileExtension = path.extname(fileNameWithExtension).toLowerCase();
     const fileName = sanitize(
-      path.basename(file.filename, fileExtension).slice(0, 255),
+      path.basename(fileNameWithExtension, fileExtension).slice(0, 255),
     );
     const fileContent = fileBuffer.toString();
 

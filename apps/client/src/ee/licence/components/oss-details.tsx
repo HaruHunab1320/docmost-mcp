@@ -11,14 +11,14 @@ export default function OssDetails() {
         withTableBorder
       >
         <Table.Caption>
-          To unlock enterprise features like SSO, contact sales@docmost.com.
+          Enterprise features can be licensed through Raven Docs.
         </Table.Caption>
         <Table.Tbody>
           <Table.Tr>
-            <Table.Th w={160}>Edition</Table.Th>
-            <Table.Td>
-              <Group wrap="nowrap">
-                Open Source
+          <Table.Th w={160}>Edition</Table.Th>
+          <Table.Td>
+            <Group wrap="nowrap">
+                Community Edition
                 <div>
                   <ThemeIcon
                     color="green"

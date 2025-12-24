@@ -82,6 +82,19 @@ export class S3Driver implements StorageDriver {
     return await getSignedUrl(this.s3Client, command, { expiresIn });
   }
 
+  async getUploadSignedUrl(
+    filePath: string,
+    expiresIn: number,
+    contentType?: string,
+  ): Promise<string> {
+    const command = new PutObjectCommand({
+      Bucket: this.config.bucket,
+      Key: filePath,
+      ContentType: contentType || getMimeType(filePath),
+    });
+    return await getSignedUrl(this.s3Client, command, { expiresIn });
+  }
+
   async delete(filePath: string): Promise<void> {
     try {
       const command = new DeleteObjectCommand({

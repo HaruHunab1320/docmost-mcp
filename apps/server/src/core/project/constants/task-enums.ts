@@ -12,3 +12,10 @@ export enum TaskPriority {
   HIGH = 'high',
   URGENT = 'urgent',
 }
+
+export enum TaskBucket {
+  NONE = 'none',
+  INBOX = 'inbox',
+  WAITING = 'waiting',
+  SOMEDAY = 'someday',
+}

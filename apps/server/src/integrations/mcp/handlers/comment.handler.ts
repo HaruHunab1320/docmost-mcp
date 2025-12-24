@@ -18,6 +18,8 @@ import {
   SpaceCaslSubject,
 } from '../../../core/casl/interfaces/space-ability.type';
 import { validate as isValidUUID } from 'uuid';
+import { MCPEventService } from '../services/mcp-event.service';
+import { MCPResourceType } from '../interfaces/mcp-event.interface';
 
 // Add interface for comment with creator
 interface CommentWithCreator {
@@ -54,6 +56,7 @@ export class CommentHandler {
     private readonly workspaceService: WorkspaceService,
     private readonly userService: UserService,
     private readonly spaceAbility: SpaceAbilityFactory,
+    private readonly mcpEventService: MCPEventService,
   ) {}
 
   /**
@@ -498,5 +501,79 @@ export class CommentHandler {
       createdAt: commentWithCreator.createdAt,
       editedAt: commentWithCreator.editedAt,
     };
+  }
+
+  /**
+   * Handles comment.resolve operation
+   *
+   * @param params The operation parameters
+   * @param userId The ID of the authenticated user
+   * @returns The resolved comment
+   */
+  async resolveComment(params: any, userId: string): Promise<any> {
+    this.logger.debug(`Processing comment.resolve operation for user ${userId}`);
+
+    if (!params.commentId) {
+      throw createInvalidParamsError('commentId is required');
+    }
+
+    if (typeof params.resolved !== 'boolean') {
+      throw createInvalidParamsError('resolved must be a boolean');
+    }
+
+    try {
+      const comment = await this.commentRepo.findById(params.commentId);
+      if (!comment) {
+        throw createResourceNotFoundError('Comment', params.commentId);
+      }
+
+      const page = await this.pageRepo.findById(comment.pageId);
+      if (!page) {
+        throw createResourceNotFoundError('Page', comment.pageId);
+      }
+
+      const user = { id: userId } as User;
+      const ability = await this.spaceAbility.createForUser(user, page.spaceId);
+      if (ability.cannot(SpaceCaslAction.Read, SpaceCaslSubject.Page)) {
+        throw createPermissionDeniedError(
+          'You do not have permission to resolve comments in this space',
+        );
+      }
+
+      if (
+        comment.creatorId !== userId &&
+        ability.cannot(SpaceCaslAction.Manage, SpaceCaslSubject.Settings)
+      ) {
+        throw createPermissionDeniedError(
+          'You can only resolve your own comments',
+        );
+      }
+
+      const updated = await this.commentService.resolve(
+        comment.id,
+        params.resolved,
+        userId,
+      );
+
+      this.mcpEventService.createUpdatedEvent(
+        MCPResourceType.COMMENT,
+        comment.id,
+        { resolved: params.resolved },
+        userId,
+        comment.workspaceId,
+        page.spaceId,
+      );
+
+      return updated;
+    } catch (error: any) {
+      this.logger.error(
+        `Error resolving comment: ${error?.message || 'Unknown error'}`,
+        error?.stack,
+      );
+      if (error?.code && typeof error.code === 'number') {
+        throw error;
+      }
+      throw createInternalError(error?.message || String(error));
+    }
   }
 }

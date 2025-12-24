@@ -28,7 +28,7 @@ Detailed explanation of the API key authentication system:
 - Authentication flow
 - Implementation details
 
-### 3. [Master Control API: JSON-RPC 2.0 Server](./MasterControlAPI.md)
+### 3. [Master Control API: JSON-RPC 2.0 Server (Internal)](./MasterControlAPI.md)
 
 Comprehensive documentation of the JSON-RPC 2.0 server implementation:
 - Architecture and components
@@ -59,7 +59,7 @@ Details on the real-time event system:
 
 ### Master Control API
 
-The Master Control API provides a JSON-RPC 2.0 interface to all Raven Docs functionality. It serves as the foundation for the MCP integration, allowing AI assistants and other clients to programmatically:
+The Master Control API provides a JSON-RPC 2.0 interface to Raven Docs internally. External integrations should use the MCP Standard endpoints.
 
 - Manage spaces, pages, and comments
 - Upload and manage attachments

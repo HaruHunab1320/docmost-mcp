@@ -25,14 +25,15 @@ export default function LicenseDetails() {
         withTableBorder
       >
         <Table.Caption>
-          Contact sales@docmost.com for support and enquiries.
+          Contact Raven Docs support for licensing and billing questions.
         </Table.Caption>
         <Table.Tbody>
           <Table.Tr>
-            <Table.Th w={160}>Edition</Table.Th>
-            <Table.Td>
-              Enterprise {license.trial && <Badge color="green">Trial</Badge>}
-            </Table.Td>
+          <Table.Th w={160}>Edition</Table.Th>
+          <Table.Td>
+              Raven Docs Enterprise{" "}
+              {license.trial && <Badge color="green">Trial</Badge>}
+          </Table.Td>
           </Table.Tr>
 
           <Table.Tr>

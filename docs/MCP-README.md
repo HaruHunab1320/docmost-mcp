@@ -6,9 +6,10 @@ The Machine Control Protocol (MCP) is an initiative to add programmatic control 
 
 ## What is MCP?
 
-MCP is a JSON-RPC 2.0 based protocol that enables:
+MCP is a standardized protocol for tool-enabled AI integrations. Raven Docs exposes MCP Standard over HTTP to allow AI tools to call server capabilities.
 
 - Creating, reading, updating, and deleting Raven Docs resources
+- Managing projects, tasks, and GTD buckets
 - Real-time interactions with the Raven Docs platform
 - Automation of workflows
 - Integration with external systems and tools
@@ -24,7 +25,7 @@ Raven Docs is a powerful documentation and collaboration platform, but currently
 
 ## Getting Started
 
-Raven Docs supports both the standard MCP protocol at `/api/mcp-standard` and the legacy JSON-RPC MCP endpoint at `/api/mcp`. The standard MCP endpoint is recommended for new integrations.
+Raven Docs exposes the standard MCP protocol at `/api/mcp-standard`. The JSON-RPC Master Control API is internal and used by the MCP standard service.
 
 ### For Users
 
@@ -50,30 +51,36 @@ The MCP implementation includes full support for API key authentication, making 
 
 ## Examples
 
-Here's a simple example of how to use MCP with API key authentication to create a new page:
+Here's a simple example of how to use MCP Standard with API key authentication to create a new page:
 
 ```javascript
 // Example: Creating a new page via MCP
 const mcpRequest = {
-  jsonrpc: "2.0",
-  method: "page.create",
-  params: {
-    spaceId: "space-123",
-    title: "My New Page",
-    content: "This is the content of my new page",
-    parentPageId: "parent-page-456" // Optional
+  spaceId: "space-123",
+  title: "My New Page",
+  content: {
+    type: "doc",
+    content: [
+      {
+        type: "paragraph",
+        content: [{ type: "text", text: "This is the content of my new page" }]
+      }
+    ]
   },
-  id: "request-1"
+  parentPageId: "parent-page-456" // Optional
 };
 
 // Sending the request with API key authentication
-const response = await fetch("https://example.raven-docs.local/api/mcp", {
+const response = await fetch("https://example.raven-docs.local/api/mcp-standard/call_tool", {
   method: "POST",
   headers: {
     "Content-Type": "application/json",
     "Authorization": "Bearer mcp_your_api_key_here"
   },
-  body: JSON.stringify(mcpRequest)
+  body: JSON.stringify({
+    name: "page_create",
+    arguments: mcpRequest.params
+  })
 });
 
 const result = await response.json();

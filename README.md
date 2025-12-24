@@ -38,9 +38,9 @@ Raven Docs is built on the Docmost codebase and continues to evolve with its own
 
 > **Note**: The following API integrations are extensions developed by HaruHunab1320 and are not part of the upstream Docmost project.
 
-### Master Control API
+### Master Control API (Internal)
 
-Raven Docs provides a powerful JSON-RPC 2.0 API that allows programmatic access to all core functionality. This API enables:
+Raven Docs includes a JSON-RPC 2.0 API that powers the MCP standard service internally. It is not intended as a public endpoint. The MCP standard interface exposes the supported capabilities.
 
 - Managing spaces, pages, and comments
 - User and workspace administration
@@ -48,24 +48,7 @@ Raven Docs provides a powerful JSON-RPC 2.0 API that allows programmatic access 
 - File uploads and attachments
 - UI navigation and control
 
-The API follows JSON-RPC 2.0 protocol and is accessible at `/api/mcp` endpoint. Authentication is handled via API keys or JWT tokens.
-
-Example request:
-```json
-{
-  "jsonrpc": "2.0",
-  "method": "page.create",
-  "params": {
-    "title": "New Page",
-    "content": { "type": "doc", "content": [] },
-    "spaceId": "01964ade-05e2-7c87-b4e0-fc434e340abb",
-    "workspaceId": "01964ade-05e2-7c87-b4e0-fc434e340abb"
-  },
-  "id": 1
-}
-```
-
-API documentation is available at `/api/mcp/openapi.json` when running the server. This provides a complete OpenAPI specification of all available methods and parameters.
+The MCP Standard API is the supported public interface for agents and automation tools.
 
 ### Model Context Protocol (MCP) Integration
 
@@ -106,13 +89,9 @@ Raven Docs exposes the standard MCP protocol directly at `/api/mcp-standard`, so
 
 4. Start using tools directly from Cursor to interact with your Raven Docs content!
 
-#### Legacy MCP Bridge (Optional)
-
-The standalone bridge server is still present for legacy workflows at `packages/mcp-bridge`, but the built-in standard MCP endpoint is the recommended path.
-
 #### Available MCP Tools
 
-The MCP bridge provides the following tool categories:
+The MCP Standard service provides the following tool categories:
 
 **Content Management**
 - `space_create`, `space_list`, `space_update`, `space_delete`: Manage spaces

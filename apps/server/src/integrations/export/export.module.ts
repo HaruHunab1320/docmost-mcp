@@ -9,5 +9,6 @@ import { EnvironmentModule } from '../environment/environment.module';
   imports: [StorageModule, DatabaseModule, EnvironmentModule],
   providers: [ExportService],
   controllers: [ExportController],
+  exports: [ExportService],
 })
 export class ExportModule {}

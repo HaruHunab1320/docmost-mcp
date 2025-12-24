@@ -26,6 +26,14 @@ export class StorageService {
     return this.storageDriver.getSignedUrl(path, expireIn);
   }
 
+  async getUploadSignedUrl(
+    path: string,
+    expireIn: number,
+    contentType?: string,
+  ): Promise<string> {
+    return this.storageDriver.getUploadSignedUrl(path, expireIn, contentType);
+  }
+
   getUrl(filePath: string): string {
     return this.storageDriver.getUrl(filePath);
   }

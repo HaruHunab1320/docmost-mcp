@@ -27,6 +27,7 @@ import { WorkspaceInvitationService } from '../../../core/workspace/services/wor
 import { SpaceRole, UserRole } from '../../../common/helpers/types/permission';
 import { MCPEventService } from '../services/mcp-event.service';
 import { MCPResourceType } from '../interfaces/mcp-event.interface';
+import { EnvironmentService } from '../../environment/environment.service';
 
 /**
  * Handler for workspace-related MCP operations
@@ -42,6 +43,7 @@ export class WorkspaceHandler {
     private readonly workspaceInvitationService: WorkspaceInvitationService,
     private readonly mcpEventService: MCPEventService,
     @InjectKysely() private readonly db: KyselyDB,
+    private readonly environmentService: EnvironmentService,
   ) {}
 
   /**
@@ -262,6 +264,543 @@ export class WorkspaceHandler {
       );
       if (error?.code && typeof error.code === 'number') {
         throw error; // Re-throw MCP errors
+      }
+      throw createInternalError(error?.message || String(error));
+    }
+  }
+
+  /**
+   * Handles workspace.members operation
+   *
+   * @param params The operation parameters
+   * @param userId The ID of the user making the request
+   * @returns Workspace members
+   */
+  async listMembers(params: any, userId: string): Promise<any> {
+    this.logger.debug(`Processing workspace.members for user ${userId}`);
+
+    if (!params.workspaceId) {
+      throw createInvalidParamsError('workspaceId is required');
+    }
+
+    try {
+      const workspace = await this.workspaceService.findById(
+        params.workspaceId,
+      );
+      if (!workspace) {
+        throw createResourceNotFoundError('Workspace', params.workspaceId);
+      }
+
+      const authUser = await this.userService.findById(
+        userId,
+        params.workspaceId,
+      );
+      if (!authUser) {
+        throw createPermissionDeniedError(
+          'User not found in the specified workspace',
+        );
+      }
+
+      const ability = this.workspaceAbility.createForUser(authUser, workspace);
+      if (
+        ability.cannot(WorkspaceCaslAction.Read, WorkspaceCaslSubject.Member)
+      ) {
+        throw createPermissionDeniedError(
+          'You do not have permission to view workspace members',
+        );
+      }
+
+      return this.workspaceService.getWorkspaceUsers(params.workspaceId, {
+        page: params.page || 1,
+        limit: params.limit || 20,
+        query: params.query || '',
+      });
+    } catch (error: any) {
+      this.logger.error(
+        `Error listing workspace members: ${error?.message || 'Unknown error'}`,
+        error?.stack,
+      );
+      if (error?.code && typeof error.code === 'number') {
+        throw error;
+      }
+      throw createInternalError(error?.message || String(error));
+    }
+  }
+
+  /**
+   * Handles workspace.changeMemberRole operation
+   */
+  async changeMemberRole(params: any, userId: string): Promise<any> {
+    this.logger.debug(
+      `Processing workspace.changeMemberRole for user ${userId}`,
+    );
+
+    if (!params.workspaceId) {
+      throw createInvalidParamsError('workspaceId is required');
+    }
+
+    if (!params.userId) {
+      throw createInvalidParamsError('userId is required');
+    }
+
+    if (!params.role) {
+      throw createInvalidParamsError('role is required');
+    }
+
+    try {
+      const workspace = await this.workspaceService.findById(
+        params.workspaceId,
+      );
+      if (!workspace) {
+        throw createResourceNotFoundError('Workspace', params.workspaceId);
+      }
+
+      const authUser = await this.userService.findById(
+        userId,
+        params.workspaceId,
+      );
+      if (!authUser) {
+        throw createPermissionDeniedError(
+          'User not found in the specified workspace',
+        );
+      }
+
+      const ability = this.workspaceAbility.createForUser(authUser, workspace);
+      if (
+        ability.cannot(WorkspaceCaslAction.Manage, WorkspaceCaslSubject.Member)
+      ) {
+        throw createPermissionDeniedError(
+          'You do not have permission to manage workspace members',
+        );
+      }
+
+      return this.workspaceService.updateWorkspaceUserRole(
+        authUser,
+        {
+          userId: params.userId,
+          role: params.role,
+        },
+        params.workspaceId,
+      );
+    } catch (error: any) {
+      this.logger.error(
+        `Error changing member role: ${error?.message || 'Unknown error'}`,
+        error?.stack,
+      );
+      if (error?.code && typeof error.code === 'number') {
+        throw error;
+      }
+      throw createInternalError(error?.message || String(error));
+    }
+  }
+
+  /**
+   * Handles workspace.deleteMember operation
+   */
+  async deleteMember(params: any, userId: string): Promise<any> {
+    this.logger.debug(`Processing workspace.deleteMember for user ${userId}`);
+
+    if (!params.workspaceId) {
+      throw createInvalidParamsError('workspaceId is required');
+    }
+
+    if (!params.userId) {
+      throw createInvalidParamsError('userId is required');
+    }
+
+    try {
+      const workspace = await this.workspaceService.findById(
+        params.workspaceId,
+      );
+      if (!workspace) {
+        throw createResourceNotFoundError('Workspace', params.workspaceId);
+      }
+
+      const authUser = await this.userService.findById(
+        userId,
+        params.workspaceId,
+      );
+      if (!authUser) {
+        throw createPermissionDeniedError(
+          'User not found in the specified workspace',
+        );
+      }
+
+      const ability = this.workspaceAbility.createForUser(authUser, workspace);
+      if (
+        ability.cannot(WorkspaceCaslAction.Manage, WorkspaceCaslSubject.Member)
+      ) {
+        throw createPermissionDeniedError(
+          'You do not have permission to manage workspace members',
+        );
+      }
+
+      await this.workspaceService.deleteUser(
+        authUser,
+        params.userId,
+        params.workspaceId,
+      );
+
+      return { success: true };
+    } catch (error: any) {
+      this.logger.error(
+        `Error deleting workspace member: ${error?.message || 'Unknown error'}`,
+        error?.stack,
+      );
+      if (error?.code && typeof error.code === 'number') {
+        throw error;
+      }
+      throw createInternalError(error?.message || String(error));
+    }
+  }
+
+  /**
+   * Handles workspace.invites operation
+   */
+  async listInvites(params: any, userId: string): Promise<any> {
+    this.logger.debug(`Processing workspace.invites for user ${userId}`);
+
+    if (!params.workspaceId) {
+      throw createInvalidParamsError('workspaceId is required');
+    }
+
+    try {
+      const workspace = await this.workspaceService.findById(
+        params.workspaceId,
+      );
+      if (!workspace) {
+        throw createResourceNotFoundError('Workspace', params.workspaceId);
+      }
+
+      const authUser = await this.userService.findById(
+        userId,
+        params.workspaceId,
+      );
+      if (!authUser) {
+        throw createPermissionDeniedError(
+          'User not found in the specified workspace',
+        );
+      }
+
+      const ability = this.workspaceAbility.createForUser(authUser, workspace);
+      if (
+        ability.cannot(WorkspaceCaslAction.Read, WorkspaceCaslSubject.Member)
+      ) {
+        throw createPermissionDeniedError(
+          'You do not have permission to view invitations',
+        );
+      }
+
+      return this.workspaceInvitationService.getInvitations(
+        params.workspaceId,
+        {
+          page: params.page || 1,
+          limit: params.limit || 20,
+          query: params.query || '',
+        },
+      );
+    } catch (error: any) {
+      this.logger.error(
+        `Error listing invitations: ${error?.message || 'Unknown error'}`,
+        error?.stack,
+      );
+      if (error?.code && typeof error.code === 'number') {
+        throw error;
+      }
+      throw createInternalError(error?.message || String(error));
+    }
+  }
+
+  /**
+   * Handles workspace.inviteInfo operation
+   */
+  async inviteInfo(params: any, userId: string): Promise<any> {
+    this.logger.debug(`Processing workspace.inviteInfo for user ${userId}`);
+
+    if (!params.invitationId) {
+      throw createInvalidParamsError('invitationId is required');
+    }
+
+    if (!params.workspaceId) {
+      throw createInvalidParamsError('workspaceId is required');
+    }
+
+    try {
+      return this.workspaceInvitationService.getInvitationById(
+        params.invitationId,
+        params.workspaceId,
+      );
+    } catch (error: any) {
+      this.logger.error(
+        `Error getting invitation info: ${error?.message || 'Unknown error'}`,
+        error?.stack,
+      );
+      if (error?.code && typeof error.code === 'number') {
+        throw error;
+      }
+      throw createInternalError(error?.message || String(error));
+    }
+  }
+
+  /**
+   * Handles workspace.inviteCreate operation
+   */
+  async inviteCreate(params: any, userId: string): Promise<any> {
+    this.logger.debug(`Processing workspace.inviteCreate for user ${userId}`);
+
+    if (!params.workspaceId) {
+      throw createInvalidParamsError('workspaceId is required');
+    }
+
+    if (!params.emails || params.emails.length === 0) {
+      throw createInvalidParamsError('emails is required');
+    }
+
+    try {
+      const workspace = await this.workspaceService.findById(
+        params.workspaceId,
+      );
+      if (!workspace) {
+        throw createResourceNotFoundError('Workspace', params.workspaceId);
+      }
+
+      const authUser = await this.userService.findById(
+        userId,
+        params.workspaceId,
+      );
+      if (!authUser) {
+        throw createPermissionDeniedError(
+          'User not found in the specified workspace',
+        );
+      }
+
+      const ability = this.workspaceAbility.createForUser(authUser, workspace);
+      if (
+        ability.cannot(WorkspaceCaslAction.Manage, WorkspaceCaslSubject.Member)
+      ) {
+        throw createPermissionDeniedError(
+          'You do not have permission to invite members',
+        );
+      }
+
+      return this.workspaceInvitationService.createInvitation(
+        {
+          emails: Array.isArray(params.emails) ? params.emails : [params.emails],
+          role: params.role,
+          groupIds: params.groupIds || [],
+        },
+        workspace,
+        authUser,
+      );
+    } catch (error: any) {
+      this.logger.error(
+        `Error creating invitation: ${error?.message || 'Unknown error'}`,
+        error?.stack,
+      );
+      if (error?.code && typeof error.code === 'number') {
+        throw error;
+      }
+      throw createInternalError(error?.message || String(error));
+    }
+  }
+
+  /**
+   * Handles workspace.inviteResend operation
+   */
+  async inviteResend(params: any, userId: string): Promise<any> {
+    this.logger.debug(`Processing workspace.inviteResend for user ${userId}`);
+
+    if (!params.workspaceId) {
+      throw createInvalidParamsError('workspaceId is required');
+    }
+
+    if (!params.invitationId) {
+      throw createInvalidParamsError('invitationId is required');
+    }
+
+    try {
+      const workspace = await this.workspaceService.findById(
+        params.workspaceId,
+      );
+      if (!workspace) {
+        throw createResourceNotFoundError('Workspace', params.workspaceId);
+      }
+
+      const authUser = await this.userService.findById(
+        userId,
+        params.workspaceId,
+      );
+      if (!authUser) {
+        throw createPermissionDeniedError(
+          'User not found in the specified workspace',
+        );
+      }
+
+      const ability = this.workspaceAbility.createForUser(authUser, workspace);
+      if (
+        ability.cannot(WorkspaceCaslAction.Manage, WorkspaceCaslSubject.Member)
+      ) {
+        throw createPermissionDeniedError(
+          'You do not have permission to manage invitations',
+        );
+      }
+
+      return this.workspaceInvitationService.resendInvitation(
+        params.invitationId,
+        workspace,
+      );
+    } catch (error: any) {
+      this.logger.error(
+        `Error resending invitation: ${error?.message || 'Unknown error'}`,
+        error?.stack,
+      );
+      if (error?.code && typeof error.code === 'number') {
+        throw error;
+      }
+      throw createInternalError(error?.message || String(error));
+    }
+  }
+
+  /**
+   * Handles workspace.inviteRevoke operation
+   */
+  async inviteRevoke(params: any, userId: string): Promise<any> {
+    this.logger.debug(`Processing workspace.inviteRevoke for user ${userId}`);
+
+    if (!params.workspaceId) {
+      throw createInvalidParamsError('workspaceId is required');
+    }
+
+    if (!params.invitationId) {
+      throw createInvalidParamsError('invitationId is required');
+    }
+
+    try {
+      const workspace = await this.workspaceService.findById(
+        params.workspaceId,
+      );
+      if (!workspace) {
+        throw createResourceNotFoundError('Workspace', params.workspaceId);
+      }
+
+      const authUser = await this.userService.findById(
+        userId,
+        params.workspaceId,
+      );
+      if (!authUser) {
+        throw createPermissionDeniedError(
+          'User not found in the specified workspace',
+        );
+      }
+
+      const ability = this.workspaceAbility.createForUser(authUser, workspace);
+      if (
+        ability.cannot(WorkspaceCaslAction.Manage, WorkspaceCaslSubject.Member)
+      ) {
+        throw createPermissionDeniedError(
+          'You do not have permission to manage invitations',
+        );
+      }
+
+      return this.workspaceInvitationService.revokeInvitation(
+        params.invitationId,
+        params.workspaceId,
+      );
+    } catch (error: any) {
+      this.logger.error(
+        `Error revoking invitation: ${error?.message || 'Unknown error'}`,
+        error?.stack,
+      );
+      if (error?.code && typeof error.code === 'number') {
+        throw error;
+      }
+      throw createInternalError(error?.message || String(error));
+    }
+  }
+
+  /**
+   * Handles workspace.inviteLink operation
+   */
+  async inviteLink(params: any, userId: string): Promise<any> {
+    this.logger.debug(`Processing workspace.inviteLink for user ${userId}`);
+
+    if (!params.workspaceId) {
+      throw createInvalidParamsError('workspaceId is required');
+    }
+
+    if (!params.invitationId) {
+      throw createInvalidParamsError('invitationId is required');
+    }
+
+    if (this.environmentService.isCloud()) {
+      throw createPermissionDeniedError('Invite links are disabled in cloud');
+    }
+
+    try {
+      const workspace = await this.workspaceService.findById(
+        params.workspaceId,
+      );
+      if (!workspace) {
+        throw createResourceNotFoundError('Workspace', params.workspaceId);
+      }
+
+      const authUser = await this.userService.findById(
+        userId,
+        params.workspaceId,
+      );
+      if (!authUser) {
+        throw createPermissionDeniedError(
+          'User not found in the specified workspace',
+        );
+      }
+
+      const ability = this.workspaceAbility.createForUser(authUser, workspace);
+      if (
+        ability.cannot(WorkspaceCaslAction.Manage, WorkspaceCaslSubject.Member)
+      ) {
+        throw createPermissionDeniedError(
+          'You do not have permission to manage invitations',
+        );
+      }
+
+      const inviteLink =
+        await this.workspaceInvitationService.getInvitationLinkById(
+          params.invitationId,
+          workspace,
+        );
+
+      return { inviteLink };
+    } catch (error: any) {
+      this.logger.error(
+        `Error getting invite link: ${error?.message || 'Unknown error'}`,
+        error?.stack,
+      );
+      if (error?.code && typeof error.code === 'number') {
+        throw error;
+      }
+      throw createInternalError(error?.message || String(error));
+    }
+  }
+
+  /**
+   * Handles workspace.checkHostname operation
+   */
+  async checkHostname(params: any, userId: string): Promise<any> {
+    this.logger.debug(`Processing workspace.checkHostname for user ${userId}`);
+
+    if (!params.hostname) {
+      throw createInvalidParamsError('hostname is required');
+    }
+
+    try {
+      return this.workspaceService.checkHostname(params.hostname);
+    } catch (error: any) {
+      this.logger.error(
+        `Error checking hostname: ${error?.message || 'Unknown error'}`,
+        error?.stack,
+      );
+      if (error?.code && typeof error.code === 'number') {
+        throw error;
       }
       throw createInternalError(error?.message || String(error));
     }
@@ -602,6 +1141,26 @@ export class WorkspaceHandler {
           return await this.addMember(params, userId);
         case 'removeMember':
           return await this.removeMember(params, userId);
+        case 'members':
+          return await this.listMembers(params, userId);
+        case 'changeMemberRole':
+          return await this.changeMemberRole(params, userId);
+        case 'deleteMember':
+          return await this.deleteMember(params, userId);
+        case 'invites':
+          return await this.listInvites(params, userId);
+        case 'inviteInfo':
+          return await this.inviteInfo(params, userId);
+        case 'inviteCreate':
+          return await this.inviteCreate(params, userId);
+        case 'inviteResend':
+          return await this.inviteResend(params, userId);
+        case 'inviteRevoke':
+          return await this.inviteRevoke(params, userId);
+        case 'inviteLink':
+          return await this.inviteLink(params, userId);
+        case 'checkHostname':
+          return await this.checkHostname(params, userId);
         default:
           this.logger.warn(
             `WorkspaceHandler: Unsupported operation: ${operation}`,

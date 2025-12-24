@@ -43,7 +43,7 @@ export default function ApiKeysSettings() {
             <SettingsTitle title={t("API Keys")} />
             <Text c="dimmed" size="sm" mt="xs">
               {t(
-                "Manage API keys for programmatic access to Docmost via the Machine Control Protocol (MCP)"
+                "Manage API keys for programmatic access to Raven Docs via the Machine Control Protocol (MCP)"
               )}
             </Text>
           </div>
@@ -113,29 +113,35 @@ export default function ApiKeysSettings() {
             </Title>
             <Stack gap="xs">
               <Group justify="space-between">
-                <code style={{ fontSize: "0.875rem" }}>POST /api/mcp</code>
+                <code style={{ fontSize: "0.875rem" }}>
+                  POST /api/mcp-standard/initialize
+                </code>
                 <Text size="sm" c="dimmed">
-                  {t("Main MCP endpoint")}
-                </Text>
-              </Group>
-              <Group justify="space-between">
-                <code style={{ fontSize: "0.875rem" }}>POST /api/mcp/batch</code>
-                <Text size="sm" c="dimmed">
-                  {t("Batch operations")}
-                </Text>
-              </Group>
-              <Group justify="space-between">
-                <code style={{ fontSize: "0.875rem" }}>GET /api/mcp/tools</code>
-                <Text size="sm" c="dimmed">
-                  {t("AI tool definitions")}
+                  {t("Initialize MCP Standard")}
                 </Text>
               </Group>
               <Group justify="space-between">
                 <code style={{ fontSize: "0.875rem" }}>
-                  GET /api/mcp/openapi.json
+                  POST /api/mcp-standard/list_tools
                 </code>
                 <Text size="sm" c="dimmed">
-                  {t("OpenAPI specification")}
+                  {t("List available tools")}
+                </Text>
+              </Group>
+              <Group justify="space-between">
+                <code style={{ fontSize: "0.875rem" }}>
+                  POST /api/mcp-standard/call_tool
+                </code>
+                <Text size="sm" c="dimmed">
+                  {t("Call a tool")}
+                </Text>
+              </Group>
+              <Group justify="space-between">
+                <code style={{ fontSize: "0.875rem" }}>
+                  POST /api/mcp-standard/read_resource
+                </code>
+                <Text size="sm" c="dimmed">
+                  {t("Read a resource")}
                 </Text>
               </Group>
             </Stack>

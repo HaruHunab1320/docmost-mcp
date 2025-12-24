@@ -25,6 +25,8 @@ export type JsonPrimitive = boolean | number | string | null;
 
 export type JsonValue = JsonArray | JsonObject | JsonPrimitive;
 
+export type TaskBucket = "inbox" | "none" | "someday" | "waiting";
+
 export type TaskPriority = "high" | "low" | "medium" | "urgent";
 
 export type TaskStatus = "blocked" | "done" | "in_progress" | "in_review" | "todo";
@@ -280,6 +282,7 @@ export interface TaskLabels {
 
 export interface Tasks {
   assigneeId: string | null;
+  bucket: Generated<TaskBucket>;
   completedAt: Timestamp | null;
   createdAt: Generated<Timestamp>;
   creatorId: string | null;

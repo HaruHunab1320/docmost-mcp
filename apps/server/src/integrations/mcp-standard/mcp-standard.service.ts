@@ -29,7 +29,7 @@ export class MCPStandardService {
         logging: {},
       },
       serverInfo: {
-        name: 'docmost',
+        name: 'raven-docs',
         version: '1.0.0',
       },
     };
@@ -71,6 +71,18 @@ export class MCPStandardService {
         },
       },
       {
+        name: 'space_get',
+        description: 'Get a space by ID',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            spaceId: { type: 'string', description: 'ID of the space' },
+            workspaceId: { type: 'string', description: 'ID of the workspace' },
+          },
+          required: ['spaceId', 'workspaceId'],
+        },
+      },
+      {
         name: 'space_update',
         description: 'Update an existing space',
         inputSchema: {
@@ -83,6 +95,90 @@ export class MCPStandardService {
             slug: { type: 'string', description: 'New URL slug' },
           },
           required: ['spaceId', 'workspaceId'],
+        },
+      },
+      {
+        name: 'space_update_permissions',
+        description: 'Update space permissions for a user or group',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            spaceId: { type: 'string', description: 'ID of the space' },
+            workspaceId: { type: 'string', description: 'ID of the workspace' },
+            targetId: { type: 'string', description: 'User or group ID' },
+            role: { type: 'string', description: 'Role to assign' },
+            isGroup: {
+              type: 'boolean',
+              description: 'True when targetId refers to a group',
+            },
+          },
+          required: ['spaceId', 'workspaceId', 'targetId', 'role'],
+        },
+      },
+      {
+        name: 'space_members',
+        description: 'List members of a space',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            spaceId: { type: 'string', description: 'ID of the space' },
+            workspaceId: { type: 'string', description: 'ID of the workspace' },
+            page: { type: 'number', description: 'Page number for pagination' },
+            limit: { type: 'number', description: 'Number of items per page' },
+            query: { type: 'string', description: 'Search query' },
+          },
+          required: ['spaceId', 'workspaceId'],
+        },
+      },
+      {
+        name: 'space_members_add',
+        description: 'Add members to a space',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            spaceId: { type: 'string', description: 'ID of the space' },
+            workspaceId: { type: 'string', description: 'ID of the workspace' },
+            userIds: {
+              type: 'array',
+              description: 'User IDs to add',
+              items: { type: 'string' },
+            },
+            groupIds: {
+              type: 'array',
+              description: 'Group IDs to add',
+              items: { type: 'string' },
+            },
+            role: { type: 'string', description: 'Role to assign' },
+          },
+          required: ['spaceId', 'workspaceId'],
+        },
+      },
+      {
+        name: 'space_members_remove',
+        description: 'Remove a member from a space',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            spaceId: { type: 'string', description: 'ID of the space' },
+            workspaceId: { type: 'string', description: 'ID of the workspace' },
+            userId: { type: 'string', description: 'User ID to remove' },
+            groupId: { type: 'string', description: 'Group ID to remove' },
+          },
+          required: ['spaceId', 'workspaceId'],
+        },
+      },
+      {
+        name: 'space_change_member_role',
+        description: 'Change a space member role',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            spaceId: { type: 'string', description: 'ID of the space' },
+            workspaceId: { type: 'string', description: 'ID of the workspace' },
+            userId: { type: 'string', description: 'User ID' },
+            role: { type: 'string', description: 'New role' },
+          },
+          required: ['spaceId', 'workspaceId', 'userId', 'role'],
         },
       },
       {
@@ -111,6 +207,17 @@ export class MCPStandardService {
             limit: { type: 'number', description: 'Number of items per page' },
           },
           required: ['spaceId', 'workspaceId'],
+        },
+      },
+      {
+        name: 'page_get',
+        description: 'Get a page by ID',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            pageId: { type: 'string', description: 'ID of the page' },
+          },
+          required: ['pageId'],
         },
       },
       {
@@ -181,6 +288,338 @@ export class MCPStandardService {
             spaceId: { type: 'string', description: 'Target space ID' },
           },
           required: ['pageId', 'workspaceId'],
+        },
+      },
+      {
+        name: 'page_search',
+        description: 'Search pages',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            query: { type: 'string', description: 'Search query' },
+            spaceId: { type: 'string', description: 'Optional space ID' },
+            page: { type: 'number', description: 'Page number for pagination' },
+            limit: { type: 'number', description: 'Number of items per page' },
+          },
+          required: ['query'],
+        },
+      },
+      {
+        name: 'page_get_history',
+        description: 'Get page history',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            pageId: { type: 'string', description: 'ID of the page' },
+            page: { type: 'number', description: 'Page number for pagination' },
+            limit: { type: 'number', description: 'Number of items per page' },
+          },
+          required: ['pageId'],
+        },
+      },
+      {
+        name: 'page_restore',
+        description: 'Restore a page history version',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            historyId: { type: 'string', description: 'Page history version ID' },
+          },
+          required: ['historyId'],
+        },
+      },
+
+      // Project management
+      {
+        name: 'project_list',
+        description: 'List projects in a space',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            spaceId: { type: 'string', description: 'ID of the space' },
+            page: { type: 'number', description: 'Page number for pagination' },
+            limit: { type: 'number', description: 'Number of items per page' },
+            includeArchived: {
+              type: 'boolean',
+              description: 'Include archived projects',
+            },
+            searchTerm: { type: 'string', description: 'Search term' },
+          },
+          required: ['spaceId'],
+        },
+      },
+      {
+        name: 'project_get',
+        description: 'Get a project by ID',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            projectId: { type: 'string', description: 'ID of the project' },
+          },
+          required: ['projectId'],
+        },
+      },
+      {
+        name: 'project_create',
+        description: 'Create a new project',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            name: { type: 'string', description: 'Project name' },
+            description: { type: 'string', description: 'Project description' },
+            spaceId: { type: 'string', description: 'ID of the space' },
+            workspaceId: { type: 'string', description: 'ID of the workspace' },
+            icon: { type: 'string', description: 'Project icon' },
+            color: { type: 'string', description: 'Project color' },
+            startDate: { type: 'string', description: 'Start date (ISO)' },
+            endDate: { type: 'string', description: 'End date (ISO)' },
+          },
+          required: ['name', 'spaceId', 'workspaceId'],
+        },
+      },
+      {
+        name: 'project_update',
+        description: 'Update a project',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            projectId: { type: 'string', description: 'ID of the project' },
+            name: { type: 'string', description: 'Project name' },
+            description: { type: 'string', description: 'Project description' },
+            icon: { type: 'string', description: 'Project icon' },
+            color: { type: 'string', description: 'Project color' },
+            coverImage: { type: 'string', description: 'Cover image URL' },
+            startDate: { type: 'string', description: 'Start date (ISO)' },
+            endDate: { type: 'string', description: 'End date (ISO)' },
+          },
+          required: ['projectId'],
+        },
+      },
+      {
+        name: 'project_archive',
+        description: 'Archive or unarchive a project',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            projectId: { type: 'string', description: 'ID of the project' },
+            isArchived: { type: 'boolean', description: 'Archive state' },
+          },
+          required: ['projectId', 'isArchived'],
+        },
+      },
+      {
+        name: 'project_delete',
+        description: 'Delete a project',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            projectId: { type: 'string', description: 'ID of the project' },
+          },
+          required: ['projectId'],
+        },
+      },
+      {
+        name: 'project_create_page',
+        description: 'Create a project home page (if missing)',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            projectId: { type: 'string', description: 'ID of the project' },
+            workspaceId: { type: 'string', description: 'ID of the workspace' },
+          },
+          required: ['projectId', 'workspaceId'],
+        },
+      },
+
+      // Task management
+      {
+        name: 'task_list',
+        description: 'List tasks by project or space',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            projectId: { type: 'string', description: 'ID of the project' },
+            spaceId: { type: 'string', description: 'ID of the space' },
+            page: { type: 'number', description: 'Page number for pagination' },
+            limit: { type: 'number', description: 'Number of items per page' },
+            status: {
+              type: 'array',
+              description: 'Filter by status',
+              items: {
+                type: 'string',
+                enum: ['todo', 'in_progress', 'in_review', 'done', 'blocked'],
+              },
+            },
+            bucket: {
+              type: 'array',
+              description: 'Filter by bucket',
+              items: {
+                type: 'string',
+                enum: ['none', 'inbox', 'waiting', 'someday'],
+              },
+            },
+            searchTerm: { type: 'string', description: 'Search term' },
+            includeSubtasks: {
+              type: 'boolean',
+              description: 'Include subtasks (project list only)',
+            },
+          },
+        },
+      },
+      {
+        name: 'task_get',
+        description: 'Get a task by ID',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            taskId: { type: 'string', description: 'ID of the task' },
+          },
+          required: ['taskId'],
+        },
+      },
+      {
+        name: 'task_create',
+        description: 'Create a new task',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            title: { type: 'string', description: 'Task title' },
+            description: { type: 'string', description: 'Task description' },
+            status: {
+              type: 'string',
+              enum: ['todo', 'in_progress', 'in_review', 'done', 'blocked'],
+            },
+            priority: {
+              type: 'string',
+              enum: ['low', 'medium', 'high', 'urgent'],
+            },
+            bucket: {
+              type: 'string',
+              enum: ['none', 'inbox', 'waiting', 'someday'],
+            },
+            dueDate: { type: 'string', description: 'Due date (ISO)' },
+            projectId: { type: 'string', description: 'Project ID' },
+            parentTaskId: { type: 'string', description: 'Parent task ID' },
+            pageId: { type: 'string', description: 'Linked page ID' },
+            assigneeId: { type: 'string', description: 'Assignee user ID' },
+            spaceId: { type: 'string', description: 'Space ID' },
+            workspaceId: { type: 'string', description: 'Workspace ID' },
+            estimatedTime: { type: 'number', description: 'Estimated time' },
+          },
+          required: ['title', 'spaceId', 'workspaceId'],
+        },
+      },
+      {
+        name: 'task_update',
+        description: 'Update a task',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            taskId: { type: 'string', description: 'ID of the task' },
+            title: { type: 'string', description: 'Task title' },
+            description: { type: 'string', description: 'Task description' },
+            status: {
+              type: 'string',
+              enum: ['todo', 'in_progress', 'in_review', 'done', 'blocked'],
+            },
+            priority: {
+              type: 'string',
+              enum: ['low', 'medium', 'high', 'urgent'],
+            },
+            bucket: {
+              type: 'string',
+              enum: ['none', 'inbox', 'waiting', 'someday'],
+            },
+            dueDate: { type: 'string', description: 'Due date (ISO)' },
+            assigneeId: { type: 'string', description: 'Assignee user ID' },
+            pageId: { type: 'string', description: 'Linked page ID' },
+            estimatedTime: { type: 'number', description: 'Estimated time' },
+            position: { type: 'string', description: 'Position key' },
+          },
+          required: ['taskId'],
+        },
+      },
+      {
+        name: 'task_delete',
+        description: 'Delete a task',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            taskId: { type: 'string', description: 'ID of the task' },
+          },
+          required: ['taskId'],
+        },
+      },
+      {
+        name: 'task_complete',
+        description: 'Mark a task complete or incomplete',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            taskId: { type: 'string', description: 'ID of the task' },
+            isCompleted: {
+              type: 'boolean',
+              description: 'Completion state',
+            },
+          },
+          required: ['taskId', 'isCompleted'],
+        },
+      },
+      {
+        name: 'task_assign',
+        description: 'Assign or unassign a task',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            taskId: { type: 'string', description: 'ID of the task' },
+            assigneeId: {
+              type: ['string', 'null'],
+              description: 'Assignee user ID',
+            },
+          },
+          required: ['taskId'],
+        },
+      },
+      {
+        name: 'task_move_to_project',
+        description: 'Move a task to another project (or remove from project)',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            taskId: { type: 'string', description: 'ID of the task' },
+            projectId: {
+              type: ['string', 'null'],
+              description: 'Target project ID',
+            },
+          },
+          required: ['taskId'],
+        },
+      },
+      {
+        name: 'task_bucket_set',
+        description: 'Set a task bucket',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            taskId: { type: 'string', description: 'ID of the task' },
+            bucket: {
+              type: 'string',
+              enum: ['none', 'inbox', 'waiting', 'someday'],
+              description: 'Bucket name',
+            },
+          },
+          required: ['taskId', 'bucket'],
+        },
+      },
+      {
+        name: 'task_bucket_clear',
+        description: 'Clear a task bucket (set to none)',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            taskId: { type: 'string', description: 'ID of the task' },
+          },
+          required: ['taskId'],
         },
       },
 
@@ -257,6 +696,18 @@ export class MCPStandardService {
         },
       },
       {
+        name: 'comment_get',
+        description: 'Get a comment by ID',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            commentId: { type: 'string', description: 'ID of the comment' },
+            workspaceId: { type: 'string', description: 'ID of the workspace' },
+          },
+          required: ['commentId', 'workspaceId'],
+        },
+      },
+      {
         name: 'comment_update',
         description: 'Update a comment',
         inputSchema: {
@@ -285,6 +736,19 @@ export class MCPStandardService {
             workspaceId: { type: 'string', description: 'ID of the workspace' },
           },
           required: ['commentId', 'workspaceId'],
+        },
+      },
+      {
+        name: 'comment_resolve',
+        description: 'Resolve or unresolve a comment',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            commentId: { type: 'string', description: 'ID of the comment' },
+            workspaceId: { type: 'string', description: 'ID of the workspace' },
+            resolved: { type: 'boolean', description: 'Resolve state' },
+          },
+          required: ['commentId', 'workspaceId', 'resolved'],
         },
       },
 
@@ -317,6 +781,44 @@ export class MCPStandardService {
         },
       },
       {
+        name: 'group_get',
+        description: 'Get a group by ID',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            groupId: { type: 'string', description: 'ID of the group' },
+            workspaceId: { type: 'string', description: 'ID of the workspace' },
+          },
+          required: ['groupId', 'workspaceId'],
+        },
+      },
+      {
+        name: 'group_update',
+        description: 'Update a group',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            groupId: { type: 'string', description: 'ID of the group' },
+            workspaceId: { type: 'string', description: 'ID of the workspace' },
+            name: { type: 'string', description: 'New name' },
+            description: { type: 'string', description: 'New description' },
+          },
+          required: ['groupId', 'workspaceId'],
+        },
+      },
+      {
+        name: 'group_delete',
+        description: 'Delete a group',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            groupId: { type: 'string', description: 'ID of the group' },
+            workspaceId: { type: 'string', description: 'ID of the workspace' },
+          },
+          required: ['groupId', 'workspaceId'],
+        },
+      },
+      {
         name: 'group_addMember',
         description: 'Add a member to a group',
         inputSchema: {
@@ -327,6 +829,455 @@ export class MCPStandardService {
             workspaceId: { type: 'string', description: 'ID of the workspace' },
           },
           required: ['groupId', 'userId', 'workspaceId'],
+        },
+      },
+      {
+        name: 'group_remove_member',
+        description: 'Remove a member from a group',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            groupId: { type: 'string', description: 'ID of the group' },
+            userId: { type: 'string', description: 'ID of the user' },
+            workspaceId: { type: 'string', description: 'ID of the workspace' },
+          },
+          required: ['groupId', 'userId', 'workspaceId'],
+        },
+      },
+
+      // Workspace management
+      {
+        name: 'workspace_list',
+        description: 'List workspaces available to the user',
+        inputSchema: {
+          type: 'object',
+          properties: {},
+        },
+      },
+      {
+        name: 'workspace_get',
+        description: 'Get workspace details',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            workspaceId: { type: 'string', description: 'ID of the workspace' },
+          },
+          required: ['workspaceId'],
+        },
+      },
+      {
+        name: 'workspace_create',
+        description: 'Create a new workspace',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            name: { type: 'string', description: 'Workspace name' },
+            description: { type: 'string', description: 'Workspace description' },
+            hostname: { type: 'string', description: 'Workspace hostname' },
+          },
+          required: ['name'],
+        },
+      },
+      {
+        name: 'workspace_update',
+        description: 'Update a workspace',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            workspaceId: { type: 'string', description: 'ID of the workspace' },
+            name: { type: 'string', description: 'Workspace name' },
+            description: { type: 'string', description: 'Workspace description' },
+            hostname: { type: 'string', description: 'Workspace hostname' },
+          },
+          required: ['workspaceId'],
+        },
+      },
+      {
+        name: 'workspace_delete',
+        description: 'Delete a workspace',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            workspaceId: { type: 'string', description: 'ID of the workspace' },
+          },
+          required: ['workspaceId'],
+        },
+      },
+      {
+        name: 'workspace_add_member',
+        description: 'Invite a member to a workspace',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            workspaceId: { type: 'string', description: 'ID of the workspace' },
+            email: {
+              type: ['string', 'array'],
+              description: 'Email address or list of emails',
+            },
+            role: { type: 'string', description: 'Role for the invitee' },
+            groupIds: {
+              type: 'array',
+              description: 'Group IDs to add the user to',
+              items: { type: 'string' },
+            },
+          },
+          required: ['workspaceId', 'email'],
+        },
+      },
+      {
+        name: 'workspace_remove_member',
+        description: 'Remove a member from a workspace',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            workspaceId: { type: 'string', description: 'ID of the workspace' },
+            userId: { type: 'string', description: 'ID of the user' },
+          },
+          required: ['workspaceId', 'userId'],
+        },
+      },
+      {
+        name: 'workspace_members',
+        description: 'List workspace members',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            workspaceId: { type: 'string', description: 'ID of the workspace' },
+            page: { type: 'number', description: 'Page number' },
+            limit: { type: 'number', description: 'Items per page' },
+            query: { type: 'string', description: 'Search query' },
+          },
+          required: ['workspaceId'],
+        },
+      },
+      {
+        name: 'workspace_change_member_role',
+        description: 'Change a workspace member role',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            workspaceId: { type: 'string', description: 'ID of the workspace' },
+            userId: { type: 'string', description: 'ID of the user' },
+            role: { type: 'string', description: 'New role' },
+          },
+          required: ['workspaceId', 'userId', 'role'],
+        },
+      },
+      {
+        name: 'workspace_delete_member',
+        description: 'Delete a workspace member',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            workspaceId: { type: 'string', description: 'ID of the workspace' },
+            userId: { type: 'string', description: 'ID of the user' },
+          },
+          required: ['workspaceId', 'userId'],
+        },
+      },
+      {
+        name: 'workspace_invites',
+        description: 'List workspace invites',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            workspaceId: { type: 'string', description: 'ID of the workspace' },
+            page: { type: 'number', description: 'Page number' },
+            limit: { type: 'number', description: 'Items per page' },
+          },
+          required: ['workspaceId'],
+        },
+      },
+      {
+        name: 'workspace_invite_info',
+        description: 'Get workspace invite info',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            workspaceId: { type: 'string', description: 'ID of the workspace' },
+            invitationId: { type: 'string', description: 'Invitation ID' },
+          },
+          required: ['workspaceId', 'invitationId'],
+        },
+      },
+      {
+        name: 'workspace_invite_create',
+        description: 'Create workspace invites',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            workspaceId: { type: 'string', description: 'ID of the workspace' },
+            emails: {
+              type: 'array',
+              description: 'Email addresses to invite',
+              items: { type: 'string' },
+            },
+            role: { type: 'string', description: 'Role to assign' },
+            groupIds: {
+              type: 'array',
+              description: 'Group IDs to add',
+              items: { type: 'string' },
+            },
+          },
+          required: ['workspaceId', 'emails'],
+        },
+      },
+      {
+        name: 'workspace_invite_resend',
+        description: 'Resend a workspace invite',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            workspaceId: { type: 'string', description: 'ID of the workspace' },
+            invitationId: { type: 'string', description: 'Invitation ID' },
+          },
+          required: ['workspaceId', 'invitationId'],
+        },
+      },
+      {
+        name: 'workspace_invite_revoke',
+        description: 'Revoke a workspace invite',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            workspaceId: { type: 'string', description: 'ID of the workspace' },
+            invitationId: { type: 'string', description: 'Invitation ID' },
+          },
+          required: ['workspaceId', 'invitationId'],
+        },
+      },
+      {
+        name: 'workspace_invite_link',
+        description: 'Get a workspace invite link',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            workspaceId: { type: 'string', description: 'ID of the workspace' },
+            invitationId: { type: 'string', description: 'Invitation ID' },
+          },
+          required: ['workspaceId', 'invitationId'],
+        },
+      },
+      {
+        name: 'workspace_check_hostname',
+        description: 'Check hostname availability',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            hostname: { type: 'string', description: 'Hostname to check' },
+          },
+          required: ['hostname'],
+        },
+      },
+
+      // Attachment management
+      {
+        name: 'attachment_list',
+        description: 'List attachments',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            workspaceId: { type: 'string', description: 'ID of the workspace' },
+            spaceId: { type: 'string', description: 'ID of the space' },
+            pageId: { type: 'string', description: 'ID of the page' },
+            type: { type: 'string', description: 'Attachment type' },
+            page: { type: 'number', description: 'Page number' },
+            limit: { type: 'number', description: 'Items per page' },
+            query: { type: 'string', description: 'Search query' },
+          },
+          required: ['workspaceId'],
+        },
+      },
+      {
+        name: 'attachment_get',
+        description: 'Get attachment details',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            attachmentId: { type: 'string', description: 'ID of the attachment' },
+            workspaceId: { type: 'string', description: 'ID of the workspace' },
+          },
+          required: ['attachmentId', 'workspaceId'],
+        },
+      },
+      {
+        name: 'attachment_upload',
+        description: 'Upload an attachment to a page (base64)',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            workspaceId: { type: 'string', description: 'ID of the workspace' },
+            pageId: { type: 'string', description: 'ID of the page' },
+            fileName: { type: 'string', description: 'File name' },
+            fileContent: { type: 'string', description: 'Base64 content' },
+            mimeType: { type: 'string', description: 'MIME type' },
+            attachmentId: { type: 'string', description: 'Optional attachment ID' },
+          },
+          required: ['workspaceId', 'pageId', 'fileName', 'fileContent'],
+        },
+      },
+      {
+        name: 'attachment_download',
+        description: 'Download an attachment (base64)',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            attachmentId: { type: 'string', description: 'ID of the attachment' },
+            workspaceId: { type: 'string', description: 'ID of the workspace' },
+            includeDataUrl: {
+              type: 'boolean',
+              description: 'Include data URL prefix',
+            },
+          },
+          required: ['attachmentId', 'workspaceId'],
+        },
+      },
+      {
+        name: 'attachment_delete',
+        description: 'Delete an attachment',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            attachmentId: { type: 'string', description: 'ID of the attachment' },
+            workspaceId: { type: 'string', description: 'ID of the workspace' },
+          },
+          required: ['attachmentId', 'workspaceId'],
+        },
+      },
+
+      // Search
+      {
+        name: 'search_query',
+        description: 'Search pages across spaces or within a space',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            query: { type: 'string', description: 'Search query' },
+            spaceId: { type: 'string', description: 'Space ID' },
+            creatorId: { type: 'string', description: 'Creator user ID' },
+            limit: { type: 'number', description: 'Limit results' },
+            offset: { type: 'number', description: 'Offset results' },
+          },
+          required: ['query'],
+        },
+      },
+      {
+        name: 'search_suggest',
+        description: 'Get search suggestions',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            query: { type: 'string', description: 'Search query' },
+            workspaceId: { type: 'string', description: 'Workspace ID' },
+            spaceId: { type: 'string', description: 'Optional space ID' },
+            includeUsers: { type: 'boolean', description: 'Include users' },
+            includeGroups: { type: 'boolean', description: 'Include groups' },
+            includePages: { type: 'boolean', description: 'Include pages' },
+            limit: { type: 'number', description: 'Limit results' },
+          },
+          required: ['query', 'workspaceId'],
+        },
+      },
+
+      // Import
+      {
+        name: 'import_request_upload',
+        description: 'Request a presigned upload URL for imports',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            workspaceId: { type: 'string', description: 'Workspace ID' },
+            fileName: { type: 'string', description: 'File name' },
+            mimeType: { type: 'string', description: 'MIME type' },
+            expiresIn: { type: 'number', description: 'TTL in seconds' },
+          },
+          required: ['workspaceId', 'fileName'],
+        },
+      },
+      {
+        name: 'import_page',
+        description: 'Import a page from a stored file',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            workspaceId: { type: 'string', description: 'Workspace ID' },
+            spaceId: { type: 'string', description: 'Space ID' },
+            filePath: { type: 'string', description: 'Storage file path' },
+          },
+          required: ['workspaceId', 'spaceId', 'filePath'],
+        },
+      },
+
+      // Export
+      {
+        name: 'export_page',
+        description: 'Export a page and return a download URL',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            pageId: { type: 'string', description: 'Page ID' },
+            format: { type: 'string', description: 'Export format' },
+            includeChildren: {
+              type: 'boolean',
+              description: 'Include child pages',
+            },
+            expiresIn: { type: 'number', description: 'TTL in seconds' },
+          },
+          required: ['pageId', 'format'],
+        },
+      },
+      {
+        name: 'export_space',
+        description: 'Export a space and return a download URL',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            spaceId: { type: 'string', description: 'Space ID' },
+            format: { type: 'string', description: 'Export format' },
+            includeAttachments: {
+              type: 'boolean',
+              description: 'Include attachments',
+            },
+            expiresIn: { type: 'number', description: 'TTL in seconds' },
+          },
+          required: ['spaceId', 'format'],
+        },
+      },
+
+      // Approvals
+      {
+        name: 'approval_request',
+        description: 'Request approval for a sensitive MCP operation',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            method: { type: 'string', description: 'MCP method name' },
+            params: {
+              type: 'object',
+              description: 'Parameters for the requested method',
+            },
+            ttlSeconds: { type: 'number', description: 'TTL in seconds' },
+          },
+          required: ['method'],
+        },
+      },
+      {
+        name: 'approval_confirm',
+        description: 'Confirm an approval token',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            approvalToken: {
+              type: 'string',
+              description: 'Approval token to confirm',
+            },
+            method: { type: 'string', description: 'MCP method name' },
+            params: {
+              type: 'object',
+              description: 'Parameters for the requested method',
+            },
+          },
+          required: ['approvalToken', 'method'],
         },
       },
 
@@ -351,6 +1302,80 @@ export class MCPStandardService {
           required: ['destination', 'workspaceId'],
         },
       },
+
+      // System
+      {
+        name: 'system_list_methods',
+        description: 'List available MCP methods',
+        inputSchema: {
+          type: 'object',
+          properties: {},
+        },
+      },
+      {
+        name: 'system_get_method_schema',
+        description: 'Get MCP method schema',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            method: { type: 'string', description: 'Method name' },
+          },
+          required: ['method'],
+        },
+      },
+
+      // Context
+      {
+        name: 'context_set',
+        description: 'Set a context value for the session',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            key: { type: 'string', description: 'Context key' },
+            value: { type: 'string', description: 'Context value' },
+            ttlSeconds: { type: 'number', description: 'TTL in seconds' },
+          },
+          required: ['key', 'value'],
+        },
+      },
+      {
+        name: 'context_get',
+        description: 'Get a context value by key',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            key: { type: 'string', description: 'Context key' },
+          },
+          required: ['key'],
+        },
+      },
+      {
+        name: 'context_delete',
+        description: 'Delete a context key',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            key: { type: 'string', description: 'Context key' },
+          },
+          required: ['key'],
+        },
+      },
+      {
+        name: 'context_list',
+        description: 'List context keys',
+        inputSchema: {
+          type: 'object',
+          properties: {},
+        },
+      },
+      {
+        name: 'context_clear',
+        description: 'Clear all context values for the session',
+        inputSchema: {
+          type: 'object',
+          properties: {},
+        },
+      },
     ];
 
     return { tools };
@@ -365,25 +1390,95 @@ export class MCPStandardService {
     // Map standard MCP tool names to our internal methods
     const toolToMethod: Record<string, string> = {
       'space_list': 'space.list',
+      'space_get': 'space.get',
       'space_create': 'space.create',
       'space_update': 'space.update',
+      'space_update_permissions': 'space.updatePermissions',
+      'space_members': 'space.members',
+      'space_members_add': 'space.membersAdd',
+      'space_members_remove': 'space.membersRemove',
+      'space_change_member_role': 'space.changeMemberRole',
       'space_delete': 'space.delete',
       'page_list': 'page.list',
+      'page_get': 'page.get',
       'page_create': 'page.create',
       'page_update': 'page.update',
       'page_delete': 'page.delete',
       'page_move': 'page.move',
+      'page_search': 'page.search',
+      'page_get_history': 'page.getHistory',
+      'page_restore': 'page.restore',
+      'project_list': 'project.list',
+      'project_get': 'project.get',
+      'project_create': 'project.create',
+      'project_update': 'project.update',
+      'project_archive': 'project.archive',
+      'project_delete': 'project.delete',
+      'project_create_page': 'project.createPage',
+      'task_list': 'task.list',
+      'task_get': 'task.get',
+      'task_create': 'task.create',
+      'task_update': 'task.update',
+      'task_delete': 'task.delete',
+      'task_complete': 'task.complete',
+      'task_assign': 'task.assign',
+      'task_move_to_project': 'task.moveToProject',
+      'task_bucket_set': 'task.update',
+      'task_bucket_clear': 'task.update',
       'user_list': 'user.list',
       'user_get': 'user.get',
       'user_update': 'user.update',
       'comment_create': 'comment.create',
+      'comment_get': 'comment.get',
       'comment_list': 'comment.list',
       'comment_update': 'comment.update',
       'comment_delete': 'comment.delete',
+      'comment_resolve': 'comment.resolve',
       'group_create': 'group.create',
       'group_list': 'group.list',
+      'group_get': 'group.get',
+      'group_update': 'group.update',
+      'group_delete': 'group.delete',
       'group_addMember': 'group.addMember',
+      'group_remove_member': 'group.removeMember',
+      'workspace_list': 'workspace.list',
+      'workspace_get': 'workspace.get',
+      'workspace_create': 'workspace.create',
+      'workspace_update': 'workspace.update',
+      'workspace_delete': 'workspace.delete',
+      'workspace_add_member': 'workspace.addMember',
+      'workspace_remove_member': 'workspace.removeMember',
+      'workspace_members': 'workspace.members',
+      'workspace_change_member_role': 'workspace.changeMemberRole',
+      'workspace_delete_member': 'workspace.deleteMember',
+      'workspace_invites': 'workspace.invites',
+      'workspace_invite_info': 'workspace.inviteInfo',
+      'workspace_invite_create': 'workspace.inviteCreate',
+      'workspace_invite_resend': 'workspace.inviteResend',
+      'workspace_invite_revoke': 'workspace.inviteRevoke',
+      'workspace_invite_link': 'workspace.inviteLink',
+      'workspace_check_hostname': 'workspace.checkHostname',
+      'attachment_list': 'attachment.list',
+      'attachment_get': 'attachment.get',
+      'attachment_upload': 'attachment.upload',
+      'attachment_download': 'attachment.download',
+      'attachment_delete': 'attachment.delete',
+      'search_query': 'search.query',
+      'search_suggest': 'search.suggest',
+      'import_request_upload': 'import.requestUpload',
+      'import_page': 'import.page',
+      'export_page': 'export.page',
+      'export_space': 'export.space',
+      'approval_request': 'approval.request',
+      'approval_confirm': 'approval.confirm',
       'ui_navigate': 'ui.navigate',
+      'system_list_methods': 'system.listMethods',
+      'system_get_method_schema': 'system.getMethodSchema',
+      'context_set': 'context.set',
+      'context_get': 'context.get',
+      'context_delete': 'context.delete',
+      'context_list': 'context.list',
+      'context_clear': 'context.clear',
     };
 
     const method = toolToMethod[name];
@@ -409,6 +1504,27 @@ export class MCPStandardService {
     if (name === 'page_move' && params.spaceId) {
       params.targetSpaceId = params.spaceId;
       delete params.spaceId;
+    }
+
+    // Transform system.getMethodSchema parameters
+    if (name === 'system_get_method_schema' && params.method) {
+      params.methodName = params.method;
+      delete params.method;
+    }
+
+    // Transform context.set parameters
+    if (name === 'context_set' && params.ttlSeconds !== undefined) {
+      params.ttl = params.ttlSeconds;
+      delete params.ttlSeconds;
+    }
+
+    // Transform task bucket helpers
+    if (name === 'task_bucket_set') {
+      params = { taskId: params.taskId, bucket: params.bucket };
+    }
+
+    if (name === 'task_bucket_clear') {
+      params = { taskId: params.taskId, bucket: 'none' };
     }
 
     // Call the internal MCP service
@@ -449,6 +1565,18 @@ export class MCPStandardService {
           mimeType: 'application/json',
         },
         {
+          uri: 'docmost://projects',
+          name: 'Projects',
+          description: 'All projects across all spaces',
+          mimeType: 'application/json',
+        },
+        {
+          uri: 'docmost://tasks',
+          name: 'Tasks',
+          description: 'All tasks across all spaces',
+          mimeType: 'application/json',
+        },
+        {
           uri: 'docmost://users',
           name: 'Users',
           description: 'All users in the workspace',
@@ -482,6 +1610,58 @@ export class MCPStandardService {
           id: Date.now(),
         }, user);
         return result.result;
+      },
+      'docmost://projects': async () => {
+        const spacesResult = await this.mcpService.processRequest({
+          jsonrpc: '2.0',
+          method: 'space.list',
+          params: { workspaceId: user.workspaceId, limit: 100 },
+          id: Date.now(),
+        }, user);
+        const spaces = spacesResult.result?.spaces || [];
+
+        const projectResponses = await Promise.all(
+          spaces.map((space: any) =>
+            this.mcpService.processRequest({
+              jsonrpc: '2.0',
+              method: 'project.list',
+              params: { spaceId: space.id, limit: 100 },
+              id: Date.now(),
+            }, user),
+          ),
+        );
+
+        const projects = projectResponses.flatMap(
+          (response) => response.result?.projects || [],
+        );
+
+        return { projects };
+      },
+      'docmost://tasks': async () => {
+        const spacesResult = await this.mcpService.processRequest({
+          jsonrpc: '2.0',
+          method: 'space.list',
+          params: { workspaceId: user.workspaceId, limit: 100 },
+          id: Date.now(),
+        }, user);
+        const spaces = spacesResult.result?.spaces || [];
+
+        const taskResponses = await Promise.all(
+          spaces.map((space: any) =>
+            this.mcpService.processRequest({
+              jsonrpc: '2.0',
+              method: 'task.list',
+              params: { spaceId: space.id, limit: 100 },
+              id: Date.now(),
+            }, user),
+          ),
+        );
+
+        const tasks = taskResponses.flatMap(
+          (response) => response.result?.tasks || [],
+        );
+
+        return { tasks };
       },
       'docmost://users': async () => {
         const result = await this.mcpService.processRequest({

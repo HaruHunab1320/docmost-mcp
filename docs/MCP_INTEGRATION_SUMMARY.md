@@ -20,7 +20,7 @@ We have successfully integrated the standard Model Context Protocol (MCP) direct
 
 ### 3. Authentication
 - Uses existing MCP API key authentication system
-- API keys work seamlessly with both the custom MCP API and standard MCP protocol
+- MCP Standard is the supported public interface; JSON-RPC is internal
 - Guards properly validate API keys and attach user context
 
 ## Test Results
@@ -111,12 +111,10 @@ Test scripts are available in `/apps/server/`:
 
 ## Migration from Bridge Server
 
-If you were using the separate MCP bridge server:
+If you were using a separate MCP bridge server:
 1. Stop the bridge server process
-2. Update your AI tool configuration to use the new endpoints
-3. Use the same API keys - they work with both systems
-
-No other changes are needed - the protocol is fully compatible.
+2. Update your AI tool configuration to use `/api/mcp-standard/*`
+3. Use the same API keys
 
 ## Conclusion
 

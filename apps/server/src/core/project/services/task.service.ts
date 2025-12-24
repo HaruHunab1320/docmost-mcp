@@ -14,7 +14,7 @@ import {
 } from '../../../database/types/entity.types';
 import { PaginationOptions } from '../../../lib/pagination/pagination-options';
 import { Paginated } from '../../../lib/pagination/paginated';
-import { TaskStatus, TaskPriority } from '../constants/task-enums';
+import { TaskBucket, TaskPriority, TaskStatus } from '../constants/task-enums';
 
 @Injectable()
 export class TaskService {
@@ -44,6 +44,7 @@ export class TaskService {
     pagination: PaginationOptions,
     options?: {
       status?: TaskStatus[];
+      bucket?: TaskBucket[];
       searchTerm?: string;
       includeSubtasks?: boolean;
       includeCreator?: boolean;
@@ -96,6 +97,7 @@ export class TaskService {
     pagination: PaginationOptions,
     options?: {
       status?: TaskStatus[];
+      bucket?: TaskBucket[];
       searchTerm?: string;
       includeCreator?: boolean;
       includeAssignee?: boolean;
@@ -154,6 +156,7 @@ export class TaskService {
       description?: string;
       status?: TaskStatus;
       priority?: TaskPriority;
+      bucket?: TaskBucket;
       dueDate?: Date;
       projectId?: string;
       parentTaskId?: string;
@@ -216,6 +219,7 @@ export class TaskService {
       description: data.description,
       status: data.status || TaskStatus.TODO,
       priority: data.priority || TaskPriority.MEDIUM,
+      bucket: data.bucket || TaskBucket.NONE,
       dueDate: data.dueDate,
       projectId: data.projectId,
       parentTaskId: data.parentTaskId,
@@ -239,8 +243,10 @@ export class TaskService {
       description?: string;
       status?: TaskStatus;
       priority?: TaskPriority;
+      bucket?: TaskBucket;
       dueDate?: Date | null;
       assigneeId?: string | null;
+      pageId?: string | null;
       estimatedTime?: number | null;
       position?: string;
     },
@@ -251,14 +257,17 @@ export class TaskService {
     }
 
     const updateData: UpdatableTask = {
-      ...(data.title && { title: data.title }),
+      ...(data.title !== undefined && { title: data.title }),
       ...(data.description !== undefined && { description: data.description }),
-      ...(data.priority && { priority: data.priority }),
+      ...(data.priority !== undefined && { priority: data.priority }),
+      ...(data.bucket !== undefined && { bucket: data.bucket }),
       ...(data.dueDate !== undefined && { dueDate: data.dueDate }),
       ...(data.assigneeId !== undefined && { assigneeId: data.assigneeId }),
+      ...(data.pageId !== undefined && { pageId: data.pageId }),
       ...(data.estimatedTime !== undefined && {
         estimatedTime: data.estimatedTime,
       }),
+      ...(data.position !== undefined && { position: data.position }),
     };
 
     // Handle status changes specially to manage completion state

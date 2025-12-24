@@ -222,9 +222,9 @@ export default function SettingsSidebar() {
             size="sm"
             c="dimmed"
             component="a"
-            href="mailto:help@docmost.com"
+            href="mailto:support@raven-docs.local"
           >
-            help@docmost.com
+            support@raven-docs.local
           </Text>
         </div>
       )}

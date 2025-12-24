@@ -11,7 +11,7 @@ import {
   MaxLength,
   Min,
 } from 'class-validator';
-import { TaskPriority, TaskStatus } from '../constants/task-enums';
+import { TaskBucket, TaskPriority, TaskStatus } from '../constants/task-enums';
 import { PaginationOptionsDto } from '../../../common/dto/pagination-options.dto';
 
 export class TaskIdDto {
@@ -58,6 +58,10 @@ export class CreateTaskDto {
   @IsOptional()
   assigneeId?: string;
 
+  @IsEnum(TaskBucket)
+  @IsOptional()
+  bucket?: TaskBucket;
+
   @IsUUID()
   spaceId: string;
 
@@ -101,6 +105,10 @@ export class UpdateTaskDto {
   @IsOptional()
   pageId?: string | null;
 
+  @IsEnum(TaskBucket)
+  @IsOptional()
+  bucket?: TaskBucket;
+
   @IsInt()
   @Min(0)
   @IsOptional()
@@ -120,6 +128,10 @@ export class TaskListByProjectDto extends PaginationOptionsDto {
   status?: TaskStatus[];
 
   @IsOptional()
+  @IsEnum(TaskBucket, { each: true })
+  bucket?: TaskBucket[];
+
+  @IsOptional()
   @IsString()
   searchTerm?: string;
 
@@ -135,6 +147,10 @@ export class TaskListBySpaceDto extends PaginationOptionsDto {
   @IsOptional()
   @IsEnum(TaskStatus, { each: true })
   status?: TaskStatus[];
+
+  @IsOptional()
+  @IsEnum(TaskBucket, { each: true })
+  bucket?: TaskBucket[];
 
   @IsOptional()
   @IsString()
