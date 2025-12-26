@@ -1,9 +1,12 @@
 import { Button, Card, Group, Stack, Text, Title } from "@mantine/core";
+import { useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { confirmApproval, listApprovals, rejectApproval } from "@/features/agent/services/agent-service";
 import { queryClient } from "@/main";
 
 export function AgentApprovalsPanel() {
+  const [approvingToken, setApprovingToken] = useState<string | null>(null);
+  const [rejectingToken, setRejectingToken] = useState<string | null>(null);
   const approvalsQuery = useQuery({
     queryKey: ["agent-approvals"],
     queryFn: () => listApprovals(),
@@ -11,15 +14,57 @@ export function AgentApprovalsPanel() {
 
   const confirmMutation = useMutation({
     mutationFn: (token: string) => confirmApproval(token),
+    onMutate: (token) => {
+      setApprovingToken(token);
+      const previous = queryClient.getQueryData<Array<{ token: string }>>([
+        "agent-approvals",
+      ]);
+      if (previous) {
+        queryClient.setQueryData(
+          ["agent-approvals"],
+          previous.filter((item) => item.token !== token)
+        );
+      }
+      return { previous };
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["agent-approvals"] });
+    },
+    onError: (_error, _token, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(["agent-approvals"], context.previous);
+      }
+    },
+    onSettled: () => {
+      setApprovingToken(null);
     },
   });
 
   const rejectMutation = useMutation({
     mutationFn: (token: string) => rejectApproval(token),
+    onMutate: (token) => {
+      setRejectingToken(token);
+      const previous = queryClient.getQueryData<Array<{ token: string }>>([
+        "agent-approvals",
+      ]);
+      if (previous) {
+        queryClient.setQueryData(
+          ["agent-approvals"],
+          previous.filter((item) => item.token !== token)
+        );
+      }
+      return { previous };
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["agent-approvals"] });
+    },
+    onError: (_error, _token, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(["agent-approvals"], context.previous);
+      }
+    },
+    onSettled: () => {
+      setRejectingToken(null);
     },
   });
 
@@ -47,14 +92,16 @@ export function AgentApprovalsPanel() {
                       size="xs"
                       variant="subtle"
                       onClick={() => rejectMutation.mutate(approval.token)}
-                      loading={rejectMutation.isPending}
+                      loading={rejectingToken === approval.token}
+                      disabled={approvingToken === approval.token}
                     >
                       Reject
                     </Button>
                     <Button
                       size="xs"
                       onClick={() => confirmMutation.mutate(approval.token)}
-                      loading={confirmMutation.isPending}
+                      loading={approvingToken === approval.token}
+                      disabled={rejectingToken === approval.token}
                     >
                       Approve
                     </Button>

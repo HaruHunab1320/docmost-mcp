@@ -5,6 +5,7 @@ import { MemgraphService } from '../../integrations/memgraph/memgraph.service';
 import { AIService } from '../../integrations/ai/ai.service';
 import { v7 as uuid7 } from 'uuid';
 import { int as neo4jInt } from 'neo4j-driver';
+import { sql } from 'kysely';
 
 export interface MemoryRecord {
   id: string;
@@ -94,6 +95,11 @@ export class AgentMemoryService {
     const tags = input.tags || [];
     const memoryId = uuid7();
     const content = input.content ?? null;
+    const contentJson =
+      content === null || content === undefined
+        ? null
+        : (sql`${JSON.stringify(content)}::jsonb` as unknown as any);
+    const tagsJson = sql`${JSON.stringify(tags)}::jsonb` as unknown as any;
 
     await this.db
       .insertInto('agentMemories')
@@ -104,8 +110,8 @@ export class AgentMemoryService {
         creatorId: input.creatorId || null,
         source: input.source || null,
         summary,
-        content,
-        tags,
+        content: contentJson,
+        tags: tagsJson,
         createdAt: timestamp,
         updatedAt: timestamp,
       })

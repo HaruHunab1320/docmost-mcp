@@ -190,8 +190,15 @@ export class AgentSummaryService {
 
   @Cron('0 7 * * *')
   async runDailySummaries() {
-    if (!process.env.GEMINI_API_KEY && !process.env.gemini_api_key) {
-      this.logger.debug('Skipping daily summaries: GEMINI_API_KEY not set');
+    if (
+      !process.env.GEMINI_API_KEY &&
+      !process.env.gemini_api_key &&
+      !process.env.GOOGLE_API_KEY &&
+      !process.env.google_api_key
+    ) {
+      this.logger.debug(
+        'Skipping daily summaries: GEMINI_API_KEY or GOOGLE_API_KEY not set',
+      );
       return;
     }
 

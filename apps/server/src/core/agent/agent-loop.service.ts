@@ -27,6 +27,42 @@ type AgentLoopPlan = {
   actions: AgentAction[];
 };
 
+const formatISODate = (date: Date) => date.toISOString().slice(0, 10);
+const formatYearMonth = (date: Date) => formatISODate(date).slice(0, 7);
+
+const getWeekKey = (date = new Date()) => {
+  const firstDay = new Date(date.getFullYear(), 0, 1);
+  const dayOffset = firstDay.getDay() || 7;
+  const weekStart = new Date(firstDay);
+  weekStart.setDate(firstDay.getDate() + (7 - dayOffset));
+  const diff =
+    date.getTime() -
+    new Date(weekStart.getFullYear(), weekStart.getMonth(), weekStart.getDate())
+      .getTime();
+  const weekNumber = Math.ceil((diff / (1000 * 60 * 60 * 24) + 1) / 7);
+  return `${date.getFullYear()}-W${String(weekNumber).padStart(2, '0')}`;
+};
+
+const normalizeParams = (method: string, params: Record<string, any>) => {
+  if (method.startsWith('task.')) {
+    if (typeof params.priority === 'string') {
+      params.priority = params.priority.toLowerCase();
+    }
+    if (typeof params.status === 'string') {
+      params.status = params.status.toLowerCase();
+    }
+    if (typeof params.bucket === 'string') {
+      params.bucket = params.bucket.toLowerCase();
+    }
+  }
+
+  if (method === 'page.create' && typeof params.content !== 'object') {
+    delete params.content;
+  }
+
+  return params;
+};
+
 @Injectable()
 export class AgentLoopService {
   private readonly logger = new Logger(AgentLoopService.name);
@@ -94,7 +130,7 @@ export class AgentLoopService {
     return [
       `You are Raven Docs' autonomous agent.`,
       `Generate a concise JSON plan with actionable next steps.`,
-      `Return JSON with fields: summary (string), actions (array).`,
+      `Return ONLY JSON with fields: summary (string), actions (array). No markdown.`,
       `Each action: { "method": "${methods.join('|')}", "params": { ... }, "rationale": "..." }`,
       `Only include up to 3 actions that are safe and helpful.`,
       `Space: ${context.spaceName}`,
@@ -104,6 +140,38 @@ export class AgentLoopService {
       `Recent context: ${context.memorySummary || 'none'}`,
       `Triage: ${context.triageSummary}`,
     ].join('\n');
+  }
+
+  private async getDailyFocusTitle(spaceId: string) {
+    const today = formatISODate(new Date());
+    const title = `Daily Focus ${today}`;
+    const existing = await this.db
+      .selectFrom('pages')
+      .select(['id'])
+      .where('spaceId', '=', spaceId)
+      .where('title', '=', title)
+      .executeTakeFirst();
+
+    if (existing) {
+      return null;
+    }
+
+    return title;
+  }
+
+  private async getUniquePageTitle(spaceId: string, title: string) {
+    const existing = await this.db
+      .selectFrom('pages')
+      .select(['id'])
+      .where('spaceId', '=', spaceId)
+      .where('title', '=', title)
+      .executeTakeFirst();
+
+    if (existing) {
+      return null;
+    }
+
+    return title;
   }
 
   async runLoop(spaceId: string, user: User, workspace: Workspace) {
@@ -152,7 +220,13 @@ export class AgentLoopService {
     });
 
     let plan: AgentLoopPlan = { summary: 'No actions proposed.', actions: [] };
-    if (process.env.GEMINI_API_KEY || process.env.gemini_api_key) {
+    let rawResponse = '';
+    if (
+      process.env.GEMINI_API_KEY ||
+      process.env.gemini_api_key ||
+      process.env.GOOGLE_API_KEY ||
+      process.env.google_api_key
+    ) {
       try {
         const response = await this.aiService.generateContent({
           model: this.getAgentModel(),
@@ -160,9 +234,12 @@ export class AgentLoopService {
         });
         const text =
           response?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+        rawResponse = text;
         const parsed = this.extractJson(text);
         if (parsed?.summary) {
           plan = parsed;
+        } else if (text) {
+          plan = { summary: text.slice(0, 180), actions: [] };
         }
       } catch (error: any) {
         this.logger.warn(
@@ -184,6 +261,73 @@ export class AgentLoopService {
         workspaceId: workspace.id,
         spaceId,
       };
+      const normalizedParams = normalizeParams(action.method, params);
+
+      if (
+        action.method === 'page.create' &&
+        typeof normalizedParams.title === 'string'
+      ) {
+        const lowerTitle = normalizedParams.title.toLowerCase();
+        if (lowerTitle.includes('daily focus')) {
+          const dailyTitle = await this.getDailyFocusTitle(spaceId);
+          if (!dailyTitle) {
+            actionResults.push({
+              method: action.method,
+              status: 'skipped:daily-focus-exists',
+            });
+            continue;
+          }
+          normalizedParams.title = dailyTitle;
+        } else if (lowerTitle.includes('weekly review')) {
+          const weeklyTitle = `Weekly Review ${getWeekKey(new Date())}`;
+          const uniqueTitle = await this.getUniquePageTitle(
+            spaceId,
+            weeklyTitle,
+          );
+          if (!uniqueTitle) {
+            actionResults.push({
+              method: action.method,
+              status: 'skipped:weekly-review-exists',
+            });
+            continue;
+          }
+          normalizedParams.title = uniqueTitle;
+        } else if (lowerTitle.includes('monthly review')) {
+          const monthlyTitle = `Monthly Review ${formatYearMonth(new Date())}`;
+          const uniqueTitle = await this.getUniquePageTitle(
+            spaceId,
+            monthlyTitle,
+          );
+          if (!uniqueTitle) {
+            actionResults.push({
+              method: action.method,
+              status: 'skipped:monthly-review-exists',
+            });
+            continue;
+          }
+          normalizedParams.title = uniqueTitle;
+        } else if (lowerTitle.includes('project recap')) {
+          const projectId =
+            typeof normalizedParams.projectId === 'string'
+              ? normalizedParams.projectId
+              : 'general';
+          const recapTitle = `Project Recap ${projectId} ${formatISODate(
+            new Date(),
+          )}`;
+          const uniqueTitle = await this.getUniquePageTitle(
+            spaceId,
+            recapTitle,
+          );
+          if (!uniqueTitle) {
+            actionResults.push({
+              method: action.method,
+              status: 'skipped:project-recap-exists',
+            });
+            continue;
+          }
+          normalizedParams.title = uniqueTitle;
+        }
+      }
 
       const shouldAutoApply = this.policyService.canAutoApply(
         action.method,
@@ -195,7 +339,7 @@ export class AgentLoopService {
           {
             jsonrpc: '2.0',
             method: action.method,
-            params,
+            params: normalizedParams,
             id: Date.now(),
           },
           user,
@@ -213,7 +357,7 @@ export class AgentLoopService {
         const approval = await this.approvalService.createApproval(
           user.id,
           action.method,
-          params,
+          normalizedParams,
           600,
         );
         actionResults.push({
@@ -228,7 +372,7 @@ export class AgentLoopService {
       spaceId,
       source: 'agent-loop',
       summary: plan.summary || 'Agent loop executed',
-      content: { plan, actions: actionResults },
+      content: { plan, actions: actionResults, rawResponse },
       tags: ['agent', 'loop'],
     });
 

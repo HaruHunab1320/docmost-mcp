@@ -88,12 +88,24 @@ export class MCPService {
 
       let result: any;
 
-      if (
-        resource !== 'approval' &&
-        this.approvalService.requiresApproval(request.method)
-      ) {
+      if (resource !== 'approval') {
         const approvalToken = request.params?.approvalToken as string | undefined;
-        if (!approvalToken) {
+
+        if (approvalToken) {
+          const approved = await this.approvalService.consumeApproval(
+            user.id,
+            request.method,
+            request.params || {},
+            approvalToken,
+          );
+
+          if (!approved) {
+            throw createApprovalRequiredError({
+              message: 'Approval token invalid or expired',
+              method: request.method,
+            });
+          }
+        } else if (this.approvalService.requiresApproval(request.method)) {
           const approval = await this.approvalService.createApproval(
             user.id,
             request.method,
@@ -103,20 +115,6 @@ export class MCPService {
             message: 'Approval required for this operation',
             approvalToken: approval.token,
             expiresAt: approval.expiresAt,
-            method: request.method,
-          });
-        }
-
-        const approved = await this.approvalService.consumeApproval(
-          user.id,
-          request.method,
-          request.params || {},
-          approvalToken,
-        );
-
-        if (!approved) {
-          throw createApprovalRequiredError({
-            message: 'Approval token invalid or expired',
             method: request.method,
           });
         }

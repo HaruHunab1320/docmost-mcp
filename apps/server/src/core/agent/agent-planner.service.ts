@@ -192,8 +192,15 @@ export class AgentPlannerService {
 
   @Cron('0 8,14 * * *')
   async runPlannerLoop() {
-    if (!process.env.GEMINI_API_KEY && !process.env.gemini_api_key) {
-      this.logger.debug('Skipping planner loop: GEMINI_API_KEY not set');
+    if (
+      !process.env.GEMINI_API_KEY &&
+      !process.env.gemini_api_key &&
+      !process.env.GOOGLE_API_KEY &&
+      !process.env.google_api_key
+    ) {
+      this.logger.debug(
+        'Skipping planner loop: GEMINI_API_KEY or GOOGLE_API_KEY not set',
+      );
       return;
     }
 

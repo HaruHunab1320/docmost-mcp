@@ -425,7 +425,11 @@ export class PageHandler {
       const createPageDto = new CreatePageDto();
       createPageDto.title = params.title;
       createPageDto.spaceId = params.spaceId;
-      createPageDto.content = params.content || '';
+      const content =
+        params.content && typeof params.content === 'object'
+          ? params.content
+          : null;
+      createPageDto.content = content;
       createPageDto.parentPageId = params.parentId;
 
       // Create the page

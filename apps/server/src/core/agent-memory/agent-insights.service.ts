@@ -70,7 +70,12 @@ export class AgentInsightsService {
     ].join('\n');
 
     let summaryText = `${label} summary unavailable.`;
-    if (process.env.GEMINI_API_KEY || process.env.gemini_api_key) {
+    if (
+      process.env.GEMINI_API_KEY ||
+      process.env.gemini_api_key ||
+      process.env.GOOGLE_API_KEY ||
+      process.env.google_api_key
+    ) {
       try {
         const response = await this.aiService.generateContent({
           model: this.getAgentModel(),

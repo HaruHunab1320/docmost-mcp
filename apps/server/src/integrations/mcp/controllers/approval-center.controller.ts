@@ -54,6 +54,8 @@ export class ApprovalCenterController {
       return { approved: false, error: result.error?.message };
     }
 
+    await this.approvalService.deleteApproval(user.id, dto.approvalToken);
+
     return { approved: true, result: result.result };
   }
 

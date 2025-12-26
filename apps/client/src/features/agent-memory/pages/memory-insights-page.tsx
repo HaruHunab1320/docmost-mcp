@@ -9,13 +9,28 @@ import {
   Text,
   Title,
 } from "@mantine/core";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useParams } from "react-router-dom";
 import { agentMemoryService } from "@/features/agent-memory/services/agent-memory-service";
 import { useAtom } from "jotai";
 import { workspaceAtom } from "@/features/user/atoms/current-user-atom";
 import { listGoals } from "@/features/goal/services/goal-service";
 import { runAgentLoop } from "@/features/agent/services/agent-service";
+
+function renderMemoryContent(content: unknown) {
+  if (!content || typeof content !== "object") return null;
+  const record = content as Record<string, any>;
+  if (typeof record.rawResponse === "string" && record.rawResponse.trim()) {
+    return record.rawResponse;
+  }
+  if (record.plan?.summary) {
+    return record.plan.summary as string;
+  }
+  if (Array.isArray(record.actions) && record.actions.length) {
+    return `Actions: ${record.actions.map((action: any) => action.method).join(", ")}`;
+  }
+  return null;
+}
 
 function groupByDay(items: Array<{ timestamp?: string }>) {
   return items.reduce<Record<string, typeof items>>((acc, item) => {
@@ -32,6 +47,7 @@ function groupByDay(items: Array<{ timestamp?: string }>) {
 export function MemoryInsightsPage() {
   const { spaceId } = useParams<{ spaceId: string }>();
   const [workspace] = useAtom(workspaceAtom);
+  const queryClient = useQueryClient();
 
   const memoriesQuery = useQuery({
     queryKey: ["memory-insights", workspace?.id, spaceId],
@@ -71,6 +87,11 @@ export function MemoryInsightsPage() {
       runAgentLoop({
         spaceId: spaceId || "",
       }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["memory-insights"] });
+      queryClient.invalidateQueries({ queryKey: ["memory-signals"] });
+      queryClient.invalidateQueries({ queryKey: ["agent-approvals"] });
+    },
   });
 
   const grouped = useMemo(() => {
@@ -234,7 +255,7 @@ export function MemoryInsightsPage() {
                               ? entry.content
                               : "text" in (entry.content as Record<string, any>)
                                 ? (entry.content as { text?: string }).text
-                                : ""}
+                                : renderMemoryContent(entry.content) || ""}
                           </Text>
                         ) : null}
                       </Stack>

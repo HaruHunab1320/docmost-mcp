@@ -148,6 +148,13 @@ export const useMCPEvents = () => {
           );
           handleWorkspaceEvent(event);
           break;
+        case MCPResourceType.TASK:
+          console.log(
+            `%c[MCP-EVENT] Processing TASK event`,
+            "color: #FF9800; font-weight: bold;"
+          );
+          handleTaskEvent(event);
+          break;
         case MCPResourceType.UI:
           console.log(
             `%c[MCP-EVENT] Processing UI event via MCPResourceType.UI case`,
@@ -525,6 +532,21 @@ export const useMCPEvents = () => {
         queryKey: ["recent-changes", event.spaceId],
       });
     }
+  };
+
+  const handleTaskEvent = (event: MCPEvent) => {
+    console.log(
+      `%c[MCP-HANDLER] Handling TASK event ${event.type}`,
+      "background: #4CAF50; color: white; padding: 3px; border-radius: 3px;"
+    );
+
+    queryClient.invalidateQueries({
+      predicate: (query) =>
+        Array.isArray(query.queryKey) &&
+        query.queryKey.some(
+          (key) => typeof key === "string" && key.includes("tasks")
+        ),
+    });
   };
 
   // Function to handle space events

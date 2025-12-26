@@ -20,7 +20,12 @@ export class AIService {
   private readonly logger = new Logger(AIService.name);
 
   private getApiKey(): string | undefined {
-    return process.env.GEMINI_API_KEY || process.env.gemini_api_key;
+    return (
+      process.env.GEMINI_API_KEY ||
+      process.env.gemini_api_key ||
+      process.env.GOOGLE_API_KEY ||
+      process.env.google_api_key
+    );
   }
 
   private getAllowedModels(): string[] {
@@ -49,7 +54,9 @@ export class AIService {
 
     const apiKey = this.getApiKey();
     if (!apiKey) {
-      throw createInvalidParamsError('GEMINI_API_KEY is not configured');
+      throw createInvalidParamsError(
+        'GEMINI_API_KEY or GOOGLE_API_KEY is not configured',
+      );
     }
 
     const allowed = this.getAllowedModels();
@@ -105,7 +112,9 @@ export class AIService {
 
     const apiKey = this.getApiKey();
     if (!apiKey) {
-      throw createInvalidParamsError('GEMINI_API_KEY is not configured');
+      throw createInvalidParamsError(
+        'GEMINI_API_KEY or GOOGLE_API_KEY is not configured',
+      );
     }
 
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${request.model}:embedContent?key=${apiKey}`;

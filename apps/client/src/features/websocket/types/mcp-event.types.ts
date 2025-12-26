@@ -16,6 +16,7 @@ export enum MCPResourceType {
   GROUP = "group",
   ATTACHMENT = "attachment",
   COMMENT = "comment",
+  TASK = "task",
   UI = "ui",
 }
 
