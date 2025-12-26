@@ -18,6 +18,7 @@ import { AgentLoopService } from './agent-loop.service';
 import { AgentLoopDto } from './agent-loop.dto';
 import { AgentHandoffDto } from './agent-handoff.dto';
 import { AgentHandoffService } from './agent-handoff.service';
+import { AgentLoopSchedulerService } from './agent-loop-scheduler.service';
 
 @UseGuards(JwtAuthGuard)
 @Controller('agent')
@@ -26,6 +27,7 @@ export class AgentController {
     private readonly agentService: AgentService,
     private readonly agentPlannerService: AgentPlannerService,
     private readonly agentLoopService: AgentLoopService,
+    private readonly agentLoopScheduler: AgentLoopSchedulerService,
     private readonly handoffService: AgentHandoffService,
   ) {}
 
@@ -59,6 +61,15 @@ export class AgentController {
     @AuthWorkspace() workspace: Workspace,
   ) {
     return this.agentLoopService.runLoop(dto.spaceId, user, workspace);
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Post('loop/schedule-run')
+  async runSchedule(
+    @AuthUser() user: User,
+    @AuthWorkspace() workspace: Workspace,
+  ) {
+    return this.agentLoopScheduler.runManual(workspace.id, user);
   }
 
   @HttpCode(HttpStatus.OK)

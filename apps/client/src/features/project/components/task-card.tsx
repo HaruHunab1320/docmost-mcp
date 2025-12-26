@@ -39,6 +39,7 @@ import { workspaceAtom } from "@/features/user/atoms/current-user-atom";
 import { useQuery } from "@tanstack/react-query";
 import { listGoalsForTask } from "@/features/goal/services/goal-service";
 import { Goal } from "@/features/goal/types";
+import { agentMemoryService } from "@/features/agent-memory/services/agent-memory-service";
 
 interface TaskCardProps {
   task: Task;
@@ -144,6 +145,18 @@ export function TaskCard({
     enabled: !!workspace?.id && !goalMap,
   });
   const taskGoals = goalMap?.[task.id] || taskGoalsQuery.data || [];
+  const entityLinksQuery = useQuery({
+    queryKey: ["entity-links", task.id, workspace?.id],
+    queryFn: () =>
+      agentMemoryService.links({
+        workspaceId: workspace?.id || "",
+        taskIds: [task.id],
+        limit: 3,
+      }),
+    enabled: !!workspace?.id,
+  });
+  const taskEntityLinks =
+    entityLinksQuery.data?.taskLinks?.[task.id] || [];
 
   const getGoalColor = (horizon: string) => {
     switch (horizon) {
@@ -318,8 +331,8 @@ export function TaskCard({
         )}
       </Group>
 
-      {taskGoals.length > 0 && (
-        <Group gap={6} mt={6}>
+      {(taskGoals.length > 0 || taskEntityLinks.length > 0) && (
+        <Group gap={6} mt={6} wrap="wrap">
           {taskGoals.slice(0, 3).map((goal) => (
             <Badge
               key={goal.id}
@@ -333,6 +346,21 @@ export function TaskCard({
           {taskGoals.length > 3 && (
             <Badge size="xs" variant="light" color="gray">
               {t("+{{count}}", { count: taskGoals.length - 3 })}
+            </Badge>
+          )}
+          {taskEntityLinks.slice(0, 2).map((entity) => (
+            <Badge
+              key={entity.entityId}
+              size="xs"
+              variant="light"
+              color="yellow"
+            >
+              {entity.entityName || "Entity"}
+            </Badge>
+          ))}
+          {taskEntityLinks.length > 2 && (
+            <Badge size="xs" variant="light" color="yellow">
+              {t("+{{count}}", { count: taskEntityLinks.length - 2 })}
             </Badge>
           )}
         </Group>

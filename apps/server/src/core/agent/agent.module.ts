@@ -3,6 +3,7 @@ import { AgentController } from './agent.controller';
 import { AgentService } from './agent.service';
 import { AgentPlannerService } from './agent-planner.service';
 import { AgentLoopService } from './agent-loop.service';
+import { AgentLoopSchedulerService } from './agent-loop-scheduler.service';
 import { AgentPolicyService } from './agent-policy.service';
 import { AgentHandoffService } from './agent-handoff.service';
 import { AgentMemoryModule } from '../agent-memory/agent-memory.module';
@@ -26,6 +27,7 @@ import { MCPModule } from '../../integrations/mcp/mcp.module';
     AgentService,
     AgentPlannerService,
     AgentLoopService,
+    AgentLoopSchedulerService,
     AgentPolicyService,
     AgentHandoffService,
   ],

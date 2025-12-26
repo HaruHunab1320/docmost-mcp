@@ -36,6 +36,11 @@ export async function runAgentLoop(params: {
   return req.data;
 }
 
+export async function runAgentSchedule(): Promise<{ ran: number }> {
+  const req = await api.post("/agent/loop/schedule-run");
+  return req.data;
+}
+
 export async function createAgentHandoff(params: {
   name?: string;
 }): Promise<{ apiKey: string; name: string }> {

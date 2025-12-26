@@ -57,6 +57,8 @@ import { useProjects } from "@/features/project/hooks/use-projects";
 import { Project } from "@/features/project/types";
 import { ProjectLinkedPages } from "@/features/project/components/project-linked-pages";
 import { getProjectsArray } from "@/features/project/utils/project-data";
+import { useQuery } from "@tanstack/react-query";
+import { agentMemoryService } from "@/features/agent-memory/services/agent-memory-service";
 
 export function SpaceSidebar() {
   const { t } = useTranslation();
@@ -72,6 +74,17 @@ export function SpaceSidebar() {
   const navigate = useNavigate();
   const { data: projectsData } = useProjects({ spaceId: space?.id });
   const [expandedProjects, setExpandedProjects] = useState<Record<string, boolean>>({});
+  const pinnedEntitiesQuery = useQuery({
+    queryKey: ["sidebar-entity-pins", space?.id],
+    queryFn: () =>
+      agentMemoryService.query({
+        workspaceId: space?.workspaceId || "",
+        spaceId: space?.id || "",
+        tags: ["entity-pin"],
+        limit: 20,
+      }),
+    enabled: !!space?.id && !!space?.workspaceId,
+  });
 
   const spaceRules = space?.membership?.permissions;
   const spaceAbility = useSpaceAbility(spaceRules);
@@ -84,6 +97,28 @@ export function SpaceSidebar() {
   const projectHomePageIds = projects
     .map((project) => project.homePageId)
     .filter((id): id is string => Boolean(id));
+
+  const pinnedEntities = React.useMemo(() => {
+    const records = pinnedEntitiesQuery.data || [];
+    const latest = new Map<string, { action: string; name?: string; ts: number }>();
+    records.forEach((record) => {
+      const content = record.content as Record<string, any> | undefined;
+      if (!content?.entityId) return;
+      const ts = record.timestamp ? new Date(record.timestamp).getTime() : 0;
+      const existing = latest.get(content.entityId);
+      if (!existing || ts >= existing.ts) {
+        latest.set(content.entityId, {
+          action: content.action,
+          name: content.entityName,
+          ts,
+        });
+      }
+    });
+
+    return Array.from(latest.entries())
+      .filter(([, value]) => value.action === "pin")
+      .map(([id, value]) => ({ id, name: value.name || "Entity" }));
+  }, [pinnedEntitiesQuery.data]);
 
   function handleCreatePage() {
     tree?.create({ parentId: null, type: "internal", index: 0 });
@@ -226,6 +261,26 @@ export function SpaceSidebar() {
                 <span>{t("Insights")}</span>
               </div>
             </UnstyledButton>
+
+            {pinnedEntities.length ? (
+              <div className={classes.subSection}>
+                <Text size="xs" c="dimmed" fw={600} mb={4}>
+                  {t("Pinned entities")}
+                </Text>
+                <Group gap={6} wrap="wrap">
+                  {pinnedEntities.map((entity) => (
+                    <UnstyledButton
+                      key={entity.id}
+                      component={Link}
+                      to={`${APP_ROUTE.SPACE.INSIGHTS(space.id)}?entityId=${entity.id}`}
+                      className={classes.subMenu}
+                    >
+                      <Text size="xs">{entity.name}</Text>
+                    </UnstyledButton>
+                  ))}
+                </Group>
+              </div>
+            ) : null}
 
             <UnstyledButton
               component={Link}

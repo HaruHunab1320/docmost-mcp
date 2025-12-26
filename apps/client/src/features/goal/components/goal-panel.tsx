@@ -19,6 +19,7 @@ import { createGoal, deleteGoal, listGoals } from "@/features/goal/services/goal
 import { Goal, GoalHorizon } from "@/features/goal/types";
 import { notifications } from "@mantine/notifications";
 import { queryClient } from "@/main";
+import { agentMemoryService } from "@/features/agent-memory/services/agent-memory-service";
 
 interface GoalPanelProps {
   workspaceId: string;
@@ -42,6 +43,17 @@ export function GoalPanel({ workspaceId, spaceId }: GoalPanelProps) {
     queryKey: ["goals", workspaceId, spaceId],
     queryFn: () => listGoals({ workspaceId, spaceId }),
     enabled: !!workspaceId,
+  });
+
+  const goalLinksQuery = useQuery({
+    queryKey: ["goal-entity-links", workspaceId, spaceId, goalsQuery.data],
+    queryFn: () =>
+      agentMemoryService.links({
+        workspaceId,
+        spaceId,
+        goalIds: (goalsQuery.data || []).map((goal) => goal.id),
+      }),
+    enabled: !!workspaceId && !!goalsQuery.data?.length,
   });
 
   const createMutation = useMutation({
@@ -125,43 +137,61 @@ export function GoalPanel({ workspaceId, spaceId }: GoalPanelProps) {
                   </Badge>
                 </Group>
                 {groupedGoals[bucket]?.length ? (
-                  groupedGoals[bucket].map((goal) => (
-                    <Card key={goal.id} withBorder radius="sm" p="sm">
-                      <Stack gap={4}>
-                        <Group justify="space-between">
-                          <Text fw={600} size="sm">
-                            {goal.name}
-                          </Text>
-                          <Button
-                            size="xs"
-                            variant="subtle"
-                            color="red"
-                            onClick={() => deleteMutation.mutate(goal.id)}
-                          >
-                            Remove
-                          </Button>
-                        </Group>
-                        {goal.description ? (
-                          <Text size="xs" c="dimmed">
-                            {goal.description}
-                          </Text>
-                        ) : null}
-                        {goal.keywords?.length ? (
-                          <Group gap={6}>
-                            {goal.keywords.map((keyword) => (
-                              <Badge key={keyword} size="xs" variant="light">
-                                {keyword}
-                              </Badge>
-                            ))}
+                  groupedGoals[bucket].map((goal) => {
+                    const entityLinks =
+                      goalLinksQuery.data?.goalLinks?.[goal.id] || [];
+                    return (
+                      <Card key={goal.id} withBorder radius="sm" p="sm">
+                        <Stack gap={4}>
+                          <Group justify="space-between">
+                            <Text fw={600} size="sm">
+                              {goal.name}
+                            </Text>
+                            <Button
+                              size="xs"
+                              variant="subtle"
+                              color="red"
+                              onClick={() => deleteMutation.mutate(goal.id)}
+                            >
+                              Remove
+                            </Button>
                           </Group>
-                        ) : (
-                          <Text size="xs" c="dimmed">
-                            No keywords set
-                          </Text>
-                        )}
-                      </Stack>
-                    </Card>
-                  ))
+                          {goal.description ? (
+                            <Text size="xs" c="dimmed">
+                              {goal.description}
+                            </Text>
+                          ) : null}
+                          {goal.keywords?.length ? (
+                            <Group gap={6}>
+                              {goal.keywords.map((keyword) => (
+                                <Badge key={keyword} size="xs" variant="light">
+                                  {keyword}
+                                </Badge>
+                              ))}
+                            </Group>
+                          ) : (
+                            <Text size="xs" c="dimmed">
+                              No keywords set
+                            </Text>
+                          )}
+                          {entityLinks.length ? (
+                            <Group gap={6} wrap="wrap">
+                              {entityLinks.map((entity) => (
+                                <Badge
+                                  key={entity.entityId}
+                                  size="xs"
+                                  variant="light"
+                                  color="yellow"
+                                >
+                                  {entity.entityName || "Entity"}
+                                </Badge>
+                              ))}
+                            </Group>
+                          ) : null}
+                        </Stack>
+                      </Card>
+                    );
+                  })
                 ) : (
                   <Text size="xs" c="dimmed">
                     No goals yet

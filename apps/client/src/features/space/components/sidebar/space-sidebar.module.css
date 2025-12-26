@@ -64,6 +64,22 @@
     color: light-dark(var(--mantine-color-gray-6), var(--mantine-color-dark-2));
 }
 
+.subSection {
+    margin-top: rem(6px);
+    padding-left: rem(6px);
+}
+
+.subMenu {
+    padding: rem(4px) rem(8px);
+    border-radius: var(--mantine-radius-sm);
+    background-color: light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-7));
+    color: light-dark(var(--mantine-color-gray-7), var(--mantine-color-dark-0));
+
+    &:hover {
+        background-color: light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-6));
+    }
+}
+
 .pages {
     padding-left: calc(var(--mantine-spacing-md) - rem(6px));
     padding-right: calc(var(--mantine-spacing-md) - rem(6px));

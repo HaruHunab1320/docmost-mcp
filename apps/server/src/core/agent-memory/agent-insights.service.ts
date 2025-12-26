@@ -175,6 +175,100 @@ export class AgentInsightsService {
     }
   }
 
+  private async generateTopicClusters(
+    spaceId: string,
+    workspaceId: string,
+    spaceName: string,
+  ) {
+    const since = new Date(Date.now() - 21 * 24 * 60 * 60 * 1000);
+    const entities = await this.memoryService.listTopEntities({
+      workspaceId,
+      spaceId,
+      from: since,
+      limit: 8,
+    });
+
+    if (!entities.length) return;
+
+    await this.memoryService.ingestMemory({
+      workspaceId,
+      spaceId,
+      source: 'agent-insight',
+      summary: `Topic clusters for ${spaceName}`,
+      content: {
+        clusters: entities.map((entity) => ({
+          id: entity.id,
+          name: entity.name,
+          type: entity.type,
+          count: entity.count,
+        })),
+      },
+      tags: ['agent', 'agent-insight', 'topic-cluster'],
+    });
+  }
+
+  private async generateGoalTrends(
+    spaceId: string,
+    workspaceId: string,
+  ) {
+    const recentSince = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000);
+    const baselineSince = new Date(Date.now() - 60 * 24 * 60 * 60 * 1000);
+    const recentText = (await this.getRecentMemoryText(spaceId, recentSince)).toLowerCase();
+    const baselineText = (await this.getRecentMemoryText(spaceId, baselineSince)).toLowerCase();
+
+    if (!baselineText) return;
+
+    const goals = await this.db
+      .selectFrom('goals')
+      .select(['id', 'name', 'keywords'])
+      .where('workspaceId', '=', workspaceId)
+      .where((eb) => eb('spaceId', '=', spaceId).or('spaceId', 'is', null))
+      .execute();
+
+    const trends = goals
+      .map((goal) => {
+        const rawKeywords = Array.isArray(goal.keywords) ? goal.keywords : [];
+        const keywords = rawKeywords
+          .filter((kw): kw is string => typeof kw === 'string')
+          .map((kw) => kw.toLowerCase())
+          .filter(Boolean);
+        if (!keywords.length) return null;
+
+        const recentHits = keywords.reduce(
+          (acc, keyword) => acc + (recentText.split(keyword).length - 1),
+          0,
+        );
+        const baselineHits = keywords.reduce(
+          (acc, keyword) => acc + (baselineText.split(keyword).length - 1),
+          0,
+        );
+
+        if (!baselineHits) return null;
+
+        const ratio = recentHits / baselineHits;
+        return {
+          goalId: goal.id,
+          goalName: goal.name,
+          recentHits,
+          baselineHits,
+          ratio,
+        };
+      })
+      .filter(Boolean)
+      .filter((trend) => trend && trend.ratio < 0.4);
+
+    if (!trends.length) return;
+
+    await this.memoryService.ingestMemory({
+      workspaceId,
+      spaceId,
+      source: 'agent-insight',
+      summary: `Goal trends detected`,
+      content: { trends },
+      tags: ['agent', 'agent-insight', 'goal-trend'],
+    });
+  }
+
   private async runForSpaces(handler: (space: any) => Promise<void>) {
     const spaces = await this.db
       .selectFrom('spaces')
@@ -215,6 +309,8 @@ export class AgentInsightsService {
         'weekly-summary',
       );
       await this.generateSignals(space.id, space.workspaceId, space.name);
+      await this.generateTopicClusters(space.id, space.workspaceId, space.name);
+      await this.generateGoalTrends(space.id, space.workspaceId);
     });
   }
 
@@ -229,6 +325,8 @@ export class AgentInsightsService {
         30,
         'monthly-summary',
       );
+      await this.generateTopicClusters(space.id, space.workspaceId, space.name);
+      await this.generateGoalTrends(space.id, space.workspaceId);
     });
   }
 
@@ -236,6 +334,8 @@ export class AgentInsightsService {
   async runDailySignals() {
     await this.runForSpaces(async (space) => {
       await this.generateSignals(space.id, space.workspaceId, space.name);
+      await this.generateTopicClusters(space.id, space.workspaceId, space.name);
+      await this.generateGoalTrends(space.id, space.workspaceId);
     });
   }
 }

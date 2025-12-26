@@ -5,6 +5,7 @@ import {
   CopyButton,
   Divider,
   Group,
+  NumberInput,
   Stack,
   Switch,
   Text,
@@ -15,6 +16,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   createAgentHandoff,
   getAgentSettings,
+  runAgentLoop,
+  runAgentSchedule,
   updateAgentSettings,
 } from "@/features/agent/services/agent-service";
 import { notifications } from "@mantine/notifications";
@@ -22,6 +25,8 @@ import { AgentSettings } from "@/features/agent/types/agent.types";
 import { useAtom } from "jotai";
 import { currentUserAtom } from "@/features/user/atoms/current-user-atom";
 import useUserRole from "@/hooks/use-user-role";
+import { getSpaces } from "@/features/space/services/space-service";
+import { agentMemoryService } from "@/features/agent-memory/services/agent-memory-service";
 
 const toLabel = (text: string) => text;
 
@@ -30,11 +35,31 @@ export function AgentSettingsPanel() {
   const workspace = currentUser?.workspace;
   const { isAdmin } = useUserRole();
   const [handoffKey, setHandoffKey] = useState("");
+  const [defaultTimezone] = useState(
+    Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC"
+  );
   const queryClient = useQueryClient();
 
   const settingsQuery = useQuery({
     queryKey: ["agent-settings"],
     queryFn: () => getAgentSettings(),
+    enabled: !!workspace?.id,
+  });
+
+  const spacesQuery = useQuery({
+    queryKey: ["spaces"],
+    queryFn: () => getSpaces({ page: 1, limit: 200 }),
+    enabled: !!workspace?.id,
+  });
+
+  const recentRunsQuery = useQuery({
+    queryKey: ["agent-loop-runs", workspace?.id],
+    queryFn: () =>
+      agentMemoryService.query({
+        workspaceId: workspace?.id || "",
+        sources: ["agent-loop"],
+        limit: 5,
+      }),
     enabled: !!workspace?.id,
   });
 
@@ -70,8 +95,8 @@ export function AgentSettingsPanel() {
   });
 
   const currentSettings = useMemo(
-    () =>
-      settingsQuery.data || {
+    () => {
+      const defaults: AgentSettings = {
         enabled: true,
         enableDailySummary: true,
         enableAutoTriage: true,
@@ -86,8 +111,33 @@ export function AgentSettingsPanel() {
         allowPageWrites: false,
         allowProjectWrites: false,
         allowGoalWrites: false,
-      },
-    [settingsQuery.data]
+        autonomySchedule: {
+          dailyEnabled: true,
+          dailyHour: 7,
+          weeklyEnabled: true,
+          weeklyDay: 1,
+          monthlyEnabled: true,
+          monthlyDay: 1,
+          timezone: defaultTimezone,
+        },
+        spaceOverrides: {},
+      };
+
+      if (!settingsQuery.data) {
+        return defaults;
+      }
+
+      return {
+        ...defaults,
+        ...settingsQuery.data,
+        autonomySchedule: {
+          ...defaults.autonomySchedule,
+          ...settingsQuery.data.autonomySchedule,
+        },
+        spaceOverrides: settingsQuery.data.spaceOverrides || {},
+      };
+    },
+    [settingsQuery.data, defaultTimezone]
   );
 
   useEffect(() => {
@@ -109,6 +159,34 @@ export function AgentSettingsPanel() {
     mutation.mutate({ [key]: event.currentTarget.checked });
   };
 
+  const updateSchedule = (updates: Partial<AgentSettings["autonomySchedule"]>) => {
+    mutation.mutate({
+      autonomySchedule: {
+        ...currentSettings.autonomySchedule,
+        ...updates,
+      },
+    });
+  };
+
+  const updateSpaceOverride = (
+    spaceId: string,
+    updates: Partial<AgentSettings["autonomySchedule"]>
+  ) => {
+    const existing = currentSettings.spaceOverrides?.[spaceId]?.autonomySchedule || {};
+    mutation.mutate({
+      spaceOverrides: {
+        ...(currentSettings.spaceOverrides || {}),
+        [spaceId]: {
+          autonomySchedule: {
+            ...currentSettings.autonomySchedule,
+            ...existing,
+            ...updates,
+          },
+        },
+      },
+    });
+  };
+
   const handoffMutation = useMutation({
     mutationFn: (name?: string) => createAgentHandoff({ name }),
     onSuccess: (data) => {
@@ -123,6 +201,43 @@ export function AgentSettingsPanel() {
       notifications.show({
         title: "Error",
         message: "Failed to create agent handoff key",
+        color: "red",
+      });
+    },
+  });
+
+  const scheduleMutation = useMutation({
+    mutationFn: () => runAgentSchedule(),
+    onSuccess: () => {
+      notifications.show({
+        title: "Scheduled run started",
+        message: "Autonomy cycle triggered for enabled spaces.",
+        color: "green",
+      });
+      queryClient.invalidateQueries({ queryKey: ["agent-settings"] });
+    },
+    onError: () => {
+      notifications.show({
+        title: "Error",
+        message: "Failed to trigger autonomy schedule",
+        color: "red",
+      });
+    },
+  });
+
+  const runSpaceMutation = useMutation({
+    mutationFn: (spaceId: string) => runAgentLoop({ spaceId }),
+    onSuccess: () => {
+      notifications.show({
+        title: "Autonomy cycle started",
+        message: "Agent loop kicked off for this space.",
+        color: "green",
+      });
+    },
+    onError: () => {
+      notifications.show({
+        title: "Error",
+        message: "Failed to run agent loop for this space",
         color: "red",
       });
     },
@@ -235,6 +350,238 @@ export function AgentSettingsPanel() {
         </Stack>
         <Divider />
         <Stack gap="xs">
+          <Text size="sm" fw={600}>
+            Autonomy cadence
+          </Text>
+          <Switch
+            label={toLabel("Run daily")}
+            checked={currentSettings.autonomySchedule.dailyEnabled}
+            onChange={(event) =>
+              updateSchedule({ dailyEnabled: event.currentTarget.checked })
+            }
+            disabled={!isAdmin}
+          />
+          <NumberInput
+            label="Daily hour"
+            min={0}
+            max={23}
+            value={currentSettings.autonomySchedule.dailyHour}
+            onChange={(value) =>
+              updateSchedule({ dailyHour: Number(value) || 0 })
+            }
+            disabled={!isAdmin}
+          />
+          <Switch
+            label={toLabel("Run weekly")}
+            checked={currentSettings.autonomySchedule.weeklyEnabled}
+            onChange={(event) =>
+              updateSchedule({ weeklyEnabled: event.currentTarget.checked })
+            }
+            disabled={!isAdmin}
+          />
+          <NumberInput
+            label="Weekly day (0=Sun)"
+            min={0}
+            max={6}
+            value={currentSettings.autonomySchedule.weeklyDay}
+            onChange={(value) =>
+              updateSchedule({ weeklyDay: Number(value) || 0 })
+            }
+            disabled={!isAdmin}
+          />
+          <Switch
+            label={toLabel("Run monthly")}
+            checked={currentSettings.autonomySchedule.monthlyEnabled}
+            onChange={(event) =>
+              updateSchedule({ monthlyEnabled: event.currentTarget.checked })
+            }
+            disabled={!isAdmin}
+          />
+          <NumberInput
+            label="Monthly day"
+            min={1}
+            max={28}
+            value={currentSettings.autonomySchedule.monthlyDay}
+            onChange={(value) =>
+              updateSchedule({ monthlyDay: Number(value) || 1 })
+            }
+            disabled={!isAdmin}
+          />
+          <TextInput
+            label="Timezone"
+            placeholder="America/Los_Angeles"
+            value={currentSettings.autonomySchedule.timezone || defaultTimezone}
+            onChange={(event) =>
+              updateSchedule({ timezone: event.currentTarget.value || "UTC" })
+            }
+            disabled={!isAdmin}
+          />
+          <Group justify="space-between">
+            <Text size="xs" c="dimmed">
+              Last daily run:{" "}
+              {currentSettings.autonomySchedule.lastDailyRun || "Never"}
+            </Text>
+            <Button
+              size="xs"
+              variant="light"
+              onClick={() => scheduleMutation.mutate()}
+              loading={scheduleMutation.isPending}
+              disabled={!isAdmin}
+            >
+              Run cadence now
+            </Button>
+          </Group>
+          <Text size="xs" c="dimmed">
+            Last weekly run:{" "}
+            {currentSettings.autonomySchedule.lastWeeklyRun || "Never"}
+          </Text>
+          <Text size="xs" c="dimmed">
+            Last monthly run:{" "}
+            {currentSettings.autonomySchedule.lastMonthlyRun || "Never"}
+          </Text>
+          <Text size="xs" c="dimmed">
+            Schedule runs in the selected timezone. Daily hour is shared across weekly/monthly runs.
+          </Text>
+        </Stack>
+        <Divider />
+        <Stack gap="xs">
+          <Text size="sm" fw={600}>
+            Space overrides
+          </Text>
+          {spacesQuery.data?.items?.length ? (
+            <Stack gap="xs">
+              {spacesQuery.data.items.map((space) => {
+                const override =
+                  currentSettings.spaceOverrides?.[space.id]?.autonomySchedule;
+                const effective = {
+                  ...currentSettings.autonomySchedule,
+                  ...(override || {}),
+                };
+                const overrideActive = Boolean(override);
+                return (
+                  <Card key={space.id} withBorder radius="sm" p="sm">
+                    <Group justify="space-between" mb="xs">
+                      <Text size="sm" fw={600}>
+                        {space.name || "Space"}
+                      </Text>
+                      <Group>
+                        <Button
+                          size="xs"
+                          variant="light"
+                          onClick={() => runSpaceMutation.mutate(space.id)}
+                          loading={runSpaceMutation.isPending && runSpaceMutation.variables === space.id}
+                          disabled={!isAdmin}
+                        >
+                          Run this space
+                        </Button>
+                        <Switch
+                          label="Override"
+                          checked={Boolean(override)}
+                          onChange={(event) => {
+                            if (event.currentTarget.checked) {
+                              updateSpaceOverride(space.id, {});
+                            } else {
+                              const nextOverrides = {
+                                ...(currentSettings.spaceOverrides || {}),
+                              };
+                              delete nextOverrides[space.id];
+                              mutation.mutate({
+                                spaceOverrides: nextOverrides,
+                              });
+                            }
+                          }}
+                          disabled={!isAdmin}
+                        />
+                      </Group>
+                    </Group>
+                    <Group grow>
+                      <NumberInput
+                        label="Daily hour"
+                        min={0}
+                        max={23}
+                        value={effective.dailyHour}
+                        onChange={(value) =>
+                          updateSpaceOverride(space.id, { dailyHour: Number(value) || 0 })
+                        }
+                        disabled={!isAdmin || !overrideActive}
+                      />
+                      <NumberInput
+                        label="Weekly day (0=Sun)"
+                        min={0}
+                        max={6}
+                        value={effective.weeklyDay}
+                        onChange={(value) =>
+                          updateSpaceOverride(space.id, { weeklyDay: Number(value) || 0 })
+                        }
+                        disabled={!isAdmin || !overrideActive}
+                      />
+                    </Group>
+                    <Group grow mt="xs">
+                      <NumberInput
+                        label="Monthly day"
+                        min={1}
+                        max={28}
+                        value={effective.monthlyDay}
+                        onChange={(value) =>
+                          updateSpaceOverride(space.id, { monthlyDay: Number(value) || 1 })
+                        }
+                        disabled={!isAdmin || !overrideActive}
+                      />
+                      <TextInput
+                        label="Timezone"
+                        value={effective.timezone || defaultTimezone}
+                        onChange={(event) =>
+                          updateSpaceOverride(space.id, {
+                            timezone: event.currentTarget.value || "UTC",
+                          })
+                        }
+                        disabled={!isAdmin || !overrideActive}
+                      />
+                    </Group>
+                    <Group mt="xs">
+                      <Switch
+                        label="Daily"
+                        checked={effective.dailyEnabled}
+                        onChange={(event) =>
+                          updateSpaceOverride(space.id, {
+                            dailyEnabled: event.currentTarget.checked,
+                          })
+                        }
+                        disabled={!isAdmin || !overrideActive}
+                      />
+                      <Switch
+                        label="Weekly"
+                        checked={effective.weeklyEnabled}
+                        onChange={(event) =>
+                          updateSpaceOverride(space.id, {
+                            weeklyEnabled: event.currentTarget.checked,
+                          })
+                        }
+                        disabled={!isAdmin || !overrideActive}
+                      />
+                      <Switch
+                        label="Monthly"
+                        checked={effective.monthlyEnabled}
+                        onChange={(event) =>
+                          updateSpaceOverride(space.id, {
+                            monthlyEnabled: event.currentTarget.checked,
+                          })
+                        }
+                        disabled={!isAdmin || !overrideActive}
+                      />
+                    </Group>
+                  </Card>
+                );
+              })}
+            </Stack>
+          ) : (
+            <Text size="xs" c="dimmed">
+              No spaces found.
+            </Text>
+          )}
+        </Stack>
+        <Divider />
+        <Stack gap="xs">
           <Group justify="space-between">
             <Text size="sm" fw={600}>
               External agent access
@@ -271,6 +618,47 @@ export function AgentSettingsPanel() {
           ) : (
             <Text size="xs" c="dimmed">
               No handoff key generated yet.
+            </Text>
+          )}
+        </Stack>
+        <Divider />
+        <Stack gap="xs">
+          <Text size="sm" fw={600}>
+            Recent autonomy runs
+          </Text>
+          {recentRunsQuery.isLoading ? (
+            <Text size="xs" c="dimmed">
+              Loading runs...
+            </Text>
+          ) : recentRunsQuery.data?.length ? (
+            <Stack gap="xs">
+              {recentRunsQuery.data.map((run) => {
+                const content = run.content as Record<string, any> | undefined;
+                const actions = Array.isArray(content?.actions) ? content?.actions : [];
+                return (
+                  <Card key={run.id} withBorder radius="sm" p="sm">
+                    <Stack gap={4}>
+                      <Group justify="space-between">
+                        <Text size="sm" fw={600}>
+                          {run.summary || "Autonomy run"}
+                        </Text>
+                        <Text size="xs" c="dimmed">
+                          {run.timestamp
+                            ? new Date(run.timestamp).toLocaleString()
+                            : ""}
+                        </Text>
+                      </Group>
+                      <Text size="xs" c="dimmed">
+                        Actions: {actions.length}
+                      </Text>
+                    </Stack>
+                  </Card>
+                );
+              })}
+            </Stack>
+          ) : (
+            <Text size="xs" c="dimmed">
+              No runs recorded yet.
             </Text>
           )}
         </Stack>

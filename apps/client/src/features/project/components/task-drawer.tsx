@@ -98,6 +98,7 @@ import {
   listGoalsForTask,
   unassignGoal,
 } from "@/features/goal/services/goal-service";
+import { agentMemoryService } from "@/features/agent-memory/services/agent-memory-service";
 // Lazy load Picker from emoji-mart to avoid SSR issues
 const Picker = lazy(() => import("@emoji-mart/react"));
 
@@ -206,6 +207,18 @@ export function TaskDrawer({
     enabled: !!taskId && !!workspaceId,
   });
   const taskGoals = taskGoalsQuery.data || [];
+  const entityLinksQuery = useQuery({
+    queryKey: ["entity-links", taskId, workspaceId, spaceId],
+    queryFn: () =>
+      agentMemoryService.links({
+        workspaceId: workspaceId || "",
+        spaceId,
+        taskIds: taskId ? [taskId] : [],
+      }),
+    enabled: !!taskId && !!workspaceId,
+  });
+  const taskEntityLinks =
+    (taskId && entityLinksQuery.data?.taskLinks?.[taskId]) || [];
   const allGoalsQuery = useQuery({
     queryKey: ["goals", workspaceId, spaceId],
     queryFn: () =>
@@ -1500,6 +1513,40 @@ export function TaskDrawer({
                         color={getGoalColor(goal.horizon)}
                       >
                         {goal.name}
+                      </Badge>
+                    ))
+                  ) : (
+                    <Text size="xs" c="dimmed">
+                      {t("None")}
+                    </Text>
+                  )}
+                </Group>
+              </Group>
+
+              <Group justify="apart" mb="xs" align="flex-start">
+                <Text fw={500} size="sm" style={{ width: "100px" }}>
+                  {t("Entities")}
+                </Text>
+                <Group
+                  gap="xs"
+                  wrap="wrap"
+                  justify="flex-end"
+                  style={{ flex: 1 }}
+                >
+                  {entityLinksQuery.isLoading ? (
+                    <Text size="xs" c="dimmed">
+                      {t("Loading...")}
+                    </Text>
+                  ) : taskEntityLinks.length ? (
+                    taskEntityLinks.map((entity) => (
+                      <Badge
+                        key={entity.entityId}
+                        size="sm"
+                        radius="sm"
+                        variant="light"
+                        color="yellow"
+                      >
+                        {entity.entityName || "Entity"}
                       </Badge>
                     ))
                   ) : (

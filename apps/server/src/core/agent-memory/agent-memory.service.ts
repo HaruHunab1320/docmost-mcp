@@ -23,6 +23,7 @@ interface MemoryQueryFilters {
   workspaceId: string;
   spaceId?: string;
   tags?: string[];
+  sources?: string[];
   from?: Date;
   to?: Date;
   limit?: number;
@@ -208,6 +209,7 @@ export class AgentMemoryService {
       workspaceId: filters.workspaceId,
       spaceId: filters.spaceId || null,
       tags: filters.tags || [],
+      sources: filters.sources || [],
       fromMs: filters.from ? filters.from.getTime() : null,
       toMs: filters.to ? filters.to.getTime() : null,
       fetchLimit: neo4jInt(Math.max(limit * 5, 50)),
@@ -217,6 +219,7 @@ export class AgentMemoryService {
       'm.workspaceId = $workspaceId',
       filters.spaceId ? 'm.spaceId = $spaceId' : null,
       filters.tags?.length ? 'ANY(tag IN $tags WHERE tag IN m.tags)' : null,
+      filters.sources?.length ? 'm.source IN $sources' : null,
       filters.from ? 'm.timestampMs >= $fromMs' : null,
       filters.to ? 'm.timestampMs <= $toMs' : null,
     ].filter(Boolean);
@@ -340,6 +343,367 @@ export class AgentMemoryService {
         .map(([day, count]) => ({ day, count }))
         .sort((a, b) => (a.day < b.day ? 1 : -1))
         .slice(0, days);
+    } finally {
+      await session.close();
+    }
+  }
+
+  async getMemoryGraph(filters: MemoryQueryFilters & {
+    maxNodes?: number;
+    maxEdges?: number;
+    minWeight?: number;
+  }) {
+    const session = this.memgraph.getSession();
+    const nodeLimit = Math.max(filters.maxNodes || 24, 1);
+    const edgeLimit = Math.max(filters.maxEdges || 64, 1);
+    const minWeight = Math.max(filters.minWeight || 1, 1);
+    const params: any = {
+      workspaceId: filters.workspaceId,
+      spaceId: filters.spaceId || null,
+      tags: filters.tags || [],
+      sources: filters.sources || [],
+      fromMs: filters.from ? filters.from.getTime() : null,
+      toMs: filters.to ? filters.to.getTime() : null,
+      nodeLimit: neo4jInt(nodeLimit),
+      edgeLimit: neo4jInt(edgeLimit),
+      minWeight: neo4jInt(minWeight),
+    };
+
+    const whereParts = [
+      'm.workspaceId = $workspaceId',
+      filters.spaceId ? 'm.spaceId = $spaceId' : null,
+      filters.tags?.length ? 'ANY(tag IN $tags WHERE tag IN m.tags)' : null,
+      filters.sources?.length ? 'm.source IN $sources' : null,
+      filters.from ? 'm.timestampMs >= $fromMs' : null,
+      filters.to ? 'm.timestampMs <= $toMs' : null,
+    ].filter(Boolean);
+
+    const whereClause = whereParts.length
+      ? `WHERE ${whereParts.join(' AND ')}`
+      : '';
+
+    const toNumber = (value: any) => {
+      if (typeof value === 'number') return value;
+      if (value && typeof value.toNumber === 'function') {
+        return value.toNumber();
+      }
+      return Number(value);
+    };
+
+    try {
+      const nodesResult = await session.run(
+        `
+        MATCH (m:Memory)
+        ${whereClause}
+        MATCH (m)-[:REFERS_TO]->(e:Entity)
+        RETURN e AS entity, count(DISTINCT m) AS memoryCount, max(m.timestampMs) AS lastSeen
+        ORDER BY memoryCount DESC
+        LIMIT $nodeLimit
+        `,
+        params,
+      );
+
+      const nodes = nodesResult.records.map((record) => {
+        const entity = record.get('entity').properties;
+        return {
+          id: entity.id as string,
+          label: (entity.name as string) || 'Entity',
+          type: (entity.type as string) || 'entity',
+          count: toNumber(record.get('memoryCount')),
+          lastSeen: record.get('lastSeen')
+            ? new Date(toNumber(record.get('lastSeen'))).toISOString()
+            : null,
+        };
+      });
+
+      if (!nodes.length) {
+        return { nodes: [], edges: [] };
+      }
+
+      const entityIds = nodes.map((node) => node.id);
+      const edgesResult = await session.run(
+        `
+        MATCH (m:Memory)
+        ${whereClause}
+        MATCH (m)-[:REFERS_TO]->(e:Entity)
+        WHERE e.id IN $entityIds
+        WITH m, collect(DISTINCT e) AS entities
+        UNWIND entities AS a
+        UNWIND entities AS b
+        WITH a, b, count(*) AS weight
+        WHERE a.id < b.id AND weight >= $minWeight
+        RETURN a.id AS source, b.id AS target, weight
+        ORDER BY weight DESC
+        LIMIT $edgeLimit
+        `,
+        {
+          ...params,
+          entityIds,
+        },
+      );
+
+      const edges = edgesResult.records.map((record) => ({
+        source: record.get('source') as string,
+        target: record.get('target') as string,
+        weight: toNumber(record.get('weight')),
+      }));
+
+      return { nodes, edges };
+    } finally {
+      await session.close();
+    }
+  }
+
+  async getEntityMemories(filters: MemoryQueryFilters & {
+    entityId: string;
+    limit?: number;
+  }) {
+    const session = this.memgraph.getSession();
+    const limit = Math.max(filters.limit || 20, 1);
+    const params: any = {
+      workspaceId: filters.workspaceId,
+      spaceId: filters.spaceId || null,
+      entityId: filters.entityId,
+      fetchLimit: neo4jInt(Math.max(limit * 4, 40)),
+    };
+
+    const whereParts = [
+      'm.workspaceId = $workspaceId',
+      filters.spaceId ? 'm.spaceId = $spaceId' : null,
+    ].filter(Boolean);
+
+    const whereClause = whereParts.length
+      ? `AND ${whereParts.join(' AND ')}`
+      : '';
+
+    try {
+      const result = await session.run(
+        `
+        MATCH (m:Memory)-[:REFERS_TO]->(e:Entity {id: $entityId})
+        WHERE m.workspaceId = $workspaceId
+        ${whereClause}
+        RETURN m
+        ORDER BY m.timestampMs DESC
+        LIMIT $fetchLimit
+        `,
+        params,
+      );
+
+      const records = result.records.map((record) => record.get('m').properties);
+      const ids = records.map((record) => record.id as string);
+      const contentMap = await this.fetchMemoryContent(ids);
+
+      return records.slice(0, limit).map((record) => {
+        const stored = contentMap.get(record.id);
+        return {
+          id: record.id,
+          workspaceId: record.workspaceId,
+          spaceId: record.spaceId,
+          source: record.source,
+          summary: record.summary,
+          tags: record.tags || [],
+          timestamp: new Date(Number(record.timestampMs)),
+          content: stored?.content,
+        };
+      });
+    } finally {
+      await session.close();
+    }
+  }
+
+  async getEntityDetails(filters: MemoryQueryFilters & {
+    entityId: string;
+    limit?: number;
+  }) {
+    const session = this.memgraph.getSession();
+    const limit = Math.max(filters.limit || 20, 1);
+    const params: any = {
+      workspaceId: filters.workspaceId,
+      spaceId: filters.spaceId || null,
+      entityId: filters.entityId,
+      fetchLimit: neo4jInt(Math.max(limit * 4, 40)),
+    };
+
+    const whereParts = [
+      'm.workspaceId = $workspaceId',
+      filters.spaceId ? 'm.spaceId = $spaceId' : null,
+    ].filter(Boolean);
+
+    const whereClause = whereParts.length
+      ? `AND ${whereParts.join(' AND ')}`
+      : '';
+
+    const toNumber = (value: any) => {
+      if (typeof value === 'number') return value;
+      if (value && typeof value.toNumber === 'function') {
+        return value.toNumber();
+      }
+      return Number(value);
+    };
+
+    try {
+      const entityResult = await session.run(
+        `
+        MATCH (m:Memory)-[:REFERS_TO]->(e:Entity {id: $entityId})
+        WHERE m.workspaceId = $workspaceId
+        ${whereClause}
+        RETURN e AS entity, count(DISTINCT m) AS memoryCount, max(m.timestampMs) AS lastSeen
+        `,
+        params,
+      );
+
+      const record = entityResult.records[0];
+      const entityProps = record?.get('entity')?.properties;
+      const entity = entityProps
+        ? {
+            id: entityProps.id as string,
+            name: (entityProps.name as string) || 'Entity',
+            type: (entityProps.type as string) || 'entity',
+            count: toNumber(record?.get('memoryCount') ?? 0),
+            lastSeen: record?.get('lastSeen')
+              ? new Date(toNumber(record.get('lastSeen'))).toISOString()
+              : null,
+          }
+        : null;
+
+      const memories = await this.getEntityMemories({
+        ...filters,
+        limit,
+      });
+
+      return { entity, memories };
+    } finally {
+      await session.close();
+    }
+  }
+
+  async getEntityLinks(filters: MemoryQueryFilters & {
+    taskIds?: string[];
+    goalIds?: string[];
+    limit?: number;
+  }) {
+    const buildLinks = (rows: Array<{ content: any; createdAt: any }>, key: string) => {
+      const map = new Map<string, Map<string, { entityId: string; entityName?: string; createdAt: Date }>>();
+      rows.forEach((row) => {
+        const content = row.content as Record<string, any> | null;
+        if (!content) return;
+        const targetId = content[key];
+        const entityId = content.entityId;
+        if (!targetId || !entityId) return;
+        const entryMap = map.get(targetId) || new Map();
+        const createdAt = row.createdAt ? new Date(row.createdAt) : new Date();
+        const existing = entryMap.get(entityId);
+        if (!existing || existing.createdAt < createdAt) {
+          entryMap.set(entityId, {
+            entityId,
+            entityName: content.entityName,
+            createdAt,
+          });
+        }
+        map.set(targetId, entryMap);
+      });
+
+      const limit = Math.max(filters.limit || 6, 1);
+      return Object.fromEntries(
+        Array.from(map.entries()).map(([targetId, entities]) => [
+          targetId,
+          Array.from(entities.values())
+            .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+            .slice(0, limit)
+            .map((entry) => ({
+              entityId: entry.entityId,
+              entityName: entry.entityName,
+            })),
+        ]),
+      );
+    };
+
+    const baseQuery = this.db
+      .selectFrom('agentMemories')
+      .select(['content', 'createdAt'])
+      .where('workspaceId', '=', filters.workspaceId)
+      .where('source', '=', 'entity-link');
+
+    const scopedQuery = filters.spaceId
+      ? baseQuery.where('spaceId', '=', filters.spaceId)
+      : baseQuery;
+
+    let taskLinks = {};
+    let goalLinks = {};
+
+    if (filters.taskIds?.length) {
+      const rows = await scopedQuery
+        .where(sql`content->>'taskId'`, 'in', filters.taskIds)
+        .execute();
+      taskLinks = buildLinks(rows, 'taskId');
+    }
+
+    if (filters.goalIds?.length) {
+      const rows = await scopedQuery
+        .where(sql`content->>'goalId'`, 'in', filters.goalIds)
+        .execute();
+      goalLinks = buildLinks(rows, 'goalId');
+    }
+
+    return { taskLinks, goalLinks };
+  }
+
+  async listTopEntities(filters: MemoryQueryFilters & { limit?: number }) {
+    const session = this.memgraph.getSession();
+    const limit = Math.max(filters.limit || 10, 1);
+    const params: any = {
+      workspaceId: filters.workspaceId,
+      spaceId: filters.spaceId || null,
+      tags: filters.tags || [],
+      sources: filters.sources || [],
+      fromMs: filters.from ? filters.from.getTime() : null,
+      toMs: filters.to ? filters.to.getTime() : null,
+      limit: neo4jInt(limit),
+    };
+
+    const whereParts = [
+      'm.workspaceId = $workspaceId',
+      filters.spaceId ? 'm.spaceId = $spaceId' : null,
+      filters.tags?.length ? 'ANY(tag IN $tags WHERE tag IN m.tags)' : null,
+      filters.sources?.length ? 'm.source IN $sources' : null,
+      filters.from ? 'm.timestampMs >= $fromMs' : null,
+      filters.to ? 'm.timestampMs <= $toMs' : null,
+    ].filter(Boolean);
+
+    const whereClause = whereParts.length
+      ? `WHERE ${whereParts.join(' AND ')}`
+      : '';
+
+    const toNumber = (value: any) => {
+      if (typeof value === 'number') return value;
+      if (value && typeof value.toNumber === 'function') {
+        return value.toNumber();
+      }
+      return Number(value);
+    };
+
+    try {
+      const result = await session.run(
+        `
+        MATCH (m:Memory)
+        ${whereClause}
+        MATCH (m)-[:REFERS_TO]->(e:Entity)
+        RETURN e AS entity, count(DISTINCT m) AS memoryCount
+        ORDER BY memoryCount DESC
+        LIMIT $limit
+        `,
+        params,
+      );
+
+      return result.records.map((record) => {
+        const entity = record.get('entity').properties;
+        return {
+          id: entity.id as string,
+          name: (entity.name as string) || 'Entity',
+          type: (entity.type as string) || 'entity',
+          count: toNumber(record.get('memoryCount')),
+        };
+      });
     } finally {
       await session.close();
     }

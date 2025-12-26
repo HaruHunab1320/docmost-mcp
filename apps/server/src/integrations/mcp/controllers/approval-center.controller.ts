@@ -11,6 +11,7 @@ import { AuthUser } from '../../../common/decorators/auth-user.decorator';
 import { MCPApprovalService } from '../services/mcp-approval.service';
 import { MCPService } from '../mcp.service';
 import { User } from '@docmost/db/types/entity.types';
+import { AgentMemoryService } from '../../../core/agent-memory/agent-memory.service';
 
 @UseGuards(JwtAuthGuard)
 @Controller('approvals')
@@ -18,6 +19,7 @@ export class ApprovalCenterController {
   constructor(
     private readonly approvalService: MCPApprovalService,
     private readonly mcpService: MCPService,
+    private readonly memoryService: AgentMemoryService,
   ) {}
 
   @HttpCode(HttpStatus.OK)
@@ -55,6 +57,19 @@ export class ApprovalCenterController {
     }
 
     await this.approvalService.deleteApproval(user.id, dto.approvalToken);
+
+    await this.memoryService.ingestMemory({
+      workspaceId: user.workspaceId || '',
+      spaceId: approval.params?.spaceId || null,
+      source: 'approval-event',
+      summary: `Approval applied for ${approval.method}`,
+      content: {
+        token: dto.approvalToken,
+        method: approval.method,
+        spaceId: approval.params?.spaceId,
+      },
+      tags: ['approval-applied'],
+    });
 
     return { approved: true, result: result.result };
   }

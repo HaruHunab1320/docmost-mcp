@@ -360,6 +360,18 @@ export class AgentLoopService {
           normalizedParams,
           600,
         );
+        await this.memoryService.ingestMemory({
+          workspaceId: workspace.id,
+          spaceId,
+          source: 'approval-event',
+          summary: `Approval created for ${action.method}`,
+          content: {
+            token: approval.token,
+            method: action.method,
+            spaceId,
+          },
+          tags: ['approval-created'],
+        });
         actionResults.push({
           method: action.method,
           status: `approval:${approval.token}`,

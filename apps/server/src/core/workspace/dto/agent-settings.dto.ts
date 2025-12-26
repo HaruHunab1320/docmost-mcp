@@ -1,4 +1,4 @@
-import { IsBoolean, IsOptional } from 'class-validator';
+import { IsBoolean, IsObject, IsOptional } from 'class-validator';
 
 export class AgentSettingsDto {
   @IsOptional()
@@ -56,4 +56,39 @@ export class AgentSettingsDto {
   @IsOptional()
   @IsBoolean()
   allowGoalWrites?: boolean;
+
+  @IsOptional()
+  @IsObject()
+  autonomySchedule?: {
+    dailyEnabled?: boolean;
+    dailyHour?: number;
+    weeklyEnabled?: boolean;
+    weeklyDay?: number;
+    monthlyEnabled?: boolean;
+    monthlyDay?: number;
+    timezone?: string;
+    lastDailyRun?: string;
+    lastWeeklyRun?: string;
+    lastMonthlyRun?: string;
+  };
+
+  @IsOptional()
+  @IsObject()
+  spaceOverrides?: Record<
+    string,
+    {
+      autonomySchedule?: {
+        dailyEnabled?: boolean;
+        dailyHour?: number;
+        weeklyEnabled?: boolean;
+        weeklyDay?: number;
+        monthlyEnabled?: boolean;
+        monthlyDay?: number;
+        timezone?: string;
+        lastDailyRun?: string;
+        lastWeeklyRun?: string;
+        lastMonthlyRun?: string;
+      };
+    }
+  >;
 }
