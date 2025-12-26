@@ -51,6 +51,7 @@ import { SearchModule } from '../../core/search/search.module';
 import { StorageModule } from '../../integrations/storage/storage.module';
 import { AIModule } from '../../integrations/ai/ai.module';
 import { AgentMemoryModule } from '../../core/agent-memory/agent-memory.module';
+import { AgentPolicyService } from '../../core/agent/agent-policy.service';
 
 /**
  * Machine Control Protocol (MCP) Module
@@ -107,6 +108,7 @@ import { AgentMemoryModule } from '../../core/agent-memory/agent-memory.module';
     MCPSchemaService,
     MCPContextService,
     MCPApprovalService,
+    AgentPolicyService,
     // Register WebSocket components
     {
       provide: MCPWebSocketGateway,

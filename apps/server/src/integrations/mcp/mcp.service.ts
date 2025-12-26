@@ -24,9 +24,13 @@ import {
   createInvalidRequestError,
   createMethodNotFoundError,
   createParseError,
+  createPermissionDeniedError,
   createApprovalRequiredError,
 } from './utils/error.utils';
 import { MCPApprovalService } from './services/mcp-approval.service';
+import { AgentPolicyService } from '../../core/agent/agent-policy.service';
+import { WorkspaceRepo } from '@docmost/db/repos/workspace/workspace.repo';
+import { resolveAgentSettings } from '../../core/agent/agent-settings';
 
 /**
  * Machine Control Protocol (MCP) Service
@@ -54,6 +58,8 @@ export class MCPService {
     private readonly taskHandler: TaskHandler,
     private readonly approvalHandler: ApprovalHandler,
     private readonly approvalService: MCPApprovalService,
+    private readonly policyService: AgentPolicyService,
+    private readonly workspaceRepo: WorkspaceRepo,
     private readonly searchHandler: SearchHandler,
     private readonly importHandler: ImportHandler,
     private readonly exportHandler: ExportHandler,
@@ -90,6 +96,28 @@ export class MCPService {
 
       if (resource !== 'approval') {
         const approvalToken = request.params?.approvalToken as string | undefined;
+        const needsPolicyCheck = this.policyService.isSupportedMethod(
+          request.method,
+        );
+        const settings =
+          needsPolicyCheck && user.workspaceId
+            ? resolveAgentSettings(
+                (await this.workspaceRepo.findById(user.workspaceId))?.settings,
+              )
+            : null;
+        const policyDecision = settings
+          ? this.policyService.evaluate(request.method, settings)
+          : null;
+        const policyRequiresApproval = policyDecision?.decision === 'approval';
+        const policyDenied = policyDecision?.decision === 'deny';
+
+        if (policyDenied) {
+          throw createPermissionDeniedError({
+            message: 'Denied by agent policy',
+            method: request.method,
+            reason: policyDecision?.reason,
+          });
+        }
 
         if (approvalToken) {
           const approved = await this.approvalService.consumeApproval(
@@ -105,7 +133,10 @@ export class MCPService {
               method: request.method,
             });
           }
-        } else if (this.approvalService.requiresApproval(request.method)) {
+        } else if (
+          policyRequiresApproval ||
+          this.approvalService.requiresApproval(request.method)
+        ) {
           const approval = await this.approvalService.createApproval(
             user.id,
             request.method,
@@ -116,6 +147,7 @@ export class MCPService {
             approvalToken: approval.token,
             expiresAt: approval.expiresAt,
             method: request.method,
+            reason: policyDecision?.reason,
           });
         }
       }

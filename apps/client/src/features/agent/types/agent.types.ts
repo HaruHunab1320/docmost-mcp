@@ -1,4 +1,9 @@
 export interface AgentSettings {
+  policy?: {
+    allowAutoApply?: string[];
+    requireApproval?: string[];
+    deny?: string[];
+  };
   enabled: boolean;
   enableDailySummary: boolean;
   enableAutoTriage: boolean;

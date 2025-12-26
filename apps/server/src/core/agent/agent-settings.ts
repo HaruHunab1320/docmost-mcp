@@ -1,4 +1,9 @@
 export interface AgentSettings {
+  policy?: {
+    allowAutoApply?: string[];
+    requireApproval?: string[];
+    deny?: string[];
+  };
   enabled: boolean;
   enableDailySummary: boolean;
   enableAutoTriage: boolean;
@@ -34,6 +39,11 @@ export interface AgentSettings {
 }
 
 export const defaultAgentSettings: AgentSettings = {
+  policy: {
+    allowAutoApply: [],
+    requireApproval: [],
+    deny: [],
+  },
   enabled: true,
   enableDailySummary: true,
   enableAutoTriage: true,
@@ -68,6 +78,10 @@ export const resolveAgentSettings = (
 ): AgentSettings => ({
   ...defaultAgentSettings,
   ...(settings?.agent || {}),
+  policy: {
+    ...defaultAgentSettings.policy,
+    ...(settings?.agent?.policy || {}),
+  },
   autonomySchedule: {
     ...defaultAgentSettings.autonomySchedule,
     ...(settings?.agent?.autonomySchedule || {}),

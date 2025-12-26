@@ -66,7 +66,10 @@ export class AgentPlannerService {
     }
 
     const triage = settings.enableAutoTriage
-      ? await this.taskService.getDailyTriageSummary(space.id, { limit: 5 })
+      ? await this.taskService.getDailyTriageSummary(space.id, {
+          limit: 5,
+          workspaceId: space.workspaceId,
+        })
       : {
           inbox: [],
           waiting: [],
@@ -90,6 +93,12 @@ export class AgentPlannerService {
       .filter(Boolean)
       .join('; ');
 
+    const goalFocusSummary = Array.isArray((triage as any).goalFocus)
+      ? (triage as any).goalFocus
+          .map((goal: any) => `${goal.name}(${goal.taskCount})`)
+          .join(', ')
+      : '';
+
     const planPrompt = [
       `You are Raven Docs' planning agent.`,
       `Space: ${space.name}`,
@@ -97,10 +106,13 @@ export class AgentPlannerService {
       `Triage counts: inbox=${triage.counts.inbox}, waiting=${triage.counts.waiting}, someday=${triage.counts.someday}.`,
       `Overdue: ${triage.overdue.map((task) => task.title).join(', ') || 'none'}.`,
       `Due today: ${triage.dueToday.map((task) => task.title).join(', ') || 'none'}.`,
+      goalFocusSummary ? `Goal focus: ${goalFocusSummary}.` : null,
       `Goals: ${goalSummary || 'none'}.`,
       `Recent context: ${memorySummary || 'none'}.`,
       `Return markdown with sections: Focus, Plan, Next Actions, Timebox, Risks.`,
-    ].join('\n');
+    ]
+      .filter(Boolean)
+      .join('\n');
 
     let planText = 'Plan unavailable.';
     try {
@@ -132,10 +144,13 @@ export class AgentPlannerService {
         `Suggest 3-5 concise questions to clarify priorities or unblock work.`,
         `Use this context:`,
         `Triage counts: inbox=${triage.counts.inbox}, waiting=${triage.counts.waiting}, someday=${triage.counts.someday}.`,
+        goalFocusSummary ? `Goal focus: ${goalFocusSummary}.` : null,
         `Goals: ${goalSummary || 'none'}.`,
         `Recent context: ${memorySummary || 'none'}.`,
         `Return the questions as a bullet list.`,
-      ].join('\n');
+      ]
+        .filter(Boolean)
+        .join('\n');
 
       let questionText = '';
       try {

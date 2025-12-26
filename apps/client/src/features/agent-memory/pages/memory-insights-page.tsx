@@ -545,6 +545,9 @@ export function MemoryInsightsPage() {
     let approvals = 0;
     let applied = 0;
     let failed = 0;
+    let denied = 0;
+    let skipped = 0;
+    let retries = 0;
 
     entries.forEach((entry) => {
       const dateKey = entry.timestamp
@@ -560,6 +563,16 @@ export function MemoryInsightsPage() {
       ).length;
       applied += actions.filter((action: any) => action.status === "applied").length;
       failed += actions.filter((action: any) => action.status === "failed").length;
+      denied += actions.filter((action: any) =>
+        String(action.status || "").startsWith("denied:"),
+      ).length;
+      skipped += actions.filter((action: any) =>
+        String(action.status || "").startsWith("skipped:"),
+      ).length;
+      retries += actions.reduce((total: number, action: any) => {
+        const attempts = Number(action.attempts || 1);
+        return total + Math.max(attempts - 1, 0);
+      }, 0);
     });
 
     const trend = Object.entries(daily)
@@ -573,6 +586,9 @@ export function MemoryInsightsPage() {
       approvals,
       applied,
       failed,
+      denied,
+      skipped,
+      retries,
     };
   }, [autonomyStatsQuery.data]);
 
@@ -1414,6 +1430,30 @@ export function MemoryInsightsPage() {
                 </Stack>
                 <Stack gap={2}>
                   <Text size="xs" c="dimmed">
+                    Denied
+                  </Text>
+                  <Text size="sm" fw={600}>
+                    {autonomyStats.denied}
+                  </Text>
+                </Stack>
+                <Stack gap={2}>
+                  <Text size="xs" c="dimmed">
+                    Skipped
+                  </Text>
+                  <Text size="sm" fw={600}>
+                    {autonomyStats.skipped}
+                  </Text>
+                </Stack>
+                <Stack gap={2}>
+                  <Text size="xs" c="dimmed">
+                    Retries
+                  </Text>
+                  <Text size="sm" fw={600}>
+                    {autonomyStats.retries}
+                  </Text>
+                </Stack>
+                <Stack gap={2}>
+                  <Text size="xs" c="dimmed">
                     Avg approval (min)
                   </Text>
                   <Text size="sm" fw={600}>
@@ -1501,6 +1541,16 @@ export function MemoryInsightsPage() {
                 ).length;
                 const applied = actions.filter((action: any) => action.status === "applied").length;
                 const failed = actions.filter((action: any) => action.status === "failed").length;
+                const denied = actions.filter((action: any) =>
+                  String(action.status || "").startsWith("denied:"),
+                ).length;
+                const skipped = actions.filter((action: any) =>
+                  String(action.status || "").startsWith("skipped:"),
+                ).length;
+                const retries = actions.reduce((total: number, action: any) => {
+                  const attempts = Number(action.attempts || 1);
+                  return total + Math.max(attempts - 1, 0);
+                }, 0);
                 return (
                   <Card key={entry.id} withBorder radius="sm" p="sm">
                     <Stack gap={4}>
@@ -1518,7 +1568,10 @@ export function MemoryInsightsPage() {
                         Actions: {actions.length}
                       </Text>
                       <Text size="xs" c="dimmed">
-                        Approvals: {approvals} · Applied: {applied} · Failed: {failed}
+                        Approvals: {approvals} · Applied: {applied} · Failed: {failed} · Denied: {denied} · Skipped: {skipped}
+                      </Text>
+                      <Text size="xs" c="dimmed">
+                        Retries: {retries}
                       </Text>
                     </Stack>
                   </Card>

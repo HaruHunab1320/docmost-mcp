@@ -35,6 +35,11 @@ export function AgentSettingsPanel() {
   const workspace = currentUser?.workspace;
   const { isAdmin } = useUserRole();
   const [handoffKey, setHandoffKey] = useState("");
+  const [policyDraft, setPolicyDraft] = useState({
+    allowAutoApply: "",
+    requireApproval: "",
+    deny: "",
+  });
   const [defaultTimezone] = useState(
     Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC"
   );
@@ -97,6 +102,11 @@ export function AgentSettingsPanel() {
   const currentSettings = useMemo(
     () => {
       const defaults: AgentSettings = {
+        policy: {
+          allowAutoApply: [],
+          requireApproval: [],
+          deny: [],
+        },
         enabled: true,
         enableDailySummary: true,
         enableAutoTriage: true,
@@ -130,6 +140,10 @@ export function AgentSettingsPanel() {
       return {
         ...defaults,
         ...settingsQuery.data,
+        policy: {
+          ...defaults.policy,
+          ...settingsQuery.data.policy,
+        },
         autonomySchedule: {
           ...defaults.autonomySchedule,
           ...settingsQuery.data.autonomySchedule,
@@ -155,6 +169,14 @@ export function AgentSettingsPanel() {
     }
   }, [settingsQuery.data, currentUser, setCurrentUser]);
 
+  useEffect(() => {
+    setPolicyDraft({
+      allowAutoApply: (currentSettings.policy?.allowAutoApply || []).join(", "),
+      requireApproval: (currentSettings.policy?.requireApproval || []).join(", "),
+      deny: (currentSettings.policy?.deny || []).join(", "),
+    });
+  }, [currentSettings.policy]);
+
   const handleToggle = (key: keyof AgentSettings) => (event: React.ChangeEvent<HTMLInputElement>) => {
     mutation.mutate({ [key]: event.currentTarget.checked });
   };
@@ -164,6 +186,21 @@ export function AgentSettingsPanel() {
       autonomySchedule: {
         ...currentSettings.autonomySchedule,
         ...updates,
+      },
+    });
+  };
+
+  const updatePolicy = () => {
+    const parseList = (value: string) =>
+      value
+        .split(",")
+        .map((entry) => entry.trim())
+        .filter(Boolean);
+    mutation.mutate({
+      policy: {
+        allowAutoApply: parseList(policyDraft.allowAutoApply),
+        requireApproval: parseList(policyDraft.requireApproval),
+        deny: parseList(policyDraft.deny),
       },
     });
   };
@@ -347,6 +384,61 @@ export function AgentSettingsPanel() {
             onChange={handleToggle("allowGoalWrites")}
             disabled={!isAdmin}
           />
+        </Stack>
+        <Divider />
+        <Stack gap="xs">
+          <Text size="sm" fw={600}>
+            Agent policy rules
+          </Text>
+          <Text size="xs" c="dimmed">
+            Comma-separated MCP methods (ex: task.create, page.create).
+          </Text>
+          <TextInput
+            label="Auto-apply allowlist"
+            placeholder="task.update, page.create"
+            value={policyDraft.allowAutoApply}
+            onChange={(event) =>
+              setPolicyDraft((prev) => ({
+                ...prev,
+                allowAutoApply: event.currentTarget.value,
+              }))
+            }
+            disabled={!isAdmin}
+          />
+          <TextInput
+            label="Require approval"
+            placeholder="project.create, task.create"
+            value={policyDraft.requireApproval}
+            onChange={(event) =>
+              setPolicyDraft((prev) => ({
+                ...prev,
+                requireApproval: event.currentTarget.value,
+              }))
+            }
+            disabled={!isAdmin}
+          />
+          <TextInput
+            label="Deny list"
+            placeholder="workspace.delete"
+            value={policyDraft.deny}
+            onChange={(event) =>
+              setPolicyDraft((prev) => ({
+                ...prev,
+                deny: event.currentTarget.value,
+              }))
+            }
+            disabled={!isAdmin}
+          />
+          <Group justify="flex-end">
+            <Button
+              size="xs"
+              variant="light"
+              onClick={updatePolicy}
+              disabled={!isAdmin}
+            >
+              Save policy rules
+            </Button>
+          </Group>
         </Stack>
         <Divider />
         <Stack gap="xs">

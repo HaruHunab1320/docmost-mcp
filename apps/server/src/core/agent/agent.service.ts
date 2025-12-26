@@ -55,7 +55,10 @@ export class AgentService {
     }
 
     const triage = agentSettings.enableAutoTriage
-      ? await this.taskService.getDailyTriageSummary(dto.spaceId, { limit: 5 })
+      ? await this.taskService.getDailyTriageSummary(dto.spaceId, {
+          limit: 5,
+          workspaceId: workspace.id,
+        })
       : {
           inbox: [],
           waiting: [],
@@ -80,6 +83,12 @@ export class AgentService {
       .map((memory) => `- ${memory.summary}`)
       .join('\n');
 
+    const goalFocusSummary = Array.isArray((triage as any).goalFocus)
+      ? (triage as any).goalFocus
+          .map((goal: any) => `${goal.name}(${goal.taskCount})`)
+          .join(', ')
+      : '';
+
     const prompt = [
       `You are Raven Docs' agent. Provide clear, concise guidance.`,
       `Space: ${space.name}`,
@@ -89,6 +98,7 @@ export class AgentService {
       `Triage: inbox=${triage.counts.inbox}, waiting=${triage.counts.waiting}, someday=${triage.counts.someday}.`,
       `Overdue: ${triage.overdue.map((task) => task.title).join(', ') || 'none'}.`,
       `Due today: ${triage.dueToday.map((task) => task.title).join(', ') || 'none'}.`,
+      goalFocusSummary ? `Goal focus: ${goalFocusSummary}.` : null,
       `User message: ${dto.message}`,
       `Respond with next steps, optional questions, and suggest time blocks if relevant.`,
     ]

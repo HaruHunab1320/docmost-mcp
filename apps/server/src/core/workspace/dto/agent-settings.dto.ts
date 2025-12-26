@@ -59,6 +59,14 @@ export class AgentSettingsDto {
 
   @IsOptional()
   @IsObject()
+  policy?: {
+    allowAutoApply?: string[];
+    requireApproval?: string[];
+    deny?: string[];
+  };
+
+  @IsOptional()
+  @IsObject()
   autonomySchedule?: {
     dailyEnabled?: boolean;
     dailyHour?: number;

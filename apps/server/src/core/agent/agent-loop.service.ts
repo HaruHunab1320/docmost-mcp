@@ -27,6 +27,15 @@ type AgentLoopPlan = {
   actions: AgentAction[];
 };
 
+type ActionResult = {
+  method: string;
+  status: string;
+  phase: 'validated' | 'approval' | 'executed' | 'failed' | 'denied' | 'skipped';
+  attempts?: number;
+  error?: string;
+  reason?: string;
+};
+
 const formatISODate = (date: Date) => date.toISOString().slice(0, 10);
 const formatYearMonth = (date: Date) => formatISODate(date).slice(0, 7);
 
@@ -60,7 +69,30 @@ const normalizeParams = (method: string, params: Record<string, any>) => {
     delete params.content;
   }
 
+  if (method === 'task.create' && !params.title) {
+    params.title = 'New task';
+  }
+
+  if (method === 'page.create' && !params.title) {
+    params.title = 'Untitled page';
+  }
+
   return params;
+};
+
+const shouldRetry = (error: unknown) => {
+  const message =
+    typeof error === 'string'
+      ? error
+      : (error as any)?.message || (error as any)?.error?.message || '';
+  const lower = String(message).toLowerCase();
+  return (
+    lower.includes('timeout') ||
+    lower.includes('temporar') ||
+    lower.includes('rate limit') ||
+    lower.includes('econn') ||
+    lower.includes('unavailable')
+  );
 };
 
 @Injectable()
@@ -191,7 +223,10 @@ export class AgentLoopService {
     }
 
     const triage = settings.enableAutoTriage
-      ? await this.taskService.getDailyTriageSummary(spaceId, { limit: 4 })
+      ? await this.taskService.getDailyTriageSummary(spaceId, {
+          limit: 4,
+          workspaceId: workspace.id,
+        })
       : {
           inbox: [],
           waiting: [],
@@ -211,12 +246,19 @@ export class AgentLoopService {
       .filter(Boolean)
       .join('; ');
     const triageSummary = `inbox=${triage.counts.inbox}, waiting=${triage.counts.waiting}, someday=${triage.counts.someday}, overdue=${triage.overdue.length}, dueToday=${triage.dueToday.length}`;
+    const goalFocusSummary = Array.isArray((triage as any).goalFocus)
+      ? (triage as any).goalFocus
+          .map((goal: any) => `${goal.name}(${goal.taskCount})`)
+          .join(', ')
+      : '';
 
     const prompt = this.buildPrompt({
       spaceName: space.name,
       goals: sanitizedGoals,
       memorySummary,
-      triageSummary,
+      triageSummary: goalFocusSummary
+        ? `${triageSummary}, goalFocus=${goalFocusSummary}`
+        : triageSummary,
     });
 
     let plan: AgentLoopPlan = { summary: 'No actions proposed.', actions: [] };
@@ -248,11 +290,21 @@ export class AgentLoopService {
       }
     }
 
-    const actionResults: Array<{ method: string; status: string }> = [];
+    const actionResults: ActionResult[] = [];
+    const validationNotes: string[] = [];
     const actions = Array.isArray(plan.actions) ? plan.actions.slice(0, 3) : [];
 
     for (const action of actions) {
       if (!action?.method || !this.policyService.isSupportedMethod(action.method)) {
+        actionResults.push({
+          method: action?.method || 'unknown',
+          status: 'skipped:unsupported',
+          phase: 'skipped',
+          reason: 'unsupported-method',
+        });
+        validationNotes.push(
+          `Skipped unsupported method: ${action?.method || 'unknown'}`,
+        );
         continue;
       }
 
@@ -274,7 +326,10 @@ export class AgentLoopService {
             actionResults.push({
               method: action.method,
               status: 'skipped:daily-focus-exists',
+              phase: 'skipped',
+              reason: 'daily-focus-exists',
             });
+            validationNotes.push('Skipped Daily Focus: already exists');
             continue;
           }
           normalizedParams.title = dailyTitle;
@@ -288,7 +343,10 @@ export class AgentLoopService {
             actionResults.push({
               method: action.method,
               status: 'skipped:weekly-review-exists',
+              phase: 'skipped',
+              reason: 'weekly-review-exists',
             });
+            validationNotes.push('Skipped Weekly Review: already exists');
             continue;
           }
           normalizedParams.title = uniqueTitle;
@@ -302,7 +360,10 @@ export class AgentLoopService {
             actionResults.push({
               method: action.method,
               status: 'skipped:monthly-review-exists',
+              phase: 'skipped',
+              reason: 'monthly-review-exists',
             });
+            validationNotes.push('Skipped Monthly Review: already exists');
             continue;
           }
           normalizedParams.title = uniqueTitle;
@@ -322,38 +383,101 @@ export class AgentLoopService {
             actionResults.push({
               method: action.method,
               status: 'skipped:project-recap-exists',
+              phase: 'skipped',
+              reason: 'project-recap-exists',
             });
+            validationNotes.push('Skipped Project Recap: already exists');
             continue;
           }
           normalizedParams.title = uniqueTitle;
         }
       }
 
-      const shouldAutoApply = this.policyService.canAutoApply(
+      const policyDecision = this.policyService.evaluate(
         action.method,
         settings,
       );
 
-      if (shouldAutoApply) {
-        const result = await this.mcpService.processRequest(
-          {
-            jsonrpc: '2.0',
-            method: action.method,
-            params: normalizedParams,
-            id: Date.now(),
-          },
-          user,
+      if (policyDecision.decision === 'deny') {
+        actionResults.push({
+          method: action.method,
+          status: `denied:${policyDecision.reason}`,
+          phase: 'denied',
+          reason: policyDecision.reason,
+        });
+        validationNotes.push(
+          `Denied ${action.method}: ${policyDecision.reason}`,
         );
+        continue;
+      }
 
-        if (result.error) {
-          actionResults.push({ method: action.method, status: 'failed' });
-        } else {
-          actionResults.push({ method: action.method, status: 'applied' });
+      if (policyDecision.decision === 'auto') {
+        const maxAttempts = 2;
+        let attempt = 0;
+        let lastError: any = null;
+        let success = false;
+        while (attempt < maxAttempts && !success) {
+          attempt += 1;
+          try {
+            const result = await this.mcpService.processRequest(
+              {
+                jsonrpc: '2.0',
+                method: action.method,
+                params: normalizedParams,
+                id: Date.now(),
+              },
+              user,
+            );
+
+            if (!result.error) {
+              success = true;
+              actionResults.push({
+                method: action.method,
+                status: 'applied',
+                phase: 'executed',
+                attempts: attempt,
+              });
+              break;
+            }
+
+            lastError = result.error;
+            if (!shouldRetry(result.error) || attempt >= maxAttempts) {
+              actionResults.push({
+                method: action.method,
+                status: 'failed',
+                phase: 'failed',
+                attempts: attempt,
+                error: result.error?.message || 'Unknown error',
+              });
+              break;
+            }
+          } catch (error: any) {
+            lastError = error;
+            if (!shouldRetry(error) || attempt >= maxAttempts) {
+              actionResults.push({
+                method: action.method,
+                status: 'failed',
+                phase: 'failed',
+                attempts: attempt,
+                error: error?.message || 'Unknown error',
+              });
+              break;
+            }
+          }
+        }
+        if (!success && !lastError) {
+          actionResults.push({
+            method: action.method,
+            status: 'failed',
+            phase: 'failed',
+            attempts: maxAttempts,
+            error: 'Unknown error',
+          });
         }
         continue;
       }
 
-      if (this.policyService.requiresApproval(action.method, settings)) {
+      if (policyDecision.decision === 'approval') {
         const approval = await this.approvalService.createApproval(
           user.id,
           action.method,
@@ -375,7 +499,12 @@ export class AgentLoopService {
         actionResults.push({
           method: action.method,
           status: `approval:${approval.token}`,
+          phase: 'approval',
+          reason: policyDecision.reason,
         });
+        validationNotes.push(
+          `Approval required for ${action.method}: ${policyDecision.reason}`,
+        );
       }
     }
 
@@ -384,7 +513,16 @@ export class AgentLoopService {
       spaceId,
       source: 'agent-loop',
       summary: plan.summary || 'Agent loop executed',
-      content: { plan, actions: actionResults, rawResponse },
+      content: {
+        plan,
+        actions: actionResults,
+        rawResponse,
+        validationNotes,
+        phases: {
+          planning: { model: this.getAgentModel() },
+          execution: { total: actionResults.length },
+        },
+      },
       tags: ['agent', 'loop'],
     });
 

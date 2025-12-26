@@ -104,6 +104,14 @@ export interface TaskTriageSummary {
   inbox: Task[];
   dueToday: Task[];
   overdue: Task[];
+  goalFocus?: Array<{
+    goalId: string;
+    name: string;
+    horizon?: string;
+    taskCount: number;
+    taskIds: string[];
+    taskTitles: string[];
+  }>;
   counts: {
     inbox: number;
     waiting: number;

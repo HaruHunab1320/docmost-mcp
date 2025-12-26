@@ -243,6 +243,7 @@ export class TaskController {
 
     return this.taskService.getDailyTriageSummary(dto.spaceId, {
       limit: dto.limit,
+      workspaceId: user.workspaceId,
     });
   }
 

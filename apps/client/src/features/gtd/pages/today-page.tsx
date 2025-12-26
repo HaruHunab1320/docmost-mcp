@@ -210,6 +210,46 @@ export function TodayPage() {
               )}
             </Stack>
           </Group>
+          <Card withBorder radius="md" p="sm">
+            <Group justify="space-between" mb="xs">
+              <Title order={4}>{t("Suggested focus")}</Title>
+              <Button
+                size="xs"
+                variant="subtle"
+                component={Link}
+                to={APP_ROUTE.SPACE.TRIAGE(spaceId)}
+              >
+                {t("Open triage")}
+              </Button>
+            </Group>
+            {triageSummaryQuery.data.goalFocus?.length ? (
+              <Stack gap="sm">
+                {triageSummaryQuery.data.goalFocus.map((goal) => (
+                  <Stack key={goal.goalId} gap={4}>
+                    <Text size="sm" fw={600}>
+                      {goal.name} ({goal.taskCount})
+                    </Text>
+                    <Stack gap={2}>
+                      {goal.taskTitles.slice(0, 4).map((title, index) => (
+                        <Text key={`${goal.goalId}-${index}`} size="xs" c="dimmed">
+                          {title}
+                        </Text>
+                      ))}
+                      {goal.taskTitles.length > 4 ? (
+                        <Text size="xs" c="dimmed">
+                          {t("More tasks")} (+{goal.taskTitles.length - 4})
+                        </Text>
+                      ) : null}
+                    </Stack>
+                  </Stack>
+                ))}
+              </Stack>
+            ) : (
+              <Text size="sm" c="dimmed">
+                {t("No goal matches yet")}
+              </Text>
+            )}
+          </Card>
         </Stack>
       ) : null}
 

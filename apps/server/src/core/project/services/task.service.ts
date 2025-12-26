@@ -159,9 +159,72 @@ export class TaskService {
     spaceId: string,
     options?: {
       limit?: number;
+      workspaceId?: string;
     },
   ) {
-    return this.taskRepo.getDailyTriageSummary(spaceId, options);
+    const triage = await this.taskRepo.getDailyTriageSummary(spaceId, options);
+    if (!options?.workspaceId) {
+      return triage;
+    }
+
+    let workspaceId = options.workspaceId;
+    const workspace = await this.workspaceRepo.findById(workspaceId);
+    const agentSettings = resolveAgentSettings(workspace?.settings);
+    if (!agentSettings.enableAutoTriage) {
+      return triage;
+    }
+
+    const tasks = [...triage.inbox, ...triage.dueToday, ...triage.overdue];
+    if (!tasks.length) {
+      return { ...triage, goalFocus: [] };
+    }
+
+    const goalFocus = new Map<
+      string,
+      { goalId: string; name: string; horizon?: string; tasks: Task[] }
+    >();
+
+    const goals = await this.goalService.listGoals(workspaceId, spaceId);
+
+    const matchGoals = (text: string) => {
+      const lowered = text.toLowerCase();
+      return goals.filter((goal) => {
+        const keywords = Array.isArray(goal.keywords) ? goal.keywords : [];
+        return keywords.some((keyword) =>
+          lowered.includes(String(keyword).toLowerCase()),
+        );
+      });
+    };
+
+    for (const task of tasks.slice(0, 20)) {
+      const text = [task.title, task.description].filter(Boolean).join(' ');
+      if (!text) continue;
+      const matches = matchGoals(text);
+      matches.forEach((goal) => {
+        const entry = goalFocus.get(goal.id) || {
+          goalId: goal.id,
+          name: goal.name,
+          horizon: goal.horizon,
+          tasks: [],
+        };
+        entry.tasks.push(task);
+        goalFocus.set(goal.id, entry);
+      });
+    }
+
+    const goalSummary = Array.from(goalFocus.values())
+      .map((entry) => ({
+        goalId: entry.goalId,
+        name: entry.name,
+        horizon: entry.horizon,
+        taskCount: entry.tasks.length,
+        taskIds: entry.tasks.map((task) => task.id),
+        taskTitles: entry.tasks.map((task) => task.title),
+      }))
+      .sort((a, b) => b.taskCount - a.taskCount)
+      .slice(0, 5);
+
+    return { ...triage, goalFocus: goalSummary };
   }
 
   async create(
