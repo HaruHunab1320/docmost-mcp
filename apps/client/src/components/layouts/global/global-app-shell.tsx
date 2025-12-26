@@ -15,6 +15,7 @@ import { AppHeader } from "@/components/layouts/global/app-header.tsx";
 import Aside from "@/components/layouts/global/aside.tsx";
 import classes from "./app-shell.module.css";
 import { useTrialEndAction } from "@/ee/hooks/use-trial-end-action.tsx";
+import { AgentChatDrawer } from "@/features/agent/components/agent-chat-drawer";
 
 export default function GlobalAppShell({
   children,
@@ -142,6 +143,7 @@ export default function GlobalAppShell({
           <Aside />
         </AppShell.Aside>
       )}
+      <AgentChatDrawer />
     </AppShell>
   );
 }

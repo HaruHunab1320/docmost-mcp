@@ -32,6 +32,8 @@ import { AttachmentType } from 'src/core/attachment/attachment.constants';
 import { InjectQueue } from '@nestjs/bullmq';
 import { QueueJob, QueueName } from '../../../integrations/queue/constants';
 import { Queue } from 'bullmq';
+import { AgentSettingsDto } from '../dto/agent-settings.dto';
+import { resolveAgentSettings } from '../../agent/agent-settings';
 
 @Injectable()
 export class WorkspaceService {
@@ -62,6 +64,14 @@ export class WorkspaceService {
     }
 
     return workspace;
+  }
+
+  async getAgentSettings(workspaceId: string) {
+    const workspace = await this.workspaceRepo.findById(workspaceId);
+    if (!workspace) {
+      throw new NotFoundException('Workspace not found');
+    }
+    return resolveAgentSettings(workspace.settings);
   }
 
   async getWorkspacePublicData(workspaceId: string) {
@@ -314,6 +324,17 @@ export class WorkspaceService {
       ...rest,
       hasLicenseKey: Boolean(licenseKey),
     };
+  }
+
+  async updateAgentSettings(
+    workspaceId: string,
+    agentSettingsDto: AgentSettingsDto,
+  ) {
+    const updated = await this.workspaceRepo.updateAgentSettings(
+      workspaceId,
+      agentSettingsDto,
+    );
+    return resolveAgentSettings(updated.settings);
   }
 
   async getWorkspaceUsers(

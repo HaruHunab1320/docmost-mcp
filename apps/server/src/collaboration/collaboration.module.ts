@@ -10,6 +10,8 @@ import { TokenModule } from '../core/auth/token.module';
 import { HistoryListener } from './listeners/history.listener';
 import { LoggerExtension } from './extensions/logger.extension';
 import { DatabaseModule } from '../database/database.module';
+import { CollabActivityListener } from './listeners/collab-activity.listener';
+import { AgentMemoryModule } from '../core/agent-memory/agent-memory.module';
 
 @Module({
   providers: [
@@ -18,9 +20,10 @@ import { DatabaseModule } from '../database/database.module';
     PersistenceExtension,
     LoggerExtension,
     HistoryListener,
+    CollabActivityListener,
   ],
   exports: [CollaborationGateway],
-  imports: [TokenModule, DatabaseModule],
+  imports: [TokenModule, DatabaseModule, AgentMemoryModule],
 })
 export class CollaborationModule implements OnModuleInit, OnModuleDestroy {
   private collabWsAdapter: CollabWsAdapter;

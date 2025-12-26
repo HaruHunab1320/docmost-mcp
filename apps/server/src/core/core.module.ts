@@ -18,6 +18,9 @@ import { DomainMiddleware } from '../common/middlewares/domain.middleware';
 import { ProjectModule } from './project/project.module';
 import { DatabaseModule } from '../database/database.module';
 import { EnvironmentModule } from '../integrations/environment/environment.module';
+import { AgentMemoryModule } from './agent-memory/agent-memory.module';
+import { AgentModule } from './agent/agent.module';
+import { GoalModule } from './goal/goal.module';
 
 const modules = [
   UserModule,
@@ -31,6 +34,9 @@ const modules = [
   GroupModule,
   CaslModule,
   ProjectModule,
+  AgentMemoryModule,
+  AgentModule,
+  GoalModule,
 ];
 
 @Module({

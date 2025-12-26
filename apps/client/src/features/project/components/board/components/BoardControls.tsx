@@ -15,6 +15,8 @@ import { useTranslation } from "react-i18next";
 import { useBoardContext } from "../board-context";
 import { useWorkspaceUsers } from "@/features/user/hooks/use-workspace-users";
 import { IconSearch } from "@tabler/icons-react";
+import { useQuery } from "@tanstack/react-query";
+import { listGoals } from "@/features/goal/services/goal-service";
 
 interface BoardControlsProps {
   isVisible: boolean;
@@ -33,6 +35,8 @@ export function BoardControls({ isVisible, labelOptions }: BoardControlsProps) {
     setAssigneeFilter,
     labelFilter,
     setLabelFilter,
+    goalFilter,
+    setGoalFilter,
     searchTerm,
     setSearchTerm,
     showCompletedTasks,
@@ -47,6 +51,20 @@ export function BoardControls({ isVisible, labelOptions }: BoardControlsProps) {
     workspaceId: project.workspaceId,
   });
   const users = usersData?.items || [];
+  const goalsQuery = useQuery({
+    queryKey: ["goals", project.workspaceId, project.spaceId],
+    queryFn: () =>
+      listGoals({
+        workspaceId: project.workspaceId,
+        spaceId: project.spaceId || undefined,
+      }),
+    enabled: !!project?.workspaceId,
+  });
+  const goalOptions =
+    goalsQuery.data?.map((goal) => ({
+      value: goal.id,
+      label: goal.name,
+    })) || [];
 
   if (!isVisible) return null;
 
@@ -158,6 +176,22 @@ export function BoardControls({ isVisible, labelOptions }: BoardControlsProps) {
             </Box>
           )}
         </Group>
+
+        {goalOptions.length > 0 && (
+          <Box>
+            <Text size="sm" fw={500} mb="xs">
+              {t("Goals")}
+            </Text>
+            <MultiSelect
+              data={goalOptions}
+              value={goalFilter}
+              onChange={setGoalFilter}
+              placeholder={t("All goals")}
+              clearable
+              searchable
+            />
+          </Box>
+        )}
 
         <Checkbox
           label={t("Show completed tasks")}

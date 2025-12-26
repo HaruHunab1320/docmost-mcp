@@ -37,6 +37,7 @@ import { TriagePage } from "@/features/gtd/pages/triage-page";
 import { ReviewPage } from "@/features/gtd/pages/review-page";
 import { WaitingPage } from "@/features/gtd/pages/waiting-page";
 import { SomedayPage } from "@/features/gtd/pages/someday-page";
+import { MemoryInsightsPage } from "@/features/agent-memory/pages/memory-insights-page";
 import ApiKeys from "@/pages/settings/workspace/api-keys.tsx";
 import { useEffect } from "react";
 
@@ -129,9 +130,9 @@ const project89CSS = `
     transition: all 0.3s ease;
   }
   
-  [data-theme^="project89"] .mantine-Card-root:hover {
+  [data-theme^="project89"] .mantine-Card-root[data-hoverable="true"]:hover {
     box-shadow: 0 6px 16px rgba(0, 0, 0, 0.7);
-    border: 1px solid rgba(60, 60, 65, 0.9);
+    border-color: rgba(60, 60, 65, 0.9);
   }
   
   /* Content areas get a subtle glow */
@@ -149,8 +150,8 @@ const project89CSS = `
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6), 0 0 12px rgba(0, 255, 65, 0.2);
   }
   
-  [data-theme="project89-matrix"] .mantine-Card-root:hover {
-    border: 1px solid rgba(0, 255, 65, 0.5);
+  [data-theme="project89-matrix"] .mantine-Card-root[data-hoverable="true"]:hover {
+    border-color: rgba(0, 255, 65, 0.5);
     box-shadow: 0 6px 16px rgba(0, 0, 0, 0.7), 0 0 16px rgba(0, 255, 65, 0.3);
   }
   
@@ -287,8 +288,8 @@ const project89CSS = `
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6), 0 0 12px rgba(30, 143, 255, 0.2);
   }
   
-  [data-theme="project89-tron"] .mantine-Card-root:hover {
-    border: 1px solid rgba(30, 143, 255, 0.5);
+  [data-theme="project89-tron"] .mantine-Card-root[data-hoverable="true"]:hover {
+    border-color: rgba(30, 143, 255, 0.5);
     box-shadow: 0 6px 16px rgba(0, 0, 0, 0.7), 0 0 16px rgba(30, 143, 255, 0.3);
   }
   
@@ -484,6 +485,10 @@ export default function App() {
           <Route path={"/spaces/:spaceId/review"} element={<ReviewPage />} />
           <Route path={"/spaces/:spaceId/waiting"} element={<WaitingPage />} />
           <Route path={"/spaces/:spaceId/someday"} element={<SomedayPage />} />
+          <Route
+            path={"/spaces/:spaceId/insights"}
+            element={<MemoryInsightsPage />}
+          />
           <Route
             path={"/spaces/:spaceId/projects/:projectId/tasks"}
             element={<TasksPage />}

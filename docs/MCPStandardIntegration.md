@@ -80,7 +80,12 @@ The integration provides access to all Raven Docs functionality through standard
 - `page_move` - Move a page
 - `page_search` - Search pages
 - `page_get_history` - Get page history
+- `page_history_info` - Get page history details
 - `page_restore` - Restore a page history version
+- `page_recent` - List recent pages
+- `page_breadcrumbs` - Get page breadcrumbs
+- `page_sidebar_pages` - List sidebar pages
+- `page_move_to_space` - Move a page to another space
 
 #### Project Management
 - `project_list` - List projects in a space
@@ -102,6 +107,7 @@ The integration provides access to all Raven Docs functionality through standard
 - `task_move_to_project` - Move a task to another project
 - `task_bucket_set` - Set a task bucket
 - `task_bucket_clear` - Clear a task bucket
+- `task_triage_summary` - Get daily triage summary
 
 #### User Management
 - `user_list` - List workspace users
@@ -166,6 +172,15 @@ The integration provides access to all Raven Docs functionality through standard
 #### Approvals
 - `approval_request` - Request approval for a sensitive operation
 - `approval_confirm` - Confirm an approval token
+
+#### AI
+- `ai_generate` - Generate content with Gemini models
+
+#### Memory
+- `memory_ingest` - Store a new memory entry
+- `memory_query` - Query memories with optional semantic search
+- `memory_daily` - List memories for a given date
+- `memory_days` - List recent days with memory counts
 
 #### Navigation
 - `ui_navigate` - Navigate to specific UI locations

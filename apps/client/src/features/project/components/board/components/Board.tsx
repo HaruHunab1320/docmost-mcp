@@ -45,7 +45,9 @@ import { IconArrowLeft } from "@tabler/icons-react";
 import { useTranslation } from "react-i18next";
 import TaskFormModal from "../../../components/task-form-modal";
 import { TaskDrawer } from "../../../components/task-drawer";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { listGoalsForTasks } from "@/features/goal/services/goal-service";
+import { Goal } from "@/features/goal/types";
 
 // CSS class name for when we need to disable scrolling
 const NO_SCROLL_CLASS = "docmost-board-no-scroll";
@@ -97,6 +99,7 @@ function BoardContent({ project, spaceId }) {
     priorityFilter,
     assigneeFilter,
     labelFilter,
+    goalFilter,
     searchTerm,
     showCompletedTasks,
     dateRangeFilter,
@@ -121,6 +124,32 @@ function BoardContent({ project, spaceId }) {
     sortBy,
     sortOrder,
   });
+  const taskIds = tasksData?.items.map((task) => task.id) || [];
+  const goalsQuery = useQuery({
+    queryKey: ["task-goals", project.id, project.workspaceId, taskIds],
+    queryFn: () =>
+      listGoalsForTasks({
+        workspaceId: project.workspaceId,
+        taskIds,
+      }),
+    enabled: taskIds.length > 0,
+  });
+  const goalMap = useMemo(() => {
+    const map: Record<string, Goal[]> = {};
+    (goalsQuery.data || []).forEach((goal) => {
+      if (!map[goal.taskId]) {
+        map[goal.taskId] = [];
+      }
+      map[goal.taskId].push(goal);
+    });
+    return map;
+  }, [goalsQuery.data]);
+  const goalFilteredTasks = useMemo(() => {
+    if (goalFilter.length === 0) return tasks;
+    return tasks.filter((task) =>
+      (goalMap[task.id] || []).some((goal) => goalFilter.includes(goal.id)),
+    );
+  }, [tasks, goalMap, goalFilter]);
 
   // Get the users for avatar display
   const { data: usersData, isLoading: isUsersLoading } = useWorkspaceUsers({
@@ -133,7 +162,7 @@ function BoardContent({ project, spaceId }) {
 
   // Group tasks by the selected grouping method
   const { groupedTasks } = useGroupedTasks({
-    tasks,
+    tasks: goalFilteredTasks,
     groupBy,
     workspaceId: project.workspaceId,
   });
@@ -191,6 +220,7 @@ function BoardContent({ project, spaceId }) {
               users={users}
               onCreateTask={handleCreateTask}
               onEditTask={handleEditTask}
+              goalMap={goalMap}
             />
           ))}
 
@@ -203,6 +233,7 @@ function BoardContent({ project, spaceId }) {
                   onClick={() => {}}
                   isDragging={true}
                   users={users}
+                  goalMap={goalMap}
                 />
               </Box>
             ) : null}
@@ -243,6 +274,7 @@ function BoardContent({ project, spaceId }) {
                 onCreateTask={handleCreateTask}
                 onEditTask={handleEditTask}
                 containerId={containerId}
+                goalMap={goalMap}
               />
             ))}
           </Stack>
@@ -256,6 +288,7 @@ function BoardContent({ project, spaceId }) {
                   onClick={() => {}}
                   isDragging={true}
                   users={users}
+                  goalMap={goalMap}
                 />
               </Box>
             ) : null}
@@ -627,28 +660,31 @@ function BoardContent({ project, spaceId }) {
       case "list":
         return (
           <BoardList
-            tasks={tasks}
+            tasks={goalFilteredTasks}
             users={users}
             onEditTask={handleEditTask}
             onCreateTask={handleCreateTaskWithoutStatus}
+            goalMap={goalMap}
           />
         );
       case "timeline":
         return (
           <BoardTimeline
-            tasks={tasks}
+            tasks={goalFilteredTasks}
             users={users}
             onEditTask={handleEditTask}
             onCreateTask={handleCreateTaskWithoutStatus}
+            goalMap={goalMap}
           />
         );
       case "columns":
         return (
           <BoardColumns
-            tasks={tasks}
+            tasks={goalFilteredTasks}
             users={users}
             onEditTask={handleEditTask}
             onCreateTask={handleCreateTaskWithoutStatus}
+            goalMap={goalMap}
           />
         );
       default:

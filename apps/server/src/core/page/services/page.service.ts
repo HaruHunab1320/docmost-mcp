@@ -21,6 +21,7 @@ import { DB } from '@docmost/db/types/db';
 import { generateSlugId } from '../../../common/helpers';
 import { dbOrTx, executeTx } from '@docmost/db/utils';
 import { AttachmentRepo } from '../../../database/repos/attachment/attachment.repo';
+import { AgentMemoryService } from '../../agent-memory/agent-memory.service';
 
 @Injectable()
 export class PageService {
@@ -28,6 +29,7 @@ export class PageService {
     private pageRepo: PageRepo,
     private attachmentRepo: AttachmentRepo,
     @InjectKysely() private readonly db: KyselyDB,
+    private readonly agentMemoryService: AgentMemoryService,
   ) {}
 
   async findById(
@@ -83,6 +85,26 @@ export class PageService {
       },
       trx,
     );
+
+    try {
+      await this.agentMemoryService.ingestMemory({
+        workspaceId,
+        spaceId: createdPage.spaceId,
+        creatorId: userId,
+        source: 'page.created',
+        summary: `Page created: ${createdPage.title}`,
+        tags: ['page', 'created'],
+        content: {
+          action: 'created',
+          pageId: createdPage.id,
+          title: createdPage.title,
+          parentPageId: createdPage.parentPageId || null,
+          spaceId: createdPage.spaceId,
+        },
+      });
+    } catch {
+      // Memory ingestion should not block page creation.
+    }
 
     return createdPage;
   }
@@ -152,13 +174,34 @@ export class PageService {
       page.id,
     );
 
-    return await this.pageRepo.findById(page.id, {
+    const updatedPage = await this.pageRepo.findById(page.id, {
       includeSpace: true,
       includeContent: true,
       includeCreator: true,
       includeLastUpdatedBy: true,
       includeContributors: true,
     });
+
+    try {
+      await this.agentMemoryService.ingestMemory({
+        workspaceId: updatedPage.workspaceId,
+        spaceId: updatedPage.spaceId,
+        creatorId: userId,
+        source: 'page.updated',
+        summary: `Page updated: ${updatedPage.title}`,
+        tags: ['page', 'updated'],
+        content: {
+          action: 'updated',
+          pageId: updatedPage.id,
+          title: updatedPage.title,
+          spaceId: updatedPage.spaceId,
+        },
+      });
+    } catch {
+      // Memory ingestion should not block page updates.
+    }
+
+    return updatedPage;
   }
 
   withHasChildren(eb: ExpressionBuilder<DB, 'pages'>) {

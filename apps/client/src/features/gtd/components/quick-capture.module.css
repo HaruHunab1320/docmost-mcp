@@ -9,3 +9,24 @@
     display: none;
   }
 }
+
+.select {
+  width: 180px;
+
+  @media (max-width: 900px) {
+    width: 140px;
+  }
+
+  @media (max-width: 600px) {
+    display: none;
+  }
+}
+
+.group {
+  border-radius: 999px;
+  padding: 2px;
+  background: var(--mantine-color-default);
+  border: 1px solid var(--mantine-color-default-border);
+  align-items: center;
+  gap: 8px;
+}

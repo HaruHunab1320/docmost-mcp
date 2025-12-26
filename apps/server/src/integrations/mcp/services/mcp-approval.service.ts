@@ -7,6 +7,7 @@ interface ApprovalPayload {
   method: string;
   paramsHash: string;
   expiresAt: string;
+  params: Record<string, any>;
 }
 
 @Injectable()
@@ -66,6 +67,7 @@ export class MCPApprovalService {
       method,
       paramsHash,
       expiresAt,
+      params: this.sanitizeParams(params),
     };
 
     await this.contextService.setContext(
@@ -104,6 +106,38 @@ export class MCPApprovalService {
 
     await this.contextService.deleteContext(userId, this.getContextKey(token));
     return true;
+  }
+
+  async getApproval(userId: string, token: string): Promise<ApprovalPayload | null> {
+    return (await this.contextService.getContext(
+      userId,
+      this.getContextKey(token),
+    )) as ApprovalPayload | null;
+  }
+
+  async listApprovals(userId: string): Promise<
+    Array<{ token: string; method: string; params: Record<string, any>; expiresAt: string }>
+  > {
+    const keys = await this.contextService.listContextKeys(userId);
+    const approvals = keys.filter((key) => key.startsWith('approval:'));
+    const results: Array<{ token: string; method: string; params: Record<string, any>; expiresAt: string }> = [];
+    for (const key of approvals) {
+      const token = key.replace('approval:', '');
+      const payload = await this.getApproval(userId, token);
+      if (payload) {
+        results.push({
+          token,
+          method: payload.method,
+          params: payload.params || {},
+          expiresAt: payload.expiresAt,
+        });
+      }
+    }
+    return results.sort((a, b) => (a.expiresAt < b.expiresAt ? -1 : 1));
+  }
+
+  async deleteApproval(userId: string, token: string): Promise<void> {
+    await this.contextService.deleteContext(userId, this.getContextKey(token));
   }
 
   private getContextKey(token: string): string {

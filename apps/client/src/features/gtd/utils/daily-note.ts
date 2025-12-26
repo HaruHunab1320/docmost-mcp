@@ -15,7 +15,7 @@ export function getDailyNoteTitle(date = new Date()) {
 export async function getOrCreateDailyNote(params: {
   spaceId: string;
   spaceSlug: string;
-}) {
+}): Promise<{ page: any; created: boolean }> {
   const title = getDailyNoteTitle();
   const matches = await searchPage({
     query: title,
@@ -23,11 +23,12 @@ export async function getOrCreateDailyNote(params: {
   });
   const existing = matches.find((page) => page.title?.trim() === title);
   if (existing) {
-    return existing;
+    return { page: existing, created: false };
   }
 
-  return createPage({
+  const created = await createPage({
     title,
     spaceId: params.spaceId,
   });
+  return { page: created, created: true };
 }

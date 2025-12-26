@@ -12,10 +12,11 @@
     "client:build": "nx run client:build",
     "editor-ext:build": "nx run @docmost/editor-ext:build",
     "client:dev": "nx run client:dev",
-    "server:dev": "nx run server:start:dev",
+    "server:dev": "pnpm --filter ./apps/server run start:dev:nodemon",
     "server:start": "nx run server:start:prod",
     "email:dev": "nx run server:email:dev",
-    "dev": "pnpm concurrently -n \"frontend,backend\" -c \"cyan,green\" \"pnpm run client:dev\" \"pnpm run server:dev\""
+    "dev": "pnpm concurrently -n \"frontend,backend\" -c \"cyan,green\" \"pnpm run client:dev\" \"pnpm run server:dev\"",
+    "seed:memory": "node scripts/seed-memory.js"
   },
   "dependencies": {
     "@docmost/editor-ext": "workspace:*",

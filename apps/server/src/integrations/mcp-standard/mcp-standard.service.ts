@@ -318,6 +318,17 @@ export class MCPStandardService {
         },
       },
       {
+        name: 'page_history_info',
+        description: 'Get page history details',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            historyId: { type: 'string', description: 'History version ID' },
+          },
+          required: ['historyId'],
+        },
+      },
+      {
         name: 'page_restore',
         description: 'Restore a page history version',
         inputSchema: {
@@ -326,6 +337,63 @@ export class MCPStandardService {
             historyId: { type: 'string', description: 'Page history version ID' },
           },
           required: ['historyId'],
+        },
+      },
+      {
+        name: 'page_recent',
+        description: 'List recent pages',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            spaceId: { type: 'string', description: 'Optional space ID' },
+            page: { type: 'number', description: 'Page number for pagination' },
+            limit: {
+              type: 'number',
+              description: 'Number of items per page',
+            },
+            query: { type: 'string', description: 'Search query' },
+          },
+        },
+      },
+      {
+        name: 'page_breadcrumbs',
+        description: 'Get page breadcrumbs',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            pageId: { type: 'string', description: 'ID of the page' },
+          },
+          required: ['pageId'],
+        },
+      },
+      {
+        name: 'page_sidebar_pages',
+        description: 'List sidebar pages for a space',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            spaceId: { type: 'string', description: 'ID of the space' },
+            pageId: { type: 'string', description: 'Current page ID' },
+            page: { type: 'number', description: 'Page number for pagination' },
+            limit: {
+              type: 'number',
+              description: 'Number of items per page',
+            },
+            query: { type: 'string', description: 'Search query' },
+          },
+          required: ['spaceId'],
+        },
+      },
+      {
+        name: 'page_move_to_space',
+        description: 'Move a page to another space',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            pageId: { type: 'string', description: 'ID of the page' },
+            spaceId: { type: 'string', description: 'Target space ID' },
+          },
+          required: ['pageId', 'spaceId'],
         },
       },
 
@@ -620,6 +688,18 @@ export class MCPStandardService {
             taskId: { type: 'string', description: 'ID of the task' },
           },
           required: ['taskId'],
+        },
+      },
+      {
+        name: 'task_triage_summary',
+        description: 'Get a daily triage summary for a space',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            spaceId: { type: 'string', description: 'ID of the space' },
+            limit: { type: 'number', description: 'Items per list' },
+          },
+          required: ['spaceId'],
         },
       },
 
@@ -1281,6 +1361,122 @@ export class MCPStandardService {
         },
       },
 
+      // AI
+      {
+        name: 'ai_generate',
+        description: 'Generate content with Gemini models',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            model: { type: 'string', description: 'Gemini model name' },
+            contents: {
+              type: 'array',
+              description: 'Gemini contents payload',
+            },
+            generationConfig: {
+              type: 'object',
+              description: 'Generation configuration',
+            },
+            safetySettings: {
+              type: 'array',
+              description: 'Safety settings',
+            },
+            tools: {
+              type: 'array',
+              description: 'Tools configuration',
+            },
+            toolConfig: {
+              type: 'object',
+              description: 'Tool config',
+            },
+          },
+          required: ['model', 'contents'],
+        },
+      },
+
+      // Memory
+      {
+        name: 'memory_ingest',
+        description: 'Store a new memory entry for the agent',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            workspaceId: { type: 'string', description: 'ID of the workspace' },
+            spaceId: { type: 'string', description: 'Optional space ID' },
+            source: {
+              type: 'string',
+              description: 'Source identifier for the memory',
+            },
+            content: {
+              description: 'Structured content payload for the memory',
+            },
+            summary: { type: 'string', description: 'Short summary' },
+            tags: {
+              type: 'array',
+              description: 'Tags for filtering',
+              items: { type: 'string' },
+            },
+            timestamp: {
+              type: 'string',
+              description: 'ISO-8601 timestamp for the memory',
+            },
+            entities: {
+              type: 'array',
+              description: 'Entities referenced in the memory',
+            },
+          },
+          required: ['workspaceId', 'source'],
+        },
+      },
+      {
+        name: 'memory_query',
+        description: 'Query stored memories with optional semantic search',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            workspaceId: { type: 'string', description: 'ID of the workspace' },
+            spaceId: { type: 'string', description: 'Optional space ID' },
+            query: { type: 'string', description: 'Semantic query text' },
+            tags: {
+              type: 'array',
+              description: 'Filter by tags',
+              items: { type: 'string' },
+            },
+            from: { type: 'string', description: 'ISO-8601 start date' },
+            to: { type: 'string', description: 'ISO-8601 end date' },
+            limit: { type: 'number', description: 'Max results' },
+          },
+          required: ['workspaceId'],
+        },
+      },
+      {
+        name: 'memory_daily',
+        description: 'Fetch daily memories for a specific date',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            workspaceId: { type: 'string', description: 'ID of the workspace' },
+            spaceId: { type: 'string', description: 'Optional space ID' },
+            date: { type: 'string', description: 'ISO-8601 date' },
+            limit: { type: 'number', description: 'Max results' },
+          },
+          required: ['workspaceId'],
+        },
+      },
+      {
+        name: 'memory_days',
+        description: 'List recent days with memory activity',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            workspaceId: { type: 'string', description: 'ID of the workspace' },
+            spaceId: { type: 'string', description: 'Optional space ID' },
+            days: { type: 'number', description: 'Number of days to return' },
+          },
+          required: ['workspaceId'],
+        },
+      },
+
       // Navigation
       {
         name: 'ui_navigate',
@@ -1407,7 +1603,12 @@ export class MCPStandardService {
       'page_move': 'page.move',
       'page_search': 'page.search',
       'page_get_history': 'page.getHistory',
+      'page_history_info': 'page.historyInfo',
       'page_restore': 'page.restore',
+      'page_recent': 'page.recent',
+      'page_breadcrumbs': 'page.breadcrumbs',
+      'page_sidebar_pages': 'page.sidebarPages',
+      'page_move_to_space': 'page.moveToSpace',
       'project_list': 'project.list',
       'project_get': 'project.get',
       'project_create': 'project.create',
@@ -1425,6 +1626,7 @@ export class MCPStandardService {
       'task_move_to_project': 'task.moveToProject',
       'task_bucket_set': 'task.update',
       'task_bucket_clear': 'task.update',
+      'task_triage_summary': 'task.triageSummary',
       'user_list': 'user.list',
       'user_get': 'user.get',
       'user_update': 'user.update',
@@ -1471,6 +1673,11 @@ export class MCPStandardService {
       'export_space': 'export.space',
       'approval_request': 'approval.request',
       'approval_confirm': 'approval.confirm',
+      'ai_generate': 'ai.generate',
+      'memory_ingest': 'memory.ingest',
+      'memory_query': 'memory.query',
+      'memory_daily': 'memory.daily',
+      'memory_days': 'memory.days',
       'ui_navigate': 'ui.navigate',
       'system_list_methods': 'system.listMethods',
       'system_get_method_schema': 'system.getMethodSchema',

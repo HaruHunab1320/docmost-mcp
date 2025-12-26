@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useRef } from "react";
 import { projectService } from "../services/project-service";
 import {
   CreateTaskParams,
@@ -9,6 +10,7 @@ import {
 } from "../types";
 import { notifications } from "@mantine/notifications";
 import { useTranslation } from "react-i18next";
+import { migrateLegacyBuckets } from "@/features/gtd/utils/bucket-migration";
 
 const TASKS_QUERY_KEY = "tasks";
 const PROJECT_TASKS_QUERY_KEY = "project-tasks";
@@ -23,6 +25,34 @@ export function useTasksByProject(params: TaskListParams) {
 }
 
 export function useTasksBySpace(params: TaskListBySpaceParams) {
+  const migratedSpacesRef = useRef(new Set<string>());
+  const { t } = useTranslation();
+
+  useEffect(() => {
+    if (!params.spaceId) return;
+    if (migratedSpacesRef.current.has(params.spaceId)) return;
+    const key = `docmost.taskBuckets.${params.spaceId}`;
+    if (typeof window === "undefined" || !window.localStorage.getItem(key)) {
+      return;
+    }
+    migrateLegacyBuckets(params.spaceId)
+      .then((migratedCount) => {
+        migratedSpacesRef.current.add(params.spaceId);
+        if (migratedCount) {
+          notifications.show({
+            title: t("Legacy buckets imported"),
+            message: t("Synced {{count}} tasks to the server", {
+              count: migratedCount,
+            }),
+            color: "blue",
+          });
+        }
+      })
+      .catch(() => {
+        // Allow retry on next load if migration fails.
+      });
+  }, [params.spaceId]);
+
   return useQuery({
     queryKey: [SPACE_TASKS_QUERY_KEY, params],
     queryFn: () => projectService.listTasksBySpace(params),

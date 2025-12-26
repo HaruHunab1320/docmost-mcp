@@ -21,12 +21,14 @@ import { useTranslation } from "react-i18next";
 import { formatDate } from "@/lib/utils/format-utils";
 import dayjs from "dayjs";
 import { IconPlus, IconCalendar } from "@tabler/icons-react";
+import { Goal } from "@/features/goal/types";
 
 interface BoardTimelineProps {
   tasks: Task[];
   users: IUser[];
   onEditTask: (task: Task) => void;
   onCreateTask?: (status?: string) => void;
+  goalMap?: Record<string, Goal[]>;
 }
 
 interface TimelineGroup {
@@ -40,6 +42,7 @@ export function BoardTimeline({
   users,
   onEditTask,
   onCreateTask,
+  goalMap,
 }: BoardTimelineProps) {
   const { t } = useTranslation();
   const [timelineGroups, setTimelineGroups] = useState<TimelineGroup[]>([]);
@@ -76,6 +79,19 @@ export function BoardTimeline({
         return "orange";
       case "low":
         return "blue";
+      default:
+        return "gray";
+    }
+  };
+
+  const getGoalColor = (horizon: string) => {
+    switch (horizon) {
+      case "short":
+        return "teal";
+      case "mid":
+        return "blue";
+      case "long":
+        return "grape";
       default:
         return "gray";
     }
@@ -194,6 +210,26 @@ export function BoardTimeline({
       <Text fw={500} lineClamp={2} mb="xs">
         {task.title}
       </Text>
+
+      {goalMap?.[task.id]?.length ? (
+        <Group gap={6} mb="xs">
+          {goalMap[task.id].slice(0, 3).map((goal) => (
+            <Badge
+              key={goal.id}
+              size="xs"
+              variant="light"
+              color={getGoalColor(goal.horizon)}
+            >
+              {goal.name}
+            </Badge>
+          ))}
+          {goalMap[task.id].length > 3 && (
+            <Badge size="xs" variant="light" color="gray">
+              {t("+{{count}}", { count: goalMap[task.id].length - 3 })}
+            </Badge>
+          )}
+        </Group>
+      ) : null}
 
       {task.description && (
         <Text size="sm" lineClamp={2} c="dimmed" mb="xs">

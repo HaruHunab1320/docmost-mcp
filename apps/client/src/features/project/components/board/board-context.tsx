@@ -25,6 +25,8 @@ interface BoardContextValue {
   setAssigneeFilter: (assignees: string[]) => void;
   labelFilter: string[];
   setLabelFilter: (labels: string[]) => void;
+  goalFilter: string[];
+  setGoalFilter: (goals: string[]) => void;
   searchTerm: string;
   setSearchTerm: (term: string) => void;
   showCompletedTasks: boolean;
@@ -90,6 +92,7 @@ export function BoardProvider({
   const [priorityFilter, setPriorityFilter] = useState<TaskPriority[]>([]);
   const [assigneeFilter, setAssigneeFilter] = useState<string[]>([]);
   const [labelFilter, setLabelFilter] = useState<string[]>([]);
+  const [goalFilter, setGoalFilter] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [showCompletedTasks, setShowCompletedTasks] = useState(true);
   const [dateRangeFilter, setDateRangeFilter] = useState<
@@ -129,6 +132,8 @@ export function BoardProvider({
     setAssigneeFilter,
     labelFilter,
     setLabelFilter,
+    goalFilter,
+    setGoalFilter,
     searchTerm,
     setSearchTerm,
     showCompletedTasks,

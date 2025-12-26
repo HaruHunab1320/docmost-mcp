@@ -7,6 +7,9 @@ import { TaskRepo } from '../../../database/repos/task/task.repo';
 import { ProjectRepo } from '../../../database/repos/project/project.repo';
 import { SpaceRepo } from '../../../database/repos/space/space.repo';
 import { PageRepo } from '../../../database/repos/page/page.repo';
+import { WorkspaceRepo } from '@docmost/db/repos/workspace/workspace.repo';
+import { GoalService } from '../../goal/goal.service';
+import { resolveAgentSettings } from '../../agent/agent-settings';
 import {
   InsertableTask,
   Task,
@@ -15,6 +18,7 @@ import {
 import { PaginationOptions } from '../../../lib/pagination/pagination-options';
 import { Paginated } from '../../../lib/pagination/paginated';
 import { TaskBucket, TaskPriority, TaskStatus } from '../constants/task-enums';
+import { AgentMemoryService } from '../../agent-memory/agent-memory.service';
 
 @Injectable()
 export class TaskService {
@@ -23,6 +27,9 @@ export class TaskService {
     private readonly projectRepo: ProjectRepo,
     private readonly spaceRepo: SpaceRepo,
     private readonly pageRepo: PageRepo,
+    private readonly workspaceRepo: WorkspaceRepo,
+    private readonly goalService: GoalService,
+    private readonly agentMemoryService: AgentMemoryService,
   ) {}
 
   async findById(
@@ -148,6 +155,15 @@ export class TaskService {
     return this.taskRepo.findByAssigneeId(assigneeId, pagination, options);
   }
 
+  async getDailyTriageSummary(
+    spaceId: string,
+    options?: {
+      limit?: number;
+    },
+  ) {
+    return this.taskRepo.getDailyTriageSummary(spaceId, options);
+  }
+
   async create(
     userId: string,
     workspaceId: string,
@@ -233,7 +249,37 @@ export class TaskService {
       estimatedTime: data.estimatedTime,
     };
 
-    return this.taskRepo.create(taskData);
+    const task = await this.taskRepo.create(taskData);
+
+    this.recordTaskMemory({
+      workspaceId,
+      spaceId: task.spaceId,
+      creatorId: userId,
+      action: 'created',
+      task,
+    });
+
+    try {
+      const workspace = await this.workspaceRepo.findById(workspaceId);
+      const agentSettings = resolveAgentSettings(workspace?.settings);
+      if (agentSettings.enableGoalAutoLink) {
+        const text = [task.title, task.description].filter(Boolean).join(' ');
+        if (text) {
+          const matches = await this.goalService.findMatchingGoals(
+            workspaceId,
+            task.spaceId,
+            text,
+          );
+          for (const goal of matches) {
+            await this.goalService.assignGoal(task.id, goal.id);
+          }
+        }
+      }
+    } catch {
+      // Goal auto-linking should not block task creation.
+    }
+
+    return task;
   }
 
   async update(
@@ -255,6 +301,7 @@ export class TaskService {
     if (!task) {
       return undefined;
     }
+    const previous = { ...task };
 
     const updateData: UpdatableTask = {
       ...(data.title !== undefined && { title: data.title }),
@@ -273,7 +320,18 @@ export class TaskService {
     // Handle status changes specially to manage completion state
     if (data.status && data.status !== task.status) {
       if (data.status === TaskStatus.DONE) {
-        return this.taskRepo.markCompleted(taskId);
+        const updated = await this.taskRepo.markCompleted(taskId);
+        if (updated) {
+          this.recordTaskMemory({
+            workspaceId: updated.workspaceId,
+            spaceId: updated.spaceId,
+            creatorId: updated.creatorId || undefined,
+            action: 'completed',
+            task: updated,
+            changes: { status: [task.status, updated.status] },
+          });
+        }
+        return updated;
       } else if (
         task.status === TaskStatus.DONE &&
         [
@@ -283,32 +341,141 @@ export class TaskService {
           TaskStatus.BLOCKED,
         ].includes(data.status)
       ) {
-        return this.taskRepo.markIncomplete(taskId);
+        const updated = await this.taskRepo.markIncomplete(taskId);
+        if (updated) {
+          this.recordTaskMemory({
+            workspaceId: updated.workspaceId,
+            spaceId: updated.spaceId,
+            creatorId: updated.creatorId || undefined,
+            action: 'reopened',
+            task: updated,
+            changes: { status: [task.status, updated.status] },
+          });
+        }
+        return updated;
       } else {
-        return this.taskRepo.updateTaskStatus(taskId, data.status);
+        const updated = await this.taskRepo.updateTaskStatus(
+          taskId,
+          data.status,
+        );
+        if (updated) {
+          this.recordTaskMemory({
+            workspaceId: updated.workspaceId,
+            spaceId: updated.spaceId,
+            creatorId: updated.creatorId || undefined,
+            action: 'updated',
+            task: updated,
+            changes: { status: [task.status, updated.status] },
+          });
+        }
+        return updated;
       }
     }
 
-    return this.taskRepo.update(taskId, updateData);
+    const updated = await this.taskRepo.update(taskId, updateData);
+    if (updated) {
+      const changes: Record<string, [any, any]> = {};
+      if (data.title !== undefined && data.title !== previous.title) {
+        changes.title = [previous.title, data.title];
+      }
+      if (data.description !== undefined && data.description !== previous.description) {
+        changes.description = [previous.description, data.description];
+      }
+      if (data.priority !== undefined && data.priority !== previous.priority) {
+        changes.priority = [previous.priority, data.priority];
+      }
+      if (data.bucket !== undefined && data.bucket !== previous.bucket) {
+        changes.bucket = [previous.bucket, data.bucket];
+      }
+      if (data.dueDate !== undefined && data.dueDate !== previous.dueDate) {
+        changes.dueDate = [previous.dueDate, data.dueDate];
+      }
+      if (data.assigneeId !== undefined && data.assigneeId !== previous.assigneeId) {
+        changes.assigneeId = [previous.assigneeId, data.assigneeId];
+      }
+      if (data.pageId !== undefined && data.pageId !== previous.pageId) {
+        changes.pageId = [previous.pageId, data.pageId];
+      }
+      if (data.estimatedTime !== undefined && data.estimatedTime !== previous.estimatedTime) {
+        changes.estimatedTime = [previous.estimatedTime, data.estimatedTime];
+      }
+      if (data.position !== undefined && data.position !== previous.position) {
+        changes.position = [previous.position, data.position];
+      }
+
+      this.recordTaskMemory({
+        workspaceId: updated.workspaceId,
+        spaceId: updated.spaceId,
+        creatorId: updated.creatorId || undefined,
+        action: 'updated',
+        task: updated,
+        changes: Object.keys(changes).length ? changes : undefined,
+      });
+    }
+
+    return updated;
   }
 
   async delete(taskId: string): Promise<void> {
+    const task = await this.taskRepo.findById(taskId);
     await this.taskRepo.softDelete(taskId);
+
+    if (task) {
+      this.recordTaskMemory({
+        workspaceId: task.workspaceId,
+        spaceId: task.spaceId,
+        creatorId: task.creatorId || undefined,
+        action: 'deleted',
+        task,
+      });
+    }
   }
 
   async markCompleted(taskId: string): Promise<Task | undefined> {
-    return this.taskRepo.markCompleted(taskId);
+    const updated = await this.taskRepo.markCompleted(taskId);
+    if (updated) {
+      this.recordTaskMemory({
+        workspaceId: updated.workspaceId,
+        spaceId: updated.spaceId,
+        creatorId: updated.creatorId || undefined,
+        action: 'completed',
+        task: updated,
+      });
+    }
+    return updated;
   }
 
   async markIncomplete(taskId: string): Promise<Task | undefined> {
-    return this.taskRepo.markIncomplete(taskId);
+    const updated = await this.taskRepo.markIncomplete(taskId);
+    if (updated) {
+      this.recordTaskMemory({
+        workspaceId: updated.workspaceId,
+        spaceId: updated.spaceId,
+        creatorId: updated.creatorId || undefined,
+        action: 'reopened',
+        task: updated,
+      });
+    }
+    return updated;
   }
 
   async assignTask(
     taskId: string,
     assigneeId: string | null,
   ): Promise<Task | undefined> {
-    return this.taskRepo.update(taskId, { assigneeId });
+    const previous = await this.taskRepo.findById(taskId);
+    const updated = await this.taskRepo.update(taskId, { assigneeId });
+    if (updated) {
+      this.recordTaskMemory({
+        workspaceId: updated.workspaceId,
+        spaceId: updated.spaceId,
+        creatorId: updated.creatorId || undefined,
+        action: 'assigned',
+        task: updated,
+        changes: { assigneeId: [previous?.assigneeId || null, assigneeId] },
+      });
+    }
+    return updated;
   }
 
   async moveToProject(
@@ -316,7 +483,19 @@ export class TaskService {
     projectId: string | null,
   ): Promise<Task | undefined> {
     if (projectId === null) {
-      return this.taskRepo.update(taskId, { projectId: null });
+      const previous = await this.taskRepo.findById(taskId);
+      const updated = await this.taskRepo.update(taskId, { projectId: null });
+      if (updated) {
+        this.recordTaskMemory({
+          workspaceId: updated.workspaceId,
+          spaceId: updated.spaceId,
+          creatorId: updated.creatorId || undefined,
+          action: 'moved',
+          task: updated,
+          changes: { projectId: [previous?.projectId || null, null] },
+        });
+      }
+      return updated;
     }
 
     // Verify project exists
@@ -335,6 +514,50 @@ export class TaskService {
       throw new Error('Project and task must be in the same space');
     }
 
-    return this.taskRepo.update(taskId, { projectId });
+    const updated = await this.taskRepo.update(taskId, { projectId });
+    if (updated) {
+      this.recordTaskMemory({
+        workspaceId: updated.workspaceId,
+        spaceId: updated.spaceId,
+        creatorId: updated.creatorId || undefined,
+        action: 'moved',
+        task: updated,
+        changes: { projectId: [task.projectId, projectId] },
+      });
+    }
+    return updated;
+  }
+
+  private recordTaskMemory(input: {
+    workspaceId: string;
+    spaceId: string;
+    creatorId?: string;
+    action: string;
+    task: Task;
+    changes?: Record<string, [any, any]>;
+  }) {
+    this.agentMemoryService
+      .ingestMemory({
+        workspaceId: input.workspaceId,
+        spaceId: input.spaceId,
+        creatorId: input.creatorId,
+        source: `task.${input.action}`,
+        summary: `Task ${input.action}: ${input.task.title}`,
+        tags: ['task', input.action],
+        content: {
+          action: input.action,
+          taskId: input.task.id,
+          title: input.task.title,
+          status: input.task.status,
+          priority: input.task.priority,
+          bucket: input.task.bucket,
+          projectId: input.task.projectId || null,
+          spaceId: input.task.spaceId,
+          changes: input.changes,
+        },
+      })
+      .catch(() => {
+        // Memory ingestion should not block task operations.
+      });
   }
 }

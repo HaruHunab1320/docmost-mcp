@@ -25,6 +25,7 @@ import {
   IconPlus,
   IconSearch,
   IconSettings,
+  IconChartDots,
 } from "@tabler/icons-react";
 
 import classes from "./space-sidebar.module.css";
@@ -203,6 +204,26 @@ export function SpaceSidebar() {
                   stroke={2}
                 />
                 <span>{t("Weekly Review")}</span>
+              </div>
+            </UnstyledButton>
+
+            <UnstyledButton
+              component={Link}
+              to={APP_ROUTE.SPACE.INSIGHTS(space.id)}
+              className={clsx(
+                classes.menu,
+                location.pathname.includes(`/spaces/${space.id}/insights`)
+                  ? classes.activeButton
+                  : ""
+              )}
+            >
+              <div className={classes.menuItemInner}>
+                <IconChartDots
+                  size={18}
+                  className={classes.menuItemIcon}
+                  stroke={2}
+                />
+                <span>{t("Insights")}</span>
               </div>
             </UnstyledButton>
 

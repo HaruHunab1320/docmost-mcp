@@ -10,7 +10,7 @@ import {
 } from "@mantine/core";
 import { Link, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { useTasksBySpace } from "@/features/project/hooks/use-tasks";
+import { usePagedSpaceTasks } from "@/features/gtd/hooks/use-paged-space-tasks";
 import { GtdTaskList } from "@/features/gtd/components/gtd-task-list";
 import APP_ROUTE from "@/lib/app-route";
 import { getTaskBucket } from "@/features/gtd/utils/task-buckets";
@@ -23,22 +23,23 @@ export function InboxPage() {
   const [showWaiting, setShowWaiting] = useState(false);
   const [showSomeday, setShowSomeday] = useState(false);
 
-  const { data: tasksData, isLoading } = useTasksBySpace({
-    spaceId: spaceId || "",
-    page: 1,
-    limit: 200,
-  });
+  const { items: tasks, isLoading, hasNextPage, loadMore } =
+    usePagedSpaceTasks(spaceId || "");
 
   const inboxTasks = useMemo(() => {
-    return (tasksData?.items || []).filter(
-      (task) =>
-        !task.projectId &&
-        !task.isCompleted &&
-        (!getTaskBucket(spaceId || "", task.id) ||
-          (showWaiting && getTaskBucket(spaceId || "", task.id) === "waiting") ||
-          (showSomeday && getTaskBucket(spaceId || "", task.id) === "someday"))
+    return tasks.filter(
+      (task) => {
+        if (task.projectId || task.isCompleted) return false;
+        const bucket = getTaskBucket(task);
+        return (
+          bucket === "none" ||
+          bucket === "inbox" ||
+          (showWaiting && bucket === "waiting") ||
+          (showSomeday && bucket === "someday")
+        );
+      }
     );
-  }, [showSomeday, showWaiting, spaceId, tasksData?.items]);
+  }, [showSomeday, showWaiting, tasks]);
 
   if (!spaceId) {
     return (
@@ -81,11 +82,18 @@ export function InboxPage() {
           {t("Loading inbox...")}
         </Text>
       ) : (
-        <GtdTaskList
-          tasks={inboxTasks}
-          spaceId={spaceId}
-          emptyMessage={t("Inbox is clear")}
-        />
+        <Stack gap="md">
+          <GtdTaskList
+            tasks={inboxTasks}
+            spaceId={spaceId}
+            emptyMessage={t("Inbox is clear")}
+          />
+          {hasNextPage && (
+            <Button variant="light" onClick={loadMore}>
+              {t("Load more")}
+            </Button>
+          )}
+        </Stack>
       )}
     </Container>
   );

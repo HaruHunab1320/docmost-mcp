@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Box,
   Button,
@@ -11,12 +11,17 @@ import {
   Select,
 } from "@mantine/core";
 import { useTranslation } from "react-i18next";
-import { Task, TaskStatus } from "../types";
+import { TaskStatus } from "../types";
 import { useTasksByProject, useCreateTaskMutation } from "../hooks/use-tasks";
 import { TaskCard } from "./task-card";
 import { IconFilter, IconPlus, IconSearch } from "@tabler/icons-react";
 import { useDisclosure } from "@mantine/hooks";
 import TaskFormModal from "./task-form-modal";
+import { useQuery } from "@tanstack/react-query";
+import { listGoalsForTasks } from "@/features/goal/services/goal-service";
+import { useAtom } from "jotai";
+import { workspaceAtom } from "@/features/user/atoms/current-user-atom";
+import { Goal } from "@/features/goal/types";
 
 interface TaskListProps {
   projectId: string;
@@ -26,6 +31,7 @@ interface TaskListProps {
 
 export function TaskList({ projectId, spaceId, onTaskClick }: TaskListProps) {
   const { t } = useTranslation();
+  const [workspace] = useAtom(workspaceAtom);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<TaskStatus[]>([]);
   const [opened, { open, close }] = useDisclosure(false);
@@ -40,6 +46,26 @@ export function TaskList({ projectId, spaceId, onTaskClick }: TaskListProps) {
     searchTerm: searchTerm || undefined,
     status: statusFilter.length > 0 ? statusFilter : undefined,
   });
+  const taskIds = taskData?.items.map((task) => task.id) || [];
+  const goalsQuery = useQuery({
+    queryKey: ["task-goals", projectId, workspace?.id, taskIds],
+    queryFn: () =>
+      listGoalsForTasks({
+        workspaceId: workspace?.id || "",
+        taskIds,
+      }),
+    enabled: !!workspace?.id && taskIds.length > 0,
+  });
+  const goalMap = useMemo(() => {
+    const map: Record<string, Goal[]> = {};
+    (goalsQuery.data || []).forEach((goal) => {
+      if (!map[goal.taskId]) {
+        map[goal.taskId] = [];
+      }
+      map[goal.taskId].push(goal);
+    });
+    return map;
+  }, [goalsQuery.data]);
 
   // Create task mutation
   const createTaskMutation = useCreateTaskMutation();
@@ -136,6 +162,7 @@ export function TaskList({ projectId, spaceId, onTaskClick }: TaskListProps) {
               key={task.id}
               task={task}
               onClick={() => onTaskClick(task.id)}
+              goalMap={goalMap}
             />
           ))}
         </Stack>

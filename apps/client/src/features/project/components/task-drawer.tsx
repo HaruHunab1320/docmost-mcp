@@ -26,14 +26,13 @@ import {
   Center,
   Modal,
   FileInput,
+  MultiSelect,
 } from "@mantine/core";
 import { Task, TaskPriority, TaskStatus } from "../types";
-import {
-  clearTaskBucket,
-  getTaskBucket,
-  setTaskBucket,
-} from "@/features/gtd/utils/task-buckets";
+import { getTaskBucket } from "@/features/gtd/utils/task-buckets";
+import { TaskBucket } from "@/features/project/types";
 import { useTranslation } from "react-i18next";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import {
   IconChevronLeft,
   IconChevronRight,
@@ -86,13 +85,19 @@ import { useForm } from "@mantine/form";
 import { DateInput } from "@mantine/dates";
 import { CustomAvatar } from "@/components/ui/custom-avatar";
 import { useAtom } from "jotai";
-import { currentUserAtom } from "@/features/user/atoms/current-user-atom";
+import { workspaceAtom } from "@/features/user/atoms/current-user-atom";
 import { formatDistanceToNow } from "date-fns";
 import { useDisclosure } from "@mantine/hooks";
 import EmojiPicker from "@/components/ui/emoji-picker";
 import { api } from "@/lib/api";
 import { notifications } from "@mantine/notifications";
 import { useCreatePageMutation } from "@/features/page/queries/page-query";
+import {
+  assignGoal,
+  listGoals,
+  listGoalsForTask,
+  unassignGoal,
+} from "@/features/goal/services/goal-service";
 // Lazy load Picker from emoji-mart to avoid SSR issues
 const Picker = lazy(() => import("@emoji-mart/react"));
 
@@ -133,6 +138,19 @@ const getPriorityColor = (priority: TaskPriority) => {
   }
 };
 
+const getGoalColor = (horizon: string) => {
+  switch (horizon) {
+    case "short":
+      return "teal";
+    case "mid":
+      return "blue";
+    case "long":
+      return "grape";
+    default:
+      return "gray";
+  }
+};
+
 export function TaskDrawer({
   taskId,
   opened,
@@ -165,6 +183,8 @@ export function TaskDrawer({
   const [coverImageFile, setCoverImageFile] = useState<File | null>(null);
   const [objectUrl, setObjectUrl] = useState<string | null>(null);
   const [isUploadingCover, setIsUploadingCover] = useState(false);
+  const [workspace] = useAtom(workspaceAtom);
+  const workspaceId = workspace?.id;
   const [coverModalOpened, { open: openCoverModal, close: closeCoverModal }] =
     useDisclosure(false);
   const [
@@ -175,7 +195,35 @@ export function TaskDrawer({
 
   // Use the useTask hook to fetch task data
   const { data: task, isLoading, refetch } = useTask(taskId);
-  const bucketValue = spaceId && task ? getTaskBucket(spaceId, task.id) : "";
+  const bucketValue = task ? getTaskBucket(task) : "none";
+  const taskGoalsQuery = useQuery({
+    queryKey: ["task-goals", taskId, workspaceId],
+    queryFn: () =>
+      listGoalsForTask({
+        workspaceId: workspaceId || "",
+        taskId: taskId || "",
+      }),
+    enabled: !!taskId && !!workspaceId,
+  });
+  const taskGoals = taskGoalsQuery.data || [];
+  const allGoalsQuery = useQuery({
+    queryKey: ["goals", workspaceId, spaceId],
+    queryFn: () =>
+      listGoals({
+        workspaceId: workspaceId || "",
+        spaceId,
+      }),
+    enabled: !!workspaceId,
+  });
+  const [assignedGoalIds, setAssignedGoalIds] = useState<string[]>([]);
+  const assignGoalMutation = useMutation({
+    mutationFn: (goalId: string) =>
+      assignGoal({ taskId: taskId || "", goalId }),
+  });
+  const unassignGoalMutation = useMutation({
+    mutationFn: (goalId: string) =>
+      unassignGoal({ taskId: taskId || "", goalId }),
+  });
 
   const updateTaskMutation = useUpdateTaskMutation();
   const createPageMutation = useCreatePageMutation();
@@ -188,6 +236,10 @@ export function TaskDrawer({
       setAssigneeId(task.assigneeId || null);
     }
   }, [task]);
+
+  useEffect(() => {
+    setAssignedGoalIds(taskGoals.map((goal) => goal.id));
+  }, [taskGoals]);
 
   // Set initial cover image if task has one
   useEffect(() => {
@@ -1424,6 +1476,83 @@ export function TaskDrawer({
                 </Flex>
               </Group>
 
+              <Group justify="apart" mb="xs" align="flex-start">
+                <Text fw={500} size="sm" style={{ width: "100px" }}>
+                  {t("Goals")}
+                </Text>
+                <Group
+                  gap="xs"
+                  wrap="wrap"
+                  justify="flex-end"
+                  style={{ flex: 1 }}
+                >
+                  {taskGoalsQuery.isLoading ? (
+                    <Text size="xs" c="dimmed">
+                      {t("Loading...")}
+                    </Text>
+                  ) : taskGoals.length ? (
+                    taskGoals.map((goal) => (
+                      <Badge
+                        key={goal.id}
+                        size="sm"
+                        radius="sm"
+                        variant="light"
+                        color={getGoalColor(goal.horizon)}
+                      >
+                        {goal.name}
+                      </Badge>
+                    ))
+                  ) : (
+                    <Text size="xs" c="dimmed">
+                      {t("None")}
+                    </Text>
+                  )}
+                </Group>
+              </Group>
+
+              <Group justify="apart" mb="xs" align="flex-start">
+                <Text fw={500} size="sm" style={{ width: "100px" }}>
+                  {t("Assign")}
+                </Text>
+                <MultiSelect
+                  data={(allGoalsQuery.data || []).map((goal) => ({
+                    value: goal.id,
+                    label: goal.name,
+                  }))}
+                  value={assignedGoalIds}
+                  onChange={(values) => {
+                    if (!taskId) return;
+                    const next = values as string[];
+                    const added = next.filter(
+                      (goalId) => !assignedGoalIds.includes(goalId),
+                    );
+                    const removed = assignedGoalIds.filter(
+                      (goalId) => !next.includes(goalId),
+                    );
+
+                    added.forEach((goalId) =>
+                      assignGoalMutation.mutate(goalId),
+                    );
+                    removed.forEach((goalId) =>
+                      unassignGoalMutation.mutate(goalId),
+                    );
+
+                    setAssignedGoalIds(next);
+                  }}
+                  placeholder={t("Assign goals...")}
+                  searchable
+                  clearable
+                  size="sm"
+                  styles={{
+                    input: {
+                      border: "none",
+                      backgroundColor: "transparent",
+                    },
+                  }}
+                  style={{ flex: 1 }}
+                />
+              </Group>
+
               <Group justify="apart" mb="xs">
                 <Text fw={500} size="sm" style={{ width: "100px" }}>
                   {t("Bucket")}
@@ -1436,12 +1565,11 @@ export function TaskDrawer({
                   ]}
                   value={bucketValue || "none"}
                   onChange={(value) => {
-                    if (!spaceId || !task) return;
-                    if (!value || value === "none") {
-                      clearTaskBucket(spaceId, task.id);
-                      return;
-                    }
-                    setTaskBucket(spaceId, task.id, value as any);
+                    if (!task) return;
+                    updateTaskMutation.mutate({
+                      taskId: task.id,
+                      bucket: (value || "none") as TaskBucket,
+                    });
                   }}
                   size="sm"
                   styles={{

@@ -8,6 +8,11 @@ import { usePageSearchQuery } from "@/features/search/queries/search-query";
 import { buildPageUrl } from "@/features/page/page.utils.ts";
 import { getPageIcon } from "@/lib";
 import { useTranslation } from "react-i18next";
+import { useQuery } from "@tanstack/react-query";
+import { agentMemoryService } from "@/features/agent-memory/services/agent-memory-service";
+import { projectService } from "@/features/project/services/project-service";
+import { useAtom } from "jotai";
+import { workspaceAtom } from "@/features/user/atoms/current-user-atom";
 
 interface SearchSpotlightProps {
   spaceId?: string;
@@ -17,12 +22,37 @@ export function SearchSpotlight({ spaceId }: SearchSpotlightProps) {
   const navigate = useNavigate();
   const [query, setQuery] = useState("");
   const [debouncedSearchQuery] = useDebouncedValue(query, 300);
+  const [workspace] = useAtom(workspaceAtom);
 
   const {
     data: searchResults,
     isLoading,
     error,
   } = usePageSearchQuery({ query: debouncedSearchQuery, spaceId });
+
+  const taskSearchQuery = useQuery({
+    queryKey: ["task-search", spaceId, debouncedSearchQuery],
+    queryFn: () =>
+      projectService.listTasksBySpace({
+        spaceId: spaceId || "",
+        page: 1,
+        limit: 5,
+        searchTerm: debouncedSearchQuery,
+      }),
+    enabled: !!spaceId && debouncedSearchQuery.length > 0,
+  });
+
+  const memorySearchQuery = useQuery({
+    queryKey: ["memory-search-spotlight", workspace?.id, spaceId, debouncedSearchQuery],
+    queryFn: () =>
+      agentMemoryService.query({
+        workspaceId: workspace?.id || "",
+        spaceId,
+        query: debouncedSearchQuery,
+        limit: 5,
+      }),
+    enabled: !!workspace?.id && debouncedSearchQuery.length > 0,
+  });
 
   const pages = (
     searchResults && searchResults.length > 0 ? searchResults : []
@@ -51,6 +81,34 @@ export function SearchSpotlight({ spaceId }: SearchSpotlightProps) {
     </Spotlight.Action>
   ));
 
+  const tasks = (taskSearchQuery.data?.items || []).map((task) => (
+    <Spotlight.Action key={task.id}>
+      <Group wrap="nowrap" w="100%">
+        <Center>✅</Center>
+        <div style={{ flex: 1 }}>
+          <Text>{task.title}</Text>
+          <Text opacity={0.6} size="xs">
+            Task
+          </Text>
+        </div>
+      </Group>
+    </Spotlight.Action>
+  ));
+
+  const memories = (memorySearchQuery.data || []).map((memory) => (
+    <Spotlight.Action key={memory.id}>
+      <Group wrap="nowrap" w="100%">
+        <Center>🧠</Center>
+        <div style={{ flex: 1 }}>
+          <Text>{memory.summary || "Memory"}</Text>
+          <Text opacity={0.6} size="xs">
+            Memory
+          </Text>
+        </div>
+      </Group>
+    </Spotlight.Action>
+  ));
+
   return (
     <>
       <Spotlight.Root
@@ -70,11 +128,16 @@ export function SearchSpotlight({ spaceId }: SearchSpotlightProps) {
             <Spotlight.Empty>{t("Start typing to search...")}</Spotlight.Empty>
           )}
 
-          {query.length > 0 && pages.length === 0 && (
+          {query.length > 0 &&
+            pages.length === 0 &&
+            tasks.length === 0 &&
+            memories.length === 0 && (
             <Spotlight.Empty>{t("No results found...")}</Spotlight.Empty>
           )}
 
           {pages.length > 0 && pages}
+          {tasks.length > 0 && tasks}
+          {memories.length > 0 && memories}
         </Spotlight.ActionsList>
       </Spotlight.Root>
     </>

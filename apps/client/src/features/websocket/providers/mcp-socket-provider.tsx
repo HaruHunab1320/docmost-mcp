@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useAtom } from "jotai";
 import { io } from "socket.io-client";
 import { mcpSocketAtom } from "../atoms/mcp-socket-atom";
@@ -21,17 +21,37 @@ export const MCPSocketProvider: React.FC<MCPSocketProviderProps> = ({
   const [currentUser] = useAtom(currentUserAtom);
   const [subscribed, setSubscribed] = useState<boolean>(false);
   const [connectionFailed, setConnectionFailed] = useState<boolean>(false);
+  const socketRef = useRef<ReturnType<typeof io> | null>(null);
+  const sessionRef = useRef<{ userId?: string; workspaceId?: string }>({});
 
   // Setup MCP socket connection
   useEffect(() => {
+    const userId = currentUser?.user?.id;
+    const workspaceId = currentUser?.workspace?.id;
+
     // Only connect if we have a user and workspace
-    if (!currentUser?.user || !currentUser?.workspace) {
+    if (!userId || !workspaceId) {
       console.log(
         "%c[MCP-SOCKET] Connection delayed - waiting for user and workspace data",
         "background: #FFC107; color: black; padding: 3px; border-radius: 3px;"
       );
       return;
     }
+
+    if (
+      socketRef.current &&
+      sessionRef.current.userId === userId &&
+      sessionRef.current.workspaceId === workspaceId
+    ) {
+      return;
+    }
+
+    if (socketRef.current) {
+      socketRef.current.disconnect();
+      socketRef.current = null;
+    }
+
+    sessionRef.current = { userId, workspaceId };
 
     let connectionAttempts = 0;
     const maxAttempts = 3;
@@ -59,6 +79,7 @@ export const MCPSocketProvider: React.FC<MCPSocketProviderProps> = ({
         timeout: 5000,
         autoConnect: true,
       });
+      socketRef.current = newSocket;
 
       // IMPORTANT: Set up event listeners BEFORE connection happens
       // Listen specifically for the raw mcp:event to debug
@@ -190,9 +211,7 @@ export const MCPSocketProvider: React.FC<MCPSocketProviderProps> = ({
           "%c[MCP-SOCKET] Cleaning up connection",
           "background: #607D8B; color: white; padding: 3px; border-radius: 3px;"
         );
-        if (newSocket.connected) {
-          newSocket.disconnect();
-        }
+        newSocket.disconnect();
       };
     } catch (error) {
       console.error(
@@ -202,7 +221,7 @@ export const MCPSocketProvider: React.FC<MCPSocketProviderProps> = ({
       );
       setConnectionFailed(true);
     }
-  }, [currentUser, setMcpSocket]);
+  }, [currentUser?.user?.id, currentUser?.workspace?.id, setMcpSocket]);
 
   // Helper function to subscribe to necessary resources
   const subscribeToResources = (socket, currentUser) => {

@@ -10,14 +10,15 @@ import {
 } from "@mantine/core";
 import { useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { useTasksBySpace } from "@/features/project/hooks/use-tasks";
+import { usePagedSpaceTasks } from "@/features/gtd/hooks/use-paged-space-tasks";
 import {
   TaskBucket,
   filterTasksByBucket,
-  clearTaskBucket,
 } from "@/features/gtd/utils/task-buckets";
 import { TaskCard } from "@/features/project/components/task-card";
 import { TaskDrawer } from "@/features/project/components/task-drawer";
+import { projectService } from "@/features/project/services/project-service";
+import { queryClient } from "@/main";
 
 interface BucketPageProps {
   bucket: TaskBucket;
@@ -32,16 +33,12 @@ export function BucketPage({ bucket, title, emptyMessage }: BucketPageProps) {
   const [drawerOpened, setDrawerOpened] = useState(false);
   const [selectedTaskIds, setSelectedTaskIds] = useState<string[]>([]);
 
-  const { data: tasksData, isLoading } = useTasksBySpace({
-    spaceId: spaceId || "",
-    page: 1,
-    limit: 200,
-  });
+  const { items: tasks, isLoading, hasNextPage, loadMore } =
+    usePagedSpaceTasks(spaceId || "");
 
   const bucketTasks = useMemo(() => {
-    const tasks = tasksData?.items || [];
-    return filterTasksByBucket(spaceId || "", tasks, bucket);
-  }, [bucket, spaceId, tasksData?.items]);
+    return filterTasksByBucket(tasks, bucket);
+  }, [bucket, tasks]);
 
   if (!spaceId) {
     return (
@@ -60,10 +57,14 @@ export function BucketPage({ bucket, title, emptyMessage }: BucketPageProps) {
             variant="subtle"
             disabled={!selectedTaskIds.length}
             onClick={() => {
-              selectedTaskIds.forEach((taskId) =>
-                clearTaskBucket(spaceId, taskId)
-              );
-              setSelectedTaskIds([]);
+              Promise.all(
+                selectedTaskIds.map((taskId) =>
+                  projectService.updateTask({ taskId, bucket: "none" })
+                )
+              ).finally(() => {
+                queryClient.invalidateQueries({ queryKey: ["space-tasks"] });
+                setSelectedTaskIds([]);
+              });
             }}
           >
             {t("Return selected")}
@@ -127,7 +128,15 @@ export function BucketPage({ bucket, title, emptyMessage }: BucketPageProps) {
                 <Group justify="flex-end">
                   <Button
                     variant="subtle"
-                    onClick={() => clearTaskBucket(spaceId, task.id)}
+                    onClick={() => {
+                      projectService
+                        .updateTask({ taskId: task.id, bucket: "none" })
+                        .finally(() => {
+                          queryClient.invalidateQueries({
+                            queryKey: ["space-tasks"],
+                          });
+                        });
+                    }}
                   >
                     {t("Return to Inbox")}
                   </Button>
@@ -135,6 +144,11 @@ export function BucketPage({ bucket, title, emptyMessage }: BucketPageProps) {
               </Stack>
             </Group>
           ))}
+          {hasNextPage && (
+            <Button variant="light" onClick={loadMore}>
+              {t("Load more")}
+            </Button>
+          )}
         </Stack>
       )}
 

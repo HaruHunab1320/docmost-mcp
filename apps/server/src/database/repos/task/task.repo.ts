@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectKysely } from '../../../lib/kysely/nestjs-kysely';
 import { Kysely, Transaction } from 'kysely';
-import { DB, TaskBucket, TaskStatus } from '../../types/db';
+import { DB, TaskStatus } from '../../types/db';
 import { InsertableTask, Task, UpdatableTask } from '../../types/entity.types';
 import { dbOrTx } from '../../utils';
 import { PaginationOptions } from '../../../lib/pagination/pagination-options';
@@ -178,7 +178,7 @@ export class TaskRepo {
     pagination: PaginationOptions,
     options?: {
       status?: TaskStatus[];
-      bucket?: TaskBucket[];
+      bucket?: Array<'none' | 'inbox' | 'waiting' | 'someday'>;
       searchTerm?: string;
       includeSubtasks?: boolean;
       includeCreator?: boolean;
@@ -328,7 +328,7 @@ export class TaskRepo {
     pagination: PaginationOptions,
     options?: {
       status?: TaskStatus[];
-      bucket?: TaskBucket[];
+      bucket?: Array<'none' | 'inbox' | 'waiting' | 'someday'>;
       searchTerm?: string;
       includeCreator?: boolean;
       includeAssignee?: boolean;
@@ -430,6 +430,101 @@ export class TaskRepo {
       });
       throw error;
     }
+  }
+
+  async getDailyTriageSummary(
+    spaceId: string,
+    options?: {
+      limit?: number;
+    },
+    trx?: Transaction<DB>,
+  ): Promise<{
+    inbox: Task[];
+    dueToday: Task[];
+    overdue: Task[];
+    counts: {
+      inbox: number;
+      waiting: number;
+      someday: number;
+    };
+  }> {
+    if (!this.isValidUuid(spaceId)) {
+      return {
+        inbox: [],
+        dueToday: [],
+        overdue: [],
+        counts: { inbox: 0, waiting: 0, someday: 0 },
+      };
+    }
+
+    const limit = options?.limit ?? 20;
+    const now = new Date();
+    const startOfDay = new Date(now);
+    startOfDay.setHours(0, 0, 0, 0);
+    const endOfDay = new Date(startOfDay);
+    endOfDay.setDate(startOfDay.getDate() + 1);
+
+    const baseQuery = () =>
+      dbOrTx(this.db, trx)
+        .selectFrom('tasks')
+        .selectAll('tasks')
+        .where('tasks.spaceId', '=', spaceId)
+        .where('tasks.deletedAt', 'is', null)
+        .where('tasks.isCompleted', '=', false);
+
+    const baseCountQuery = () =>
+      dbOrTx(this.db, trx)
+        .selectFrom('tasks')
+        .where('tasks.spaceId', '=', spaceId)
+        .where('tasks.deletedAt', 'is', null)
+        .where('tasks.isCompleted', '=', false);
+
+    const inbox = await baseQuery()
+      .where('tasks.projectId', 'is', null)
+      .where('tasks.bucket', 'in', ['none', 'inbox'])
+      .orderBy('tasks.createdAt', 'desc')
+      .limit(limit)
+      .execute();
+
+    const dueToday = await baseQuery()
+      .where('tasks.dueDate', '>=', startOfDay)
+      .where('tasks.dueDate', '<', endOfDay)
+      .orderBy('tasks.dueDate', 'asc')
+      .limit(limit)
+      .execute();
+
+    const overdue = await baseQuery()
+      .where('tasks.dueDate', '<', startOfDay)
+      .orderBy('tasks.dueDate', 'asc')
+      .limit(limit)
+      .execute();
+
+    const inboxCountResult = await baseCountQuery()
+      .where('tasks.projectId', 'is', null)
+      .where('tasks.bucket', 'in', ['none', 'inbox'])
+      .select((eb) => eb.fn.countAll<number>().as('count'))
+      .executeTakeFirst();
+
+    const waitingCountResult = await baseCountQuery()
+      .where('tasks.bucket', '=', 'waiting')
+      .select((eb) => eb.fn.countAll<number>().as('count'))
+      .executeTakeFirst();
+
+    const somedayCountResult = await baseCountQuery()
+      .where('tasks.bucket', '=', 'someday')
+      .select((eb) => eb.fn.countAll<number>().as('count'))
+      .executeTakeFirst();
+
+    return {
+      inbox,
+      dueToday,
+      overdue,
+      counts: {
+        inbox: Number(inboxCountResult?.count || 0),
+        waiting: Number(waitingCountResult?.count || 0),
+        someday: Number(somedayCountResult?.count || 0),
+      },
+    };
   }
 
   async findByAssigneeId(

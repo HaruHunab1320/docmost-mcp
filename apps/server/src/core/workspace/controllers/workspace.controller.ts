@@ -35,6 +35,7 @@ import { FastifyReply } from 'fastify';
 import { EnvironmentService } from '../../../integrations/environment/environment.service';
 import { CheckHostnameDto } from '../dto/check-hostname.dto';
 import { RemoveWorkspaceUserDto } from '../dto/remove-workspace-user.dto';
+import { AgentSettingsDto } from '../dto/agent-settings.dto';
 
 @UseGuards(JwtAuthGuard)
 @Controller('workspace')
@@ -57,6 +58,39 @@ export class WorkspaceController {
   @Post('/info')
   async getWorkspace(@AuthWorkspace() workspace: Workspace) {
     return this.workspaceService.getWorkspaceInfo(workspace.id);
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Post('/agent-settings')
+  async getAgentSettings(
+    @AuthUser() user: User,
+    @AuthWorkspace() workspace: Workspace,
+  ) {
+    const ability = this.workspaceAbility.createForUser(user, workspace);
+    if (
+      ability.cannot(WorkspaceCaslAction.Read, WorkspaceCaslSubject.Settings)
+    ) {
+      throw new ForbiddenException();
+    }
+
+    return this.workspaceService.getAgentSettings(workspace.id);
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Post('/agent-settings/update')
+  async updateAgentSettings(
+    @Body() dto: AgentSettingsDto,
+    @AuthUser() user: User,
+    @AuthWorkspace() workspace: Workspace,
+  ) {
+    const ability = this.workspaceAbility.createForUser(user, workspace);
+    if (
+      ability.cannot(WorkspaceCaslAction.Manage, WorkspaceCaslSubject.Settings)
+    ) {
+      throw new ForbiddenException();
+    }
+
+    return this.workspaceService.updateAgentSettings(workspace.id, dto);
   }
 
   @HttpCode(HttpStatus.OK)

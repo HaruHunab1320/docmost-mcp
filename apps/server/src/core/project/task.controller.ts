@@ -18,6 +18,7 @@ import {
   TaskAssignmentDto,
   TaskCompletionDto,
   MoveTaskToProjectDto,
+  TaskTriageSummaryDto,
 } from './dto/task.dto';
 import { AuthUser } from '../../common/decorators/auth-user.decorator';
 import { AuthWorkspace } from '../../common/decorators/auth-workspace.decorator';
@@ -227,6 +228,22 @@ export class TaskController {
       });
       throw error;
     }
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Post('/triageSummary')
+  async getDailyTriageSummary(
+    @Body() dto: TaskTriageSummaryDto,
+    @AuthUser() user: User,
+  ) {
+    const ability = await this.spaceAbility.createForUser(user, dto.spaceId);
+    if (ability.cannot(SpaceCaslAction.Read, SpaceCaslSubject.Page)) {
+      throw new ForbiddenException();
+    }
+
+    return this.taskService.getDailyTriageSummary(dto.spaceId, {
+      limit: dto.limit,
+    });
   }
 
   @HttpCode(HttpStatus.OK)

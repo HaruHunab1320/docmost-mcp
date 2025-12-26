@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { TextInput, Tooltip } from "@mantine/core";
+import { Group, Select, TextInput, Tooltip } from "@mantine/core";
 import { IconBolt } from "@tabler/icons-react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
@@ -11,7 +11,6 @@ import { useCreateTaskMutation } from "@/features/project/hooks/use-tasks";
 import { useTranslation } from "react-i18next";
 import classes from "./quick-capture.module.css";
 import { parseBucketedInput } from "@/features/gtd/utils/auto-bucket";
-import { setTaskBucket } from "@/features/gtd/utils/task-buckets";
 import APP_ROUTE from "@/lib/app-route";
 
 function isEditableTarget(target: EventTarget | null) {
@@ -36,6 +35,7 @@ export function QuickCapture() {
   const { data: spacesData } = useGetSpacesQuery({ page: 1, limit: 50 });
   const createTaskMutation = useCreateTaskMutation();
   const [value, setValue] = useState("");
+  const [selectedSpaceId, setSelectedSpaceId] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const navigate = useNavigate();
   const isMac = useMemo(() => {
@@ -43,15 +43,29 @@ export function QuickCapture() {
     return /Mac|iPod|iPhone|iPad/.test(navigator.platform);
   }, []);
 
-  const fallbackSpace = useMemo(() => {
-    if (!spacesData) return undefined;
-    if (Array.isArray(spacesData.items)) return spacesData.items[0];
-    // Legacy shape support
-    if (Array.isArray((spacesData as any).data)) return (spacesData as any).data[0];
-    return undefined;
+  const spaces = useMemo(() => {
+    if (!spacesData) return [];
+    if (Array.isArray(spacesData.items)) return spacesData.items;
+    if (Array.isArray((spacesData as any).data))
+      return (spacesData as any).data;
+    return [];
   }, [spacesData]);
 
-  const activeSpace = spaceBySlug || spaceById || fallbackSpace;
+  const selectedSpace = useMemo(
+    () => spaces.find((space) => space.id === selectedSpaceId),
+    [selectedSpaceId, spaces]
+  );
+
+  const activeSpace = spaceBySlug || spaceById || selectedSpace;
+
+  const spaceOptions = useMemo(
+    () =>
+      spaces.map((space) => ({
+        value: space.id,
+        label: space.name,
+      })),
+    [spaces]
+  );
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -84,13 +98,11 @@ export function QuickCapture() {
     const parsed = parseBucketedInput(input);
     if (!parsed.title) return;
     try {
-      const created = await createTaskMutation.mutateAsync({
+      await createTaskMutation.mutateAsync({
         title: parsed.title,
         spaceId: activeSpace.id,
+        ...(parsed.bucket ? { bucket: parsed.bucket } : {}),
       });
-      if (parsed.bucket && created?.id) {
-        setTaskBucket(activeSpace.id, created.id, parsed.bucket);
-      }
       setValue("");
     } catch (error) {
       // Notifications are handled by mutation hook.
@@ -105,21 +117,40 @@ export function QuickCapture() {
       })}
       withArrow
     >
-      <TextInput
-        className={classes.input}
-        placeholder={t("Capture to Inbox")}
-        value={value}
-        onChange={(event) => setValue(event.currentTarget.value)}
-        onKeyDown={(event) => {
-          if (event.key === "Enter") {
-            event.preventDefault();
-            handleSubmit();
+      <Group className={classes.group} wrap="nowrap">
+        {!activeSpace?.id && spaceOptions.length > 0 && (
+          <Select
+            className={classes.select}
+            placeholder={t("Select space")}
+            data={spaceOptions}
+            value={selectedSpaceId}
+            onChange={setSelectedSpaceId}
+            searchable
+            clearable
+            size="sm"
+            radius="md"
+          />
+        )}
+        <TextInput
+          className={classes.input}
+          placeholder={
+            activeSpace?.id ? t("Capture to Inbox") : t("Select a space to capture")
           }
-        }}
-        leftSection={<IconBolt size={16} />}
-        disabled={!activeSpace?.id}
-        ref={inputRef}
-      />
+          value={value}
+          onChange={(event) => setValue(event.currentTarget.value)}
+          onKeyDown={(event) => {
+            if (event.key === "Enter") {
+              event.preventDefault();
+              handleSubmit();
+            }
+          }}
+          leftSection={<IconBolt size={16} />}
+          disabled={!activeSpace?.id}
+          ref={inputRef}
+          size="sm"
+          radius="md"
+        />
+      </Group>
     </Tooltip>
   );
 }

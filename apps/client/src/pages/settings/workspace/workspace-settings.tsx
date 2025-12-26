@@ -5,6 +5,7 @@ import { getAppName, isCloud } from "@/lib/config.ts";
 import { Helmet } from "react-helmet-async";
 import ManageHostname from "@/ee/components/manage-hostname.tsx";
 import { Divider } from "@mantine/core";
+import { AgentSettingsPanel } from "@/features/agent/components/agent-settings-panel";
 
 export default function WorkspaceSettings() {
   const { t } = useTranslation();
@@ -22,6 +23,9 @@ export default function WorkspaceSettings() {
           <ManageHostname />
         </>
       )}
+
+      <Divider my="md" />
+      <AgentSettingsPanel />
     </>
   );
 }

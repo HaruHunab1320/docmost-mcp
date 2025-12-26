@@ -22,6 +22,7 @@ import { Task, TaskStatus } from "../types";
 import { CustomAvatar } from "@/components/ui/custom-avatar";
 import { useTranslation } from "react-i18next";
 import { TaskCard } from "./task-card";
+import { Goal } from "@/features/goal/types";
 
 // Map of status to column title (duplicated from project-board for component independence)
 const statusColumnMap: Record<TaskStatus, { title: string; color: string }> = {
@@ -46,6 +47,7 @@ interface SortableTaskProps {
   task: Task;
   onClick: () => void;
   users?: any[];
+  goalMap?: Record<string, Goal[]>;
 }
 
 export function SortableTask({
@@ -53,6 +55,7 @@ export function SortableTask({
   task,
   onClick,
   users = [],
+  goalMap,
 }: SortableTaskProps) {
   const {
     attributes,
@@ -77,6 +80,7 @@ export function SortableTask({
         onClick={onClick}
         isDragging={isDragging}
         users={users}
+        goalMap={goalMap}
       />
     </div>
   );

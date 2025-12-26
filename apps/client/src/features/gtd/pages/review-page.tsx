@@ -10,7 +10,7 @@ import {
 } from "@mantine/core";
 import { Link, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { useTasksBySpace } from "@/features/project/hooks/use-tasks";
+import { usePagedSpaceTasks } from "@/features/gtd/hooks/use-paged-space-tasks";
 import { useProjects } from "@/features/project/hooks/use-projects";
 import { projectService } from "@/features/project/services/project-service";
 import { notifications } from "@mantine/notifications";
@@ -20,6 +20,7 @@ import { useSpaceQuery } from "@/features/space/queries/space-query";
 import { getOrCreateWeeklyReviewPage } from "@/features/gtd/utils/weekly-review";
 import { buildPageUrl } from "@/features/page/page.utils";
 import { ShortcutHint } from "@/features/gtd/components/shortcut-hint";
+import APP_ROUTE from "@/lib/app-route";
 
 const STALE_DAYS = 14;
 const REVIEW_ITEMS = [
@@ -68,16 +69,16 @@ export function ReviewPage() {
   const [creatingReviewPage, setCreatingReviewPage] = useState(false);
   const { data: space } = useSpaceQuery(spaceId || "");
 
-  const { data: tasksData, isLoading: tasksLoading } = useTasksBySpace({
-    spaceId: spaceId || "",
-    page: 1,
-    limit: 500,
-  });
+  const {
+    items: tasks,
+    isLoading: tasksLoading,
+    hasNextPage,
+    loadMore,
+  } = usePagedSpaceTasks(spaceId || "", { autoLoadAll: true, limit: 200 });
   const { data: projectsData, isLoading: projectsLoading } = useProjects({
     spaceId: spaceId || "",
   });
 
-  const tasks = tasksData?.items || [];
   const projects = Array.isArray(projectsData?.items)
     ? projectsData.items
     : Array.isArray(projectsData?.data)
@@ -163,8 +164,8 @@ export function ReviewPage() {
       })
       .filter(Boolean);
 
-    const waiting = filterTasksByBucket(spaceId || "", tasks, "waiting");
-    const someday = filterTasksByBucket(spaceId || "", tasks, "someday");
+    const waiting = filterTasksByBucket(tasks, "waiting");
+    const someday = filterTasksByBucket(tasks, "someday");
 
     return {
       inbox,
@@ -256,6 +257,11 @@ export function ReviewPage() {
       </Stack>
 
       <Stack gap="lg">
+        {hasNextPage && (
+          <Button variant="light" onClick={loadMore}>
+            {t("Load more tasks")}
+          </Button>
+        )}
         <Stack gap="xs">
           <Group justify="space-between">
             <Title order={4}>{t("Weekly Review")}</Title>
@@ -297,7 +303,17 @@ export function ReviewPage() {
         </Stack>
 
         <Stack gap="xs">
-          <Title order={4}>{t("Inbox backlog")}</Title>
+          <Group justify="space-between">
+            <Title order={4}>{t("Inbox backlog")}</Title>
+            <Button
+              component={Link}
+              to={APP_ROUTE.SPACE.INBOX(spaceId)}
+              variant="subtle"
+              size="xs"
+            >
+              {t("Open Inbox")}
+            </Button>
+          </Group>
           <Text size="sm" c="dimmed">
             {t("Items waiting for triage: {{count}}", {
               count: summary.inbox.length,
@@ -417,7 +433,17 @@ export function ReviewPage() {
         </Stack>
 
         <Stack gap="xs">
-          <Title order={4}>{t("Waiting")}</Title>
+          <Group justify="space-between">
+            <Title order={4}>{t("Waiting")}</Title>
+            <Button
+              component={Link}
+              to={APP_ROUTE.SPACE.WAITING(spaceId)}
+              variant="subtle"
+              size="xs"
+            >
+              {t("Open")}
+            </Button>
+          </Group>
           {summary.waiting.length === 0 ? (
             <Text size="sm" c="dimmed">
               {t("No waiting items")}
@@ -432,7 +458,17 @@ export function ReviewPage() {
         </Stack>
 
         <Stack gap="xs">
-          <Title order={4}>{t("Someday")}</Title>
+          <Group justify="space-between">
+            <Title order={4}>{t("Someday")}</Title>
+            <Button
+              component={Link}
+              to={APP_ROUTE.SPACE.SOMEDAY(spaceId)}
+              variant="subtle"
+              size="xs"
+            >
+              {t("Open")}
+            </Button>
+          </Group>
           {summary.someday.length === 0 ? (
             <Text size="sm" c="dimmed">
               {t("No someday items")}

@@ -1,6 +1,6 @@
 import { ActionIcon, Badge, Group, Text, Tooltip } from "@mantine/core";
 import classes from "./app-header.module.css";
-import React from "react";
+import React, { useEffect } from "react";
 import TopMenu from "@/components/layouts/global/top-menu.tsx";
 import { Link } from "react-router-dom";
 import APP_ROUTE from "@/lib/app-route.ts";
@@ -8,6 +8,7 @@ import { useAtom } from "jotai";
 import {
   desktopSidebarAtom,
   mobileSidebarAtom,
+  agentChatDrawerAtom,
 } from "@/components/layouts/global/hooks/atoms/sidebar-atom.ts";
 import { useToggleSidebar } from "@/components/layouts/global/hooks/hooks/use-toggle-sidebar.ts";
 import SidebarToggle from "@/components/ui/sidebar-toggle-button.tsx";
@@ -16,13 +17,21 @@ import useTrial from "@/ee/hooks/use-trial.tsx";
 import { isCloud } from "@/lib/config.ts";
 import { ThemeSwitcher } from "@/features/user/components/theme-switcher";
 import { QuickCapture } from "@/features/gtd/components/quick-capture";
-import { IconKeyboard } from "@tabler/icons-react";
+import { IconKeyboard, IconMessageChatbot } from "@tabler/icons-react";
 // import { MCPEventIndicator } from "@/features/websocket/components/mcp-event-indicator.tsx";
 
 const links = [
   { link: APP_ROUTE.HOME, label: "Home" },
   { link: APP_ROUTE.FILES, label: "Files" },
 ];
+
+function isEditableTarget(target: EventTarget | null) {
+  if (!(target instanceof HTMLElement)) return false;
+  return (
+    target.isContentEditable ||
+    ["input", "textarea", "select"].includes(target.tagName.toLowerCase())
+  );
+}
 
 export function AppHeader() {
   const { t } = useTranslation();
@@ -31,6 +40,7 @@ export function AppHeader() {
 
   const [desktopOpened] = useAtom(desktopSidebarAtom);
   const toggleDesktop = useToggleSidebar(desktopSidebarAtom);
+  const [, setAgentChatOpened] = useAtom(agentChatDrawerAtom);
   const { isTrial, trialDaysLeft } = useTrial();
 
   const isHomeRoute = location.pathname.startsWith("/home");
@@ -40,8 +50,9 @@ export function AppHeader() {
   }, []);
   const captureShortcut = isMac ? "Cmd+K" : "Ctrl+K";
   const triageShortcut = isMac ? "Cmd+Shift+K" : "Ctrl+Shift+K";
+  const chatShortcut = isMac ? "Cmd+Shift+A" : "Ctrl+Shift+A";
   const shortcutLabel = t("Shortcuts: {{items}}", {
-    items: `${captureShortcut} capture, ${triageShortcut} triage`,
+    items: `${captureShortcut} capture, ${triageShortcut} triage, ${chatShortcut} agent chat`,
   });
 
   const items = links.map((link) => (
@@ -49,6 +60,25 @@ export function AppHeader() {
       {t(link.label)}
     </Link>
   ));
+
+  const toggleAgentChat = () => setAgentChatOpened((opened) => !opened);
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.defaultPrevented) return;
+      if (isEditableTarget(event.target)) return;
+      const isModifier = isMac ? event.metaKey : event.ctrlKey;
+      if (!isModifier || !event.shiftKey) return;
+      if (event.key.toLowerCase() !== "a") return;
+      event.preventDefault();
+      setAgentChatOpened((opened) => !opened);
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isMac, setAgentChatOpened]);
 
   return (
     <>
@@ -114,6 +144,16 @@ export function AppHeader() {
           <Tooltip label={shortcutLabel} withArrow position="bottom">
             <ActionIcon variant="subtle" size={30} aria-label={shortcutLabel}>
               <IconKeyboard size={16} />
+            </ActionIcon>
+          </Tooltip>
+          <Tooltip label={t("Agent chat")} withArrow position="bottom">
+            <ActionIcon
+              variant="subtle"
+              size={30}
+              aria-label={t("Agent chat")}
+              onClick={toggleAgentChat}
+            >
+              <IconMessageChatbot size={16} />
             </ActionIcon>
           </Tooltip>
           <ThemeSwitcher />

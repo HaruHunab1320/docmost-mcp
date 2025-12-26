@@ -157,6 +157,16 @@ export class TaskListBySpaceDto extends PaginationOptionsDto {
   searchTerm?: string;
 }
 
+export class TaskTriageSummaryDto {
+  @IsUUID()
+  spaceId: string;
+
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  limit?: number;
+}
+
 export class TaskAssignmentDto {
   @IsUUID()
   taskId: string;

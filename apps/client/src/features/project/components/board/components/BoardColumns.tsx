@@ -35,12 +35,14 @@ import { useTranslation } from "react-i18next";
 import { formatDate } from "@/lib/utils/format-utils";
 import dayjs from "dayjs";
 import { useState, useEffect } from "react";
+import { Goal } from "@/features/goal/types";
 
 interface BoardColumnsProps {
   tasks: Task[];
   users: IUser[];
   onEditTask: (task: Task) => void;
   onCreateTask?: () => void;
+  goalMap?: Record<string, Goal[]>;
 }
 
 // Column definition type
@@ -57,12 +59,14 @@ export function BoardColumns({
   users,
   onEditTask,
   onCreateTask,
+  goalMap,
 }: BoardColumnsProps) {
   const { t } = useTranslation();
   const [visibleColumns, setVisibleColumns] = useState<string[]>([
     "title",
     "status",
     "priority",
+    "goals",
     "assignee",
     "dueDate",
   ]);
@@ -106,6 +110,19 @@ export function BoardColumns({
       return <IconAlertCircle size={14} />;
     }
     return null;
+  };
+
+  const getGoalColor = (horizon: string) => {
+    switch (horizon) {
+      case "short":
+        return "teal";
+      case "mid":
+        return "blue";
+      case "long":
+        return "grape";
+      default:
+        return "gray";
+    }
   };
 
   const renderAssignee = (task: Task) => {
@@ -182,6 +199,35 @@ export function BoardColumns({
           </Badge>
         </Group>
       ),
+    },
+    {
+      id: "goals",
+      label: t("Goals"),
+      visible: true,
+      width: "15%",
+      renderCell: (task) => {
+        const goals = goalMap?.[task.id] || [];
+        if (goals.length === 0) return <Text size="sm">—</Text>;
+        return (
+          <Group gap={6}>
+            {goals.slice(0, 2).map((goal) => (
+              <Badge
+                key={goal.id}
+                size="xs"
+                variant="light"
+                color={getGoalColor(goal.horizon)}
+              >
+                {goal.name}
+              </Badge>
+            ))}
+            {goals.length > 2 && (
+              <Badge size="xs" variant="light" color="gray">
+                {t("+{{count}}", { count: goals.length - 2 })}
+              </Badge>
+            )}
+          </Group>
+        );
+      },
     },
     {
       id: "assignee",

@@ -14,7 +14,6 @@ import { useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {
   useMoveTaskToProjectMutation,
-  useTasksBySpace,
   useUpdateTaskMutation,
   useCompleteTaskMutation,
 } from "@/features/project/hooks/use-tasks";
@@ -24,12 +23,10 @@ import { TaskDrawer } from "@/features/project/components/task-drawer";
 import { projectService } from "@/features/project/services/project-service";
 import { notifications } from "@mantine/notifications";
 import { queryClient } from "@/main";
-import { TaskPriority } from "@/features/project/types";
-import {
-  clearTaskBucket,
-  setTaskBucket,
-} from "@/features/gtd/utils/task-buckets";
+import { TaskBucket, TaskPriority } from "@/features/project/types";
 import { ShortcutHint } from "@/features/gtd/components/shortcut-hint";
+import { usePagedSpaceTasks } from "@/features/gtd/hooks/use-paged-space-tasks";
+import { getTaskBucket } from "@/features/gtd/utils/task-buckets";
 
 export function TriagePage() {
   const { t } = useTranslation();
@@ -38,22 +35,31 @@ export function TriagePage() {
   const [drawerOpened, setDrawerOpened] = useState(false);
   const [selectedTaskIds, setSelectedTaskIds] = useState<string[]>([]);
   const [bulkWorking, setBulkWorking] = useState(false);
+  const [includeDeferred, setIncludeDeferred] = useState(false);
   const updateTaskMutation = useUpdateTaskMutation();
   const moveTaskMutation = useMoveTaskToProjectMutation();
   const completeTaskMutation = useCompleteTaskMutation();
 
-  const { data: tasksData, isLoading } = useTasksBySpace({
-    spaceId: spaceId || "",
-    page: 1,
-    limit: 200,
-  });
+  const { items: tasks, isLoading, hasNextPage, loadMore } =
+    usePagedSpaceTasks(spaceId || "");
   const { data: projectsData } = useProjects({ spaceId: spaceId || "" });
 
   const triageTasks = useMemo(() => {
-    return (tasksData?.items || []).filter(
-      (task) => !task.projectId && !task.isCompleted
-    );
-  }, [tasksData?.items]);
+    return tasks.filter((task) => {
+      if (task.projectId || task.isCompleted) return false;
+      if (includeDeferred) return true;
+      const bucket = getTaskBucket(task);
+      return bucket === "none" || bucket === "inbox";
+    });
+  }, [includeDeferred, tasks]);
+
+  const deferredCount = useMemo(() => {
+    return tasks.filter((task) => {
+      if (task.projectId || task.isCompleted) return false;
+      const bucket = getTaskBucket(task);
+      return bucket === "waiting" || bucket === "someday";
+    }).length;
+  }, [tasks]);
 
   const toggleSelected = (taskId: string) => {
     setSelectedTaskIds((prev) =>
@@ -132,13 +138,16 @@ export function TriagePage() {
     }
   };
 
-  const runBulkBucket = async (bucket: "waiting" | "someday") => {
-    if (!selectedTaskIds.length || !spaceId) return;
+  const runBulkBucket = async (bucket: TaskBucket) => {
+    if (!selectedTaskIds.length) return;
     setBulkWorking(true);
     try {
-      selectedTaskIds.forEach((taskId) =>
-        setTaskBucket(spaceId, taskId, bucket)
+      await Promise.all(
+        selectedTaskIds.map((taskId) =>
+          projectService.updateTask({ taskId, bucket })
+        )
       );
+      queryClient.invalidateQueries({ queryKey: ["space-tasks"] });
       notifications.show({
         title: t("Bucketed"),
         message: t("Moved {{count}} tasks", {
@@ -157,9 +166,10 @@ export function TriagePage() {
     setBulkWorking(true);
     try {
       await Promise.all(
-        selectedTaskIds.map((taskId) =>
-          projectService.moveTaskToProject(taskId, projectId)
-        )
+        selectedTaskIds.map(async (taskId) => {
+          await projectService.moveTaskToProject(taskId, projectId);
+          await projectService.updateTask({ taskId, bucket: "none" });
+        })
       );
       queryClient.invalidateQueries({ queryKey: ["space-tasks"] });
       queryClient.invalidateQueries({ queryKey: ["project-tasks"] });
@@ -208,7 +218,30 @@ export function TriagePage() {
       <Stack gap="xs" mb="md">
         <Group justify="space-between">
           <Title order={2}>{t("Daily Triage")}</Title>
+          <Checkbox
+            label={t("Include deferred")}
+            checked={includeDeferred}
+            onChange={(event) =>
+              setIncludeDeferred(event.currentTarget.checked)
+            }
+          />
         </Group>
+        {!includeDeferred && deferredCount > 0 && (
+          <Group gap="xs">
+            <Text size="sm" c="dimmed">
+              {t("Hidden {{count}} waiting/someday items", {
+                count: deferredCount,
+              })}
+            </Text>
+            <Button
+              variant="subtle"
+              size="xs"
+              onClick={() => setIncludeDeferred(true)}
+            >
+              {t("Show")}
+            </Button>
+          </Group>
+        )}
         <ShortcutHint showCapture={false} />
       </Stack>
 
@@ -274,19 +307,19 @@ export function TriagePage() {
                 {t("Complete")}
               </Button>
               <Button
-                variant="subtle"
-                onClick={() => runBulkBucket("waiting")}
-                disabled={!selectedTaskIds.length}
-                loading={bulkWorking}
-              >
+              variant="subtle"
+              onClick={() => runBulkBucket("waiting")}
+              disabled={!selectedTaskIds.length}
+              loading={bulkWorking}
+            >
                 {t("Waiting")}
               </Button>
               <Button
-                variant="subtle"
-                onClick={() => runBulkBucket("someday")}
-                disabled={!selectedTaskIds.length}
-                loading={bulkWorking}
-              >
+              variant="subtle"
+              onClick={() => runBulkBucket("someday")}
+              disabled={!selectedTaskIds.length}
+              loading={bulkWorking}
+            >
                 {t("Someday")}
               </Button>
             </Group>
@@ -321,7 +354,10 @@ export function TriagePage() {
                         taskId: task.id,
                         projectId: value,
                       });
-                      clearTaskBucket(spaceId, task.id);
+                      updateTaskMutation.mutate({
+                        taskId: task.id,
+                        bucket: "none",
+                      });
                     }
                   }}
                   searchable
@@ -362,19 +398,34 @@ export function TriagePage() {
                 </Button>
                 <Button
                   variant="subtle"
-                  onClick={() => setTaskBucket(spaceId, task.id, "waiting")}
+                  onClick={() =>
+                    updateTaskMutation.mutate({
+                      taskId: task.id,
+                      bucket: "waiting",
+                    })
+                  }
                 >
                   {t("Waiting")}
                 </Button>
                 <Button
                   variant="subtle"
-                  onClick={() => setTaskBucket(spaceId, task.id, "someday")}
+                  onClick={() =>
+                    updateTaskMutation.mutate({
+                      taskId: task.id,
+                      bucket: "someday",
+                    })
+                  }
                 >
                   {t("Someday")}
                 </Button>
               </Group>
             </Box>
           ))}
+          {hasNextPage && (
+            <Button variant="light" onClick={loadMore}>
+              {t("Load more")}
+            </Button>
+          )}
         </Stack>
       )}
 

@@ -9,7 +9,9 @@ import { useSpaceQuery } from "@/features/space/queries/space-query";
 import { getOrCreateDailyNote } from "@/features/gtd/utils/daily-note";
 import { buildPageUrl } from "@/features/page/page.utils";
 import { parseBucketedInput } from "@/features/gtd/utils/auto-bucket";
-import { setTaskBucket } from "@/features/gtd/utils/task-buckets";
+import { useAtom } from "jotai";
+import { workspaceAtom } from "@/features/user/atoms/current-user-atom";
+import { agentMemoryService } from "@/features/agent-memory/services/agent-memory-service";
 
 interface JournalCaptureProps {
   spaceId: string;
@@ -18,8 +20,11 @@ interface JournalCaptureProps {
 export function JournalCapture({ spaceId }: JournalCaptureProps) {
   const { t } = useTranslation();
   const { data: space } = useSpaceQuery(spaceId);
+  const [workspace] = useAtom(workspaceAtom);
   const [value, setValue] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const allowMemoryIngest =
+    workspace?.settings?.agent?.enableMemoryAutoIngest !== false;
 
   const handleSubmit = async () => {
     const lines = value
@@ -35,7 +40,7 @@ export function JournalCapture({ spaceId }: JournalCaptureProps) {
         throw new Error("Missing space");
       }
 
-      const dailyNote = await getOrCreateDailyNote({
+      const { page: dailyNote, created } = await getOrCreateDailyNote({
         spaceId: space.id,
         spaceSlug: space.slug,
       });
@@ -48,17 +53,37 @@ export function JournalCapture({ spaceId }: JournalCaptureProps) {
       for (const line of lines) {
         const parsed = parseBucketedInput(line);
         if (!parsed.title) continue;
-        const created = await projectService.createTask({
+        await projectService.createTask({
           title: parsed.title,
           spaceId,
           description: `Captured in Daily Note: [${dailyNote.title}](${noteUrl})`,
+          ...(parsed.bucket ? { bucket: parsed.bucket } : {}),
         });
-        if (parsed.bucket && created?.id) {
-          setTaskBucket(spaceId, created.id, parsed.bucket);
-        }
       }
 
       queryClient.invalidateQueries({ queryKey: ["space-tasks"] });
+
+      if (workspace?.id && allowMemoryIngest) {
+        try {
+          const summary = created
+            ? `Captured journal entry + created daily note`
+            : `Captured journal entry`;
+          const content = lines.map((line) => `- ${line}`).join("\n");
+          await agentMemoryService.ingest({
+            workspaceId: workspace.id,
+            spaceId,
+            source: "journal-capture",
+            summary,
+            content: {
+              text: `Captured from journal:\n\n${content}\n\nDaily note: [${dailyNote.title}](${noteUrl})`,
+            },
+            tags: ["journal"],
+          });
+        } catch {
+          // Memory ingestion failure should not block capture.
+        }
+      }
+
       notifications.show({
         title: t("Captured"),
         message: t("Added {{count}} items to Inbox", {

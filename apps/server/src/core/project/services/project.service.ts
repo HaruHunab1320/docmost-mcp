@@ -13,6 +13,7 @@ import { PageService } from '../../page/services/page.service';
 import { executeTx } from '@docmost/db/utils';
 import { InjectKysely } from 'nestjs-kysely';
 import { KyselyDB } from '@docmost/db/types/kysely.types';
+import { AgentMemoryService } from '../../agent-memory/agent-memory.service';
 
 @Injectable()
 export class ProjectService {
@@ -21,6 +22,7 @@ export class ProjectService {
     private readonly spaceRepo: SpaceRepo,
     private readonly pageService: PageService,
     @InjectKysely() private readonly db: KyselyDB,
+    private readonly agentMemoryService: AgentMemoryService,
   ) {}
 
   async findById(
@@ -126,6 +128,25 @@ export class ProjectService {
       return updatedProject ?? project;
     });
 
+    try {
+      await this.agentMemoryService.ingestMemory({
+        workspaceId,
+        spaceId: result.spaceId,
+        creatorId: userId,
+        source: 'project.created',
+        summary: `Project created: ${result.name}`,
+        tags: ['project', 'created'],
+        content: {
+          action: 'created',
+          projectId: result.id,
+          name: result.name,
+          spaceId: result.spaceId,
+        },
+      });
+    } catch {
+      // Memory ingestion should not block project creation.
+    }
+
     console.log('Project created result:', JSON.stringify(result, null, 2));
     return result;
   }
@@ -191,6 +212,28 @@ export class ProjectService {
     try {
       const result = await this.projectRepo.update(projectId, updateData);
       console.log('ProjectService.update: result:', result);
+
+      if (result) {
+        try {
+          await this.agentMemoryService.ingestMemory({
+            workspaceId: result.workspaceId,
+            spaceId: result.spaceId,
+            creatorId: result.creatorId || undefined,
+            source: 'project.updated',
+            summary: `Project updated: ${result.name}`,
+            tags: ['project', 'updated'],
+            content: {
+              action: 'updated',
+              projectId: result.id,
+              name: result.name,
+              spaceId: result.spaceId,
+            },
+          });
+        } catch {
+          // Memory ingestion should not block project updates.
+        }
+      }
+
       return result;
     } catch (error) {
       console.error('ProjectService.update: error:', error);
@@ -199,14 +242,78 @@ export class ProjectService {
   }
 
   async delete(projectId: string): Promise<void> {
+    const project = await this.projectRepo.findById(projectId);
     await this.projectRepo.softDelete(projectId);
+
+    if (project) {
+      try {
+        await this.agentMemoryService.ingestMemory({
+          workspaceId: project.workspaceId,
+          spaceId: project.spaceId,
+          creatorId: project.creatorId || undefined,
+          source: 'project.deleted',
+          summary: `Project deleted: ${project.name}`,
+          tags: ['project', 'deleted'],
+          content: {
+            action: 'deleted',
+            projectId: project.id,
+            name: project.name,
+            spaceId: project.spaceId,
+          },
+        });
+      } catch {
+        // Memory ingestion should not block project deletes.
+      }
+    }
   }
 
   async archive(projectId: string): Promise<Project | undefined> {
-    return this.projectRepo.archive(projectId);
+    const project = await this.projectRepo.archive(projectId);
+    if (project) {
+      try {
+        await this.agentMemoryService.ingestMemory({
+          workspaceId: project.workspaceId,
+          spaceId: project.spaceId,
+          creatorId: project.creatorId || undefined,
+          source: 'project.archived',
+          summary: `Project archived: ${project.name}`,
+          tags: ['project', 'archived'],
+          content: {
+            action: 'archived',
+            projectId: project.id,
+            name: project.name,
+            spaceId: project.spaceId,
+          },
+        });
+      } catch {
+        // Memory ingestion should not block project archive.
+      }
+    }
+    return project;
   }
 
   async unarchive(projectId: string): Promise<Project | undefined> {
-    return this.projectRepo.unarchive(projectId);
+    const project = await this.projectRepo.unarchive(projectId);
+    if (project) {
+      try {
+        await this.agentMemoryService.ingestMemory({
+          workspaceId: project.workspaceId,
+          spaceId: project.spaceId,
+          creatorId: project.creatorId || undefined,
+          source: 'project.unarchived',
+          summary: `Project unarchived: ${project.name}`,
+          tags: ['project', 'unarchived'],
+          content: {
+            action: 'unarchived',
+            projectId: project.id,
+            name: project.name,
+            spaceId: project.spaceId,
+          },
+        });
+      } catch {
+        // Memory ingestion should not block project unarchive.
+      }
+    }
+    return project;
   }
 }

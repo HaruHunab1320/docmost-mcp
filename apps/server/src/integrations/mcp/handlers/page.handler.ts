@@ -154,6 +154,247 @@ export class PageHandler {
   }
 
   /**
+   * Handles page.recent operation
+   */
+  async getRecentPages(params: any, userId: string): Promise<any> {
+    this.logger.debug(`Processing page.recent operation for user ${userId}`);
+
+    try {
+      const limit = params.limit || 20;
+      const page = params.page || 1;
+      const query = params.query || '';
+
+      const pagination = new PaginationOptions();
+      pagination.limit = limit;
+      pagination.page = page;
+      pagination.query = query;
+
+      if (params.spaceId) {
+        const user = { id: userId } as User;
+        const ability = await this.spaceAbility.createForUser(
+          user,
+          params.spaceId,
+        );
+        if (ability.cannot(SpaceCaslAction.Read, SpaceCaslSubject.Page)) {
+          throw createPermissionDeniedError(
+            'You do not have permission to read pages in this space',
+          );
+        }
+
+        return this.pageService.getRecentSpacePages(params.spaceId, pagination);
+      }
+
+      return this.pageService.getRecentPages(userId, pagination);
+    } catch (error: any) {
+      this.logger.error(
+        `Error getting recent pages: ${error?.message || 'Unknown error'}`,
+        error?.stack,
+      );
+      if (error?.code && typeof error.code === 'number') {
+        throw error;
+      }
+      throw createInternalError(error?.message || String(error));
+    }
+  }
+
+  /**
+   * Handles page.breadcrumbs operation
+   */
+  async getPageBreadcrumbs(params: any, userId: string): Promise<any> {
+    this.logger.debug(`Processing page.breadcrumbs operation for user ${userId}`);
+
+    if (!params.pageId) {
+      throw createInvalidParamsError('pageId is required');
+    }
+
+    try {
+      const page = await this.pageRepo.findById(params.pageId);
+      if (!page) {
+        throw createResourceNotFoundError('Page', params.pageId);
+      }
+
+      const user = { id: userId } as User;
+      const ability = await this.spaceAbility.createForUser(
+        user,
+        page.spaceId,
+      );
+      if (ability.cannot(SpaceCaslAction.Read, SpaceCaslSubject.Page)) {
+        throw createPermissionDeniedError(
+          'You do not have permission to read this page',
+        );
+      }
+
+      return this.pageService.getPageBreadCrumbs(page.id);
+    } catch (error: any) {
+      this.logger.error(
+        `Error getting breadcrumbs: ${error?.message || 'Unknown error'}`,
+        error?.stack,
+      );
+      if (error?.code && typeof error.code === 'number') {
+        throw error;
+      }
+      throw createInternalError(error?.message || String(error));
+    }
+  }
+
+  /**
+   * Handles page.sidebarPages operation
+   */
+  async getSidebarPages(params: any, userId: string): Promise<any> {
+    this.logger.debug(
+      `Processing page.sidebarPages operation for user ${userId}`,
+    );
+
+    if (!params.spaceId) {
+      throw createInvalidParamsError('spaceId is required');
+    }
+
+    try {
+      const user = { id: userId } as User;
+      const ability = await this.spaceAbility.createForUser(
+        user,
+        params.spaceId,
+      );
+      if (ability.cannot(SpaceCaslAction.Read, SpaceCaslSubject.Page)) {
+        throw createPermissionDeniedError(
+          'You do not have permission to read pages in this space',
+        );
+      }
+
+      let pageId: string | null = null;
+      if (params.pageId) {
+        const page = await this.pageRepo.findById(params.pageId);
+        if (!page) {
+          throw createResourceNotFoundError('Page', params.pageId);
+        }
+        if (page.spaceId !== params.spaceId) {
+          throw createPermissionDeniedError(
+            'Page does not belong to the specified space',
+          );
+        }
+        pageId = page.id;
+      }
+
+      const pagination = new PaginationOptions();
+      pagination.page = params.page || 1;
+      pagination.limit = params.limit || 50;
+      pagination.query = params.query || '';
+
+      return this.pageService.getSidebarPages(
+        params.spaceId,
+        pagination,
+        pageId,
+      );
+    } catch (error: any) {
+      this.logger.error(
+        `Error getting sidebar pages: ${error?.message || 'Unknown error'}`,
+        error?.stack,
+      );
+      if (error?.code && typeof error.code === 'number') {
+        throw error;
+      }
+      throw createInternalError(error?.message || String(error));
+    }
+  }
+
+  /**
+   * Handles page.historyInfo operation
+   */
+  async getPageHistoryInfo(params: any, userId: string): Promise<any> {
+    this.logger.debug(
+      `Processing page.historyInfo operation for user ${userId}`,
+    );
+
+    if (!params.historyId) {
+      throw createInvalidParamsError('historyId is required');
+    }
+
+    try {
+      const history = await this.pageHistoryService.findById(params.historyId);
+      if (!history) {
+        throw createResourceNotFoundError('Page history', params.historyId);
+      }
+
+      const user = { id: userId } as User;
+      const ability = await this.spaceAbility.createForUser(
+        user,
+        history.spaceId,
+      );
+      if (ability.cannot(SpaceCaslAction.Read, SpaceCaslSubject.Page)) {
+        throw createPermissionDeniedError(
+          'You do not have permission to read this page history',
+        );
+      }
+
+      return history;
+    } catch (error: any) {
+      this.logger.error(
+        `Error getting page history info: ${error?.message || 'Unknown error'}`,
+        error?.stack,
+      );
+      if (error?.code && typeof error.code === 'number') {
+        throw error;
+      }
+      throw createInternalError(error?.message || String(error));
+    }
+  }
+
+  /**
+   * Handles page.moveToSpace operation
+   */
+  async movePageToSpace(params: any, userId: string): Promise<any> {
+    this.logger.debug(
+      `Processing page.moveToSpace operation for user ${userId}`,
+    );
+
+    if (!params.pageId) {
+      throw createInvalidParamsError('pageId is required');
+    }
+
+    if (!params.spaceId) {
+      throw createInvalidParamsError('spaceId is required');
+    }
+
+    try {
+      const movedPage = await this.pageRepo.findById(params.pageId);
+      if (!movedPage) {
+        throw createResourceNotFoundError('Page', params.pageId);
+      }
+
+      if (movedPage.spaceId === params.spaceId) {
+        throw createInvalidParamsError('Page is already in this space');
+      }
+
+      const user = { id: userId } as User;
+      const abilities = await Promise.all([
+        this.spaceAbility.createForUser(user, movedPage.spaceId),
+        this.spaceAbility.createForUser(user, params.spaceId),
+      ]);
+
+      if (
+        abilities.some((ability) =>
+          ability.cannot(SpaceCaslAction.Edit, SpaceCaslSubject.Page),
+        )
+      ) {
+        throw createPermissionDeniedError(
+          'You do not have permission to move this page',
+        );
+      }
+
+      return this.pageService.movePageToSpace(movedPage, params.spaceId);
+    } catch (error: any) {
+      this.logger.error(
+        `Error moving page to space: ${error?.message || 'Unknown error'}`,
+        error?.stack,
+      );
+      if (error?.code && typeof error.code === 'number') {
+        throw error;
+      }
+      throw createInternalError(error?.message || String(error));
+    }
+  }
+
+  /**
    * Handles page.create operation
    *
    * @param params The operation parameters

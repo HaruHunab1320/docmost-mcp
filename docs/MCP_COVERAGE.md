@@ -35,7 +35,12 @@ Legend:
 | `page.move` | `page_move` | OK |
 | `page.search` | `page_search` | OK |
 | `page.getHistory` | `page_get_history` | OK |
+| `page.historyInfo` | `page_history_info` | OK |
 | `page.restore` | `page_restore` | OK |
+| `page.recent` | `page_recent` | OK |
+| `page.breadcrumbs` | `page_breadcrumbs` | OK |
+| `page.sidebarPages` | `page_sidebar_pages` | OK |
+| `page.moveToSpace` | `page_move_to_space` | OK |
 
 ### Comments
 | JSON-RPC Method | MCP Standard Tool | Status |
@@ -117,6 +122,15 @@ Legend:
 | `task.complete` | `task_complete` | OK |
 | `task.assign` | `task_assign` | OK |
 | `task.moveToProject` | `task_move_to_project` | OK |
+| `task.triageSummary` | `task_triage_summary` | OK |
+
+### Memory
+| JSON-RPC Method | MCP Standard Tool | Status |
+| --- | --- | --- |
+| `memory.ingest` | `memory_ingest` | OK |
+| `memory.query` | `memory_query` | OK |
+| `memory.daily` | `memory_daily` | OK |
+| `memory.days` | `memory_days` | OK |
 
 ### Search
 | JSON-RPC Method | MCP Standard Tool | Status |
@@ -141,6 +155,11 @@ Legend:
 | --- | --- | --- |
 | `approval.request` | `approval_request` | OK |
 | `approval.confirm` | `approval_confirm` | OK |
+
+### AI
+| JSON-RPC Method | MCP Standard Tool | Status |
+| --- | --- | --- |
+| `ai.generate` | `ai_generate` | OK |
 
 ### System
 | JSON-RPC Method | MCP Standard Tool | Status |

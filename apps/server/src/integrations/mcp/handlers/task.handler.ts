@@ -184,6 +184,43 @@ export class TaskHandler {
   }
 
   /**
+   * Handles task.triageSummary operation
+   */
+  async triageSummary(params: any, userId: string): Promise<any> {
+    this.logger.debug(`Processing task.triageSummary for user ${userId}`);
+
+    if (!params.spaceId) {
+      throw createInvalidParamsError('spaceId is required');
+    }
+
+    try {
+      const user = { id: userId } as User;
+      const ability = await this.spaceAbility.createForUser(
+        user,
+        params.spaceId,
+      );
+      if (ability.cannot(SpaceCaslAction.Read, SpaceCaslSubject.Page)) {
+        throw createPermissionDeniedError(
+          'You do not have permission to read tasks in this space',
+        );
+      }
+
+      return this.taskService.getDailyTriageSummary(params.spaceId, {
+        limit: params.limit,
+      });
+    } catch (error: any) {
+      this.logger.error(
+        `Error getting triage summary: ${error?.message || 'Unknown error'}`,
+        error?.stack,
+      );
+      if (error?.code && typeof error.code === 'number') {
+        throw error;
+      }
+      throw createInternalError(error?.message || String(error));
+    }
+  }
+
+  /**
    * Handles task.create operation
    */
   async createTask(params: any, userId: string): Promise<any> {

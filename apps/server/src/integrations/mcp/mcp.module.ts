@@ -17,6 +17,8 @@ import { ApprovalHandler } from './handlers/approval.handler';
 import { SearchHandler } from './handlers/search.handler';
 import { ImportHandler } from './handlers/import.handler';
 import { ExportHandler } from './handlers/export.handler';
+import { AIHandler } from './handlers/ai.handler';
+import { MemoryHandler } from './handlers/memory.handler';
 import { PageModule } from '../../core/page/page.module';
 import { ProjectModule } from '../../core/project/project.module';
 import { SpaceModule } from '../../core/space/space.module';
@@ -35,6 +37,7 @@ import { TokenModule } from '../../core/auth/token.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { MCPApiKeyService } from './services/mcp-api-key.service';
 import { ApiKeyController } from './controllers/api-key.controller';
+import { ApprovalCenterController } from './controllers/approval-center.controller';
 import { MCPApiKeyGuard } from './guards/mcp-api-key.guard';
 import { MCPAuthGuard } from './guards/mcp-auth.guard';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
@@ -46,6 +49,8 @@ import { ImportModule } from '../../integrations/import/import.module';
 import { ExportModule } from '../../integrations/export/export.module';
 import { SearchModule } from '../../core/search/search.module';
 import { StorageModule } from '../../integrations/storage/storage.module';
+import { AIModule } from '../../integrations/ai/ai.module';
+import { AgentMemoryModule } from '../../core/agent-memory/agent-memory.module';
 
 /**
  * Machine Control Protocol (MCP) Module
@@ -72,9 +77,11 @@ import { StorageModule } from '../../integrations/storage/storage.module';
     ExportModule,
     SearchModule,
     StorageModule,
+    AIModule,
+    AgentMemoryModule,
     EventEmitterModule.forRoot(),
   ],
-  controllers: [MCPController, ApiKeyController],
+  controllers: [MCPController, ApiKeyController, ApprovalCenterController],
   providers: [
     MCPService,
     // Register all handlers
@@ -94,6 +101,8 @@ import { StorageModule } from '../../integrations/storage/storage.module';
     SearchHandler,
     ImportHandler,
     ExportHandler,
+    AIHandler,
+    MemoryHandler,
     // Register services
     MCPSchemaService,
     MCPContextService,
@@ -120,6 +129,7 @@ import { StorageModule } from '../../integrations/storage/storage.module';
     MCPApiKeyService,
     MCPSchemaService,
     MCPContextService,
+    MCPApprovalService,
   ],
 })
 export class MCPModule {

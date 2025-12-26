@@ -33,7 +33,7 @@ import { getStatusLabel } from "../board-utils";
 import { useRef, useState, useMemo } from "react";
 import { useCreateTaskMutation } from "../../../hooks/use-tasks";
 import { useBoardContext } from "../board-context";
-import { TaskCard } from "../../../components/task-card";
+import { Goal } from "@/features/goal/types";
 
 interface BoardColumnProps {
   status: TaskStatus;
@@ -41,6 +41,7 @@ interface BoardColumnProps {
   users: any[]; // Replace with proper user type
   onCreateTask: (status: TaskStatus) => void;
   onEditTask: (task: Task) => void;
+  goalMap?: Record<string, Goal[]>;
 }
 
 export function BoardColumn({
@@ -49,6 +50,7 @@ export function BoardColumn({
   users,
   onCreateTask,
   onEditTask,
+  goalMap,
 }: BoardColumnProps) {
   const { t } = useTranslation();
   const columnBoxRef = useRef<HTMLDivElement>(null);
@@ -236,6 +238,7 @@ export function BoardColumn({
                     task={task}
                     onClick={() => onEditTask(task)}
                     users={users}
+                    goalMap={goalMap}
                   />
                 ))
               ) : (

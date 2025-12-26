@@ -24,6 +24,7 @@ import {
 import { isDeepStrictEqual } from 'node:util';
 import { IPageBacklinkJob } from '../../integrations/queue/constants/queue.interface';
 import { Page } from '@docmost/db/types/entity.types';
+import { EventName } from '../../common/events/event.contants';
 
 @Injectable()
 export class PersistenceExtension implements Extension {
@@ -181,6 +182,13 @@ export class PersistenceExtension implements Extension {
     }
 
     this.contributors.get(documentName).add(userId);
+
+    const pageId = getPageId(documentName);
+    this.eventEmitter.emit(EventName.COLLAB_PAGE_CHANGED, {
+      pageId,
+      userId,
+      timestamp: Date.now(),
+    });
   }
 
   async afterUnloadDocument(data: afterUnloadDocumentPayload) {

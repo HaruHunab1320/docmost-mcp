@@ -6,9 +6,11 @@ import { TaskController } from './task.controller';
 import { DatabaseModule } from '../../database/database.module';
 import { CaslModule } from '../casl/casl.module';
 import { PageModule } from '../page/page.module';
+import { GoalModule } from '../goal/goal.module';
+import { AgentMemoryModule } from '../agent-memory/agent-memory.module';
 
 @Module({
-  imports: [DatabaseModule, CaslModule, PageModule],
+  imports: [DatabaseModule, CaslModule, PageModule, GoalModule, AgentMemoryModule],
   controllers: [ProjectController, TaskController],
   providers: [ProjectService, TaskService],
   exports: [ProjectService, TaskService],

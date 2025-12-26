@@ -16,6 +16,8 @@ import { ApprovalHandler } from './handlers/approval.handler';
 import { SearchHandler } from './handlers/search.handler';
 import { ImportHandler } from './handlers/import.handler';
 import { ExportHandler } from './handlers/export.handler';
+import { AIHandler } from './handlers/ai.handler';
+import { MemoryHandler } from './handlers/memory.handler';
 import { User } from '@docmost/db/types/entity.types';
 import {
   createInternalError,
@@ -55,6 +57,8 @@ export class MCPService {
     private readonly searchHandler: SearchHandler,
     private readonly importHandler: ImportHandler,
     private readonly exportHandler: ExportHandler,
+    private readonly aiHandler: AIHandler,
+    private readonly memoryHandler: MemoryHandler,
   ) {}
 
   /**
@@ -256,6 +260,18 @@ export class MCPService {
               user.id,
             );
             break;
+          case 'ai':
+            this.logger.debug(`MCPService: Delegating to AI handler`);
+            result = await this.handleAIRequest(operation, request.params);
+            break;
+          case 'memory':
+            this.logger.debug(`MCPService: Delegating to memory handler`);
+            result = await this.handleMemoryRequest(
+              operation,
+              request.params,
+              user.id,
+            );
+            break;
           default:
             this.logger.warn(`MCPService: Unsupported resource '${resource}'`);
             throw createMethodNotFoundError(request.method);
@@ -312,8 +328,18 @@ export class MCPService {
         return this.pageHandler.searchPages(params, userId);
       case 'getHistory':
         return this.pageHandler.getPageHistory(params, userId);
+      case 'historyInfo':
+        return this.pageHandler.getPageHistoryInfo(params, userId);
       case 'restore':
         return this.pageHandler.restorePageVersion(params, userId);
+      case 'recent':
+        return this.pageHandler.getRecentPages(params, userId);
+      case 'breadcrumbs':
+        return this.pageHandler.getPageBreadcrumbs(params, userId);
+      case 'sidebarPages':
+        return this.pageHandler.getSidebarPages(params, userId);
+      case 'moveToSpace':
+        return this.pageHandler.movePageToSpace(params, userId);
       default:
         throw createMethodNotFoundError(`page.${operation}`);
     }
@@ -499,6 +525,28 @@ export class MCPService {
   }
 
   /**
+   * Handle memory-related requests
+   */
+  private async handleMemoryRequest(
+    operation: string,
+    params: any,
+    userId: string,
+  ): Promise<any> {
+    switch (operation) {
+      case 'ingest':
+        return this.memoryHandler.ingest(params, userId);
+      case 'query':
+        return this.memoryHandler.query(params, userId);
+      case 'daily':
+        return this.memoryHandler.daily(params, userId);
+      case 'days':
+        return this.memoryHandler.days(params, userId);
+      default:
+        throw createMethodNotFoundError(`memory.${operation}`);
+    }
+  }
+
+  /**
    * Handle comment-related requests
    *
    * @param operation The operation to perform
@@ -592,6 +640,8 @@ export class MCPService {
         return this.taskHandler.assignTask(params, userId);
       case 'moveToProject':
         return this.taskHandler.moveToProject(params, userId);
+      case 'triageSummary':
+        return this.taskHandler.triageSummary(params, userId);
       default:
         throw createMethodNotFoundError(`task.${operation}`);
     }
@@ -743,6 +793,18 @@ export class MCPService {
         return this.exportHandler.exportSpace(params, userId);
       default:
         throw createMethodNotFoundError(`export.${operation}`);
+    }
+  }
+
+  /**
+   * Handle AI-related requests
+   */
+  private async handleAIRequest(operation: string, params: any): Promise<any> {
+    switch (operation) {
+      case 'generate':
+        return this.aiHandler.generate(params);
+      default:
+        throw createMethodNotFoundError(`ai.${operation}`);
     }
   }
 

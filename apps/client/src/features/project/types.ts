@@ -6,6 +6,7 @@ export type TaskStatus =
   | "blocked";
 
 export type TaskPriority = "low" | "medium" | "high" | "urgent";
+export type TaskBucket = "none" | "inbox" | "waiting" | "someday";
 
 export interface Project {
   id: string;
@@ -42,6 +43,7 @@ export interface Task {
   description?: string;
   status: TaskStatus;
   priority: TaskPriority;
+  bucket?: TaskBucket;
   position?: string;
   dueDate?: Date | null;
   isCompleted: boolean;
@@ -76,6 +78,7 @@ export interface CreateTaskParams {
   spaceId: string;
   status?: TaskStatus;
   priority?: TaskPriority;
+  bucket?: TaskBucket;
   dueDate?: Date | null;
   assigneeId?: string | null;
   estimatedTime?: number;
@@ -87,6 +90,7 @@ export interface UpdateTaskParams {
   description?: string;
   status?: TaskStatus;
   priority?: TaskPriority;
+  bucket?: TaskBucket;
   position?: string;
   dueDate?: Date | null;
   icon?: string | null;
@@ -96,9 +100,21 @@ export interface UpdateTaskParams {
   pageId?: string | null;
 }
 
+export interface TaskTriageSummary {
+  inbox: Task[];
+  dueToday: Task[];
+  overdue: Task[];
+  counts: {
+    inbox: number;
+    waiting: number;
+    someday: number;
+  };
+}
+
 export interface TaskListParams {
   projectId: string;
   status?: TaskStatus[];
+  bucket?: TaskBucket[];
   priority?: TaskPriority;
   assigneeId?: string;
   searchTerm?: string;
@@ -110,6 +126,7 @@ export interface TaskListParams {
 export interface TaskListBySpaceParams {
   spaceId: string;
   status?: TaskStatus[];
+  bucket?: TaskBucket[];
   priority?: TaskPriority;
   assigneeId?: string;
   searchTerm?: string;

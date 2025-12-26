@@ -14,6 +14,7 @@ import { SortableTask } from "../../../components/sortable-task";
 import { Task, TaskStatus } from "../../../types";
 import { useTranslation } from "react-i18next";
 import { useRef, useEffect } from "react";
+import { Goal } from "@/features/goal/types";
 
 interface BoardSwimlaneProps {
   id: string;
@@ -23,6 +24,7 @@ interface BoardSwimlaneProps {
   onCreateTask: (status: TaskStatus) => void;
   onEditTask: (task: Task) => void;
   containerId: string;
+  goalMap?: Record<string, Goal[]>;
 }
 
 export function BoardSwimlane({
@@ -33,6 +35,7 @@ export function BoardSwimlane({
   onCreateTask,
   onEditTask,
   containerId,
+  goalMap,
 }: BoardSwimlaneProps) {
   const { t } = useTranslation();
   // Get a direct ref to the viewport inside the ScrollArea
@@ -165,6 +168,7 @@ export function BoardSwimlane({
                     task={task}
                     onClick={() => onEditTask(task)}
                     users={users}
+                    goalMap={goalMap}
                   />
                 </Box>
               ))}

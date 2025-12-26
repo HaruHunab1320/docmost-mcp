@@ -34,12 +34,18 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useUpdateTaskMutation } from "../hooks/use-tasks";
 import EmojiPicker from "@/components/ui/emoji-picker";
+import { useAtom } from "jotai";
+import { workspaceAtom } from "@/features/user/atoms/current-user-atom";
+import { useQuery } from "@tanstack/react-query";
+import { listGoalsForTask } from "@/features/goal/services/goal-service";
+import { Goal } from "@/features/goal/types";
 
 interface TaskCardProps {
   task: Task;
   onClick: () => void;
   isDragging?: boolean;
   users?: any[];
+  goalMap?: Record<string, Goal[]>;
 }
 
 export function TaskCard({
@@ -47,10 +53,12 @@ export function TaskCard({
   onClick,
   isDragging = false,
   users = [],
+  goalMap,
 }: TaskCardProps) {
   const { t } = useTranslation();
   const theme = useMantineTheme();
   const navigate = useNavigate();
+  const [workspace] = useAtom(workspaceAtom);
   const [hovered, setHovered] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [title, setTitle] = useState(task.title);
@@ -125,7 +133,30 @@ export function TaskCard({
     }
   };
 
-  const bucket = task.spaceId ? getTaskBucket(task.spaceId, task.id) : undefined;
+  const bucket = getTaskBucket(task);
+  const taskGoalsQuery = useQuery({
+    queryKey: ["task-goals", task.id, workspace?.id],
+    queryFn: () =>
+      listGoalsForTask({
+        workspaceId: workspace?.id || "",
+        taskId: task.id,
+      }),
+    enabled: !!workspace?.id && !goalMap,
+  });
+  const taskGoals = goalMap?.[task.id] || taskGoalsQuery.data || [];
+
+  const getGoalColor = (horizon: string) => {
+    switch (horizon) {
+      case "short":
+        return "teal";
+      case "mid":
+        return "blue";
+      case "long":
+        return "grape";
+      default:
+        return "gray";
+    }
+  };
 
   return (
     <Card
@@ -197,8 +228,8 @@ export function TaskCard({
               {task.title}
             </Text>
 
-            {bucket && (
-              <Badge size="xs" variant="light" color="gray">
+            {(bucket === "waiting" || bucket === "someday") && (
+              <Badge size="sm" variant="light" color="gray">
                 {bucket === "waiting" ? t("Waiting") : t("Someday")}
               </Badge>
             )}
@@ -286,6 +317,26 @@ export function TaskCard({
           </Group>
         )}
       </Group>
+
+      {taskGoals.length > 0 && (
+        <Group gap={6} mt={6}>
+          {taskGoals.slice(0, 3).map((goal) => (
+            <Badge
+              key={goal.id}
+              size="xs"
+              variant="light"
+              color={getGoalColor(goal.horizon)}
+            >
+              {goal.name}
+            </Badge>
+          ))}
+          {taskGoals.length > 3 && (
+            <Badge size="xs" variant="light" color="gray">
+              {t("+{{count}}", { count: taskGoals.length - 3 })}
+            </Badge>
+          )}
+        </Group>
+      )}
     </Card>
   );
 }

@@ -28,12 +28,14 @@ import { IUser } from "@/features/user/types/user.types";
 import { useTranslation } from "react-i18next";
 import { formatDate } from "@/lib/utils/format-utils";
 import dayjs from "dayjs";
+import { Goal } from "@/features/goal/types";
 
 interface BoardListProps {
   tasks: Task[];
   users: IUser[];
   onEditTask: (task: Task) => void;
   onCreateTask?: () => void;
+  goalMap?: Record<string, Goal[]>;
 }
 
 export function BoardList({
@@ -41,6 +43,7 @@ export function BoardList({
   users,
   onEditTask,
   onCreateTask,
+  goalMap,
 }: BoardListProps) {
   const { t } = useTranslation();
 
@@ -129,6 +132,43 @@ export function BoardList({
     );
   };
 
+  const getGoalColor = (horizon: string) => {
+    switch (horizon) {
+      case "short":
+        return "teal";
+      case "mid":
+        return "blue";
+      case "long":
+        return "grape";
+      default:
+        return "gray";
+    }
+  };
+
+  const renderGoals = (task: Task) => {
+    const goals = goalMap?.[task.id] || [];
+    if (goals.length === 0) return null;
+    return (
+      <Group gap={6}>
+        {goals.slice(0, 3).map((goal) => (
+          <Badge
+            key={goal.id}
+            size="xs"
+            variant="light"
+            color={getGoalColor(goal.horizon)}
+          >
+            {goal.name}
+          </Badge>
+        ))}
+        {goals.length > 3 && (
+          <Badge size="xs" variant="light" color="gray">
+            {t("+{{count}}", { count: goals.length - 3 })}
+          </Badge>
+        )}
+      </Group>
+    );
+  };
+
   // Render actions
   const renderActions = (task: Task) => {
     return (
@@ -175,6 +215,7 @@ export function BoardList({
                 </Group>
 
                 <Text fw={500}>{task.title}</Text>
+                {renderGoals(task)}
                 {task.description && (
                   <Text size="sm" c="dimmed" lineClamp={2}>
                     {task.description}

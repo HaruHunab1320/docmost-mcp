@@ -7,6 +7,7 @@ export type TaskStatus =
   | "done"
   | "blocked";
 export type TaskPriority = "low" | "medium" | "high" | "urgent";
+export type TaskBucket = "none" | "inbox" | "waiting" | "someday";
 
 // Label colors supported by the system
 export type LabelColor =
@@ -59,6 +60,7 @@ export interface Task {
   description?: string;
   status: TaskStatus;
   priority: TaskPriority;
+  bucket?: TaskBucket;
   position?: string;
   dueDate?: string;
   isCompleted: boolean;
@@ -104,6 +106,7 @@ export interface TaskListParams {
   page?: number;
   limit?: number;
   status?: TaskStatus[];
+  bucket?: TaskBucket[];
   searchTerm?: string;
   includeSubtasks?: boolean;
 }
@@ -113,6 +116,7 @@ export interface TaskListBySpaceParams {
   page?: number;
   limit?: number;
   status?: TaskStatus[];
+  bucket?: TaskBucket[];
   searchTerm?: string;
 }
 
@@ -142,6 +146,7 @@ export interface CreateTaskParams {
   description?: string;
   status?: TaskStatus;
   priority?: TaskPriority;
+  bucket?: TaskBucket;
   dueDate?: Date;
   projectId?: string;
   parentTaskId?: string;
@@ -157,10 +162,22 @@ export interface UpdateTaskParams {
   description?: string;
   status?: TaskStatus;
   priority?: TaskPriority;
+  bucket?: TaskBucket;
   dueDate?: Date | null;
   estimatedTime?: number | null;
   assigneeId?: string | null;
   position?: string;
+}
+
+export interface TaskTriageSummary {
+  inbox: Task[];
+  dueToday: Task[];
+  overdue: Task[];
+  counts: {
+    inbox: number;
+    waiting: number;
+    someday: number;
+  };
 }
 
 export interface CreateLabelParams {

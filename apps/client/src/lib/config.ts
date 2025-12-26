@@ -20,7 +20,12 @@ export function getServerAppUrl(): string {
 }
 
 export function getBackendUrl(): string {
-  return getAppUrl() + "/api";
+  const configured = getConfigValue("APP_URL");
+  const base = configured || getAppUrl();
+  if (base.endsWith("/api")) {
+    return base;
+  }
+  return `${base.replace(/\/$/, "")}/api`;
 }
 
 export function getCollaborationUrl(): string {

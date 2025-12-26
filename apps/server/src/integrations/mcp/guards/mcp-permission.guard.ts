@@ -78,6 +78,12 @@ export class MCPPermissionGuard implements CanActivate {
     'comment.update': MCPPermissionLevel.WRITE,
     'comment.delete': MCPPermissionLevel.WRITE,
 
+    // Memory operations
+    'memory.ingest': MCPPermissionLevel.WRITE,
+    'memory.query': MCPPermissionLevel.READ,
+    'memory.daily': MCPPermissionLevel.READ,
+    'memory.days': MCPPermissionLevel.READ,
+
     // UI operations
     'ui.navigate': MCPPermissionLevel.ADMIN,
 

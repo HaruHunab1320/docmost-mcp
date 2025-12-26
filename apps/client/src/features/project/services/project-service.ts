@@ -9,6 +9,7 @@ import {
   TaskListParams,
   UpdateProjectParams,
   UpdateTaskParams,
+  TaskTriageSummary,
 } from "../types";
 import { IPagination } from "@/lib/types";
 
@@ -48,6 +49,7 @@ const TASK_ENDPOINTS = {
   ASSIGN: "assign",
   COMPLETE: "complete",
   MOVE_TO_PROJECT: "moveToProject",
+  TRIAGE_SUMMARY: "triageSummary",
 };
 
 export const projectService = {
@@ -323,6 +325,23 @@ export const projectService = {
       {
         taskId,
         projectId,
+      }
+    );
+    return data;
+  },
+
+  async getTriageSummary(
+    spaceId: string,
+    limit?: number
+  ): Promise<TaskTriageSummary> {
+    if (!spaceId) {
+      throw new Error("Space ID is required");
+    }
+    const { data } = await api.post(
+      `${TASKS_ENDPOINT}/${TASK_ENDPOINTS.TRIAGE_SUMMARY}`,
+      {
+        spaceId,
+        limit,
       }
     );
     return data;

@@ -79,6 +79,31 @@ export interface AuthProviders {
   workspaceId: string;
 }
 
+export interface AgentMemories {
+  content: Json | null;
+  createdAt: Generated<Timestamp>;
+  creatorId: string | null;
+  id: Generated<string>;
+  source: string | null;
+  spaceId: string | null;
+  summary: string | null;
+  tags: Json | null;
+  updatedAt: Generated<Timestamp>;
+  workspaceId: string;
+}
+
+export interface Goals {
+  createdAt: Generated<Timestamp>;
+  description: string | null;
+  horizon: string;
+  id: Generated<string>;
+  keywords: Json | null;
+  name: string;
+  spaceId: string | null;
+  updatedAt: Generated<Timestamp>;
+  workspaceId: string;
+}
+
 export interface Backlinks {
   createdAt: Generated<Timestamp>;
   id: Generated<string>;
@@ -271,6 +296,13 @@ export interface TaskLabelAssignments {
   taskId: string;
 }
 
+export interface TaskGoalAssignments {
+  createdAt: Generated<Timestamp>;
+  goalId: string;
+  id: Generated<string>;
+  taskId: string;
+}
+
 export interface TaskLabels {
   color: string;
   createdAt: Generated<Timestamp>;
@@ -379,12 +411,14 @@ export interface Workspaces {
 }
 
 export interface DB {
+  agentMemories: AgentMemories;
   attachments: Attachments;
   authAccounts: AuthAccounts;
   authProviders: AuthProviders;
   backlinks: Backlinks;
   billing: Billing;
   comments: Comments;
+  goals: Goals;
   groups: Groups;
   groupUsers: GroupUsers;
   mcpApiKeys: McpApiKeys;
@@ -395,6 +429,7 @@ export interface DB {
   spaceMembers: SpaceMembers;
   spaces: Spaces;
   taskDependencies: TaskDependencies;
+  taskGoalAssignments: TaskGoalAssignments;
   taskLabelAssignments: TaskLabelAssignments;
   taskLabels: TaskLabels;
   tasks: Tasks;

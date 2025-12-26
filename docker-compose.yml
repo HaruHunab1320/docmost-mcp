@@ -42,6 +42,17 @@ services:
       start_period: 10s
     restart: unless-stopped
 
+  # Memgraph service for agent memory (graph + vector)
+  memgraph:
+    image: memgraph/memgraph:latest
+    container_name: docmost-memgraph
+    ports:
+      - "7687:7687"
+      - "3005:3000"
+    networks:
+      - docmost-network
+    restart: unless-stopped
+
 networks:
   docmost-network:
     driver: bridge

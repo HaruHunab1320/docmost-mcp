@@ -87,6 +87,35 @@ const result = await response.json();
 // result.result will contain the created page information
 ```
 
+Here's a memory example that stores a daily reflection:
+
+```javascript
+const memoryRequest = {
+  workspaceId: "workspace-123",
+  spaceId: "space-456",
+  source: "agent",
+  summary: "Daily reflection",
+  content: {
+    text: "Noted progress on the Raven Docs memory UI and MCP tools."
+  },
+  tags: ["journal", "raven-docs"]
+};
+
+const memoryResponse = await fetch("https://example.raven-docs.local/api/mcp-standard/call_tool", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "Authorization": "Bearer mcp_your_api_key_here"
+  },
+  body: JSON.stringify({
+    name: "memory_ingest",
+    arguments: memoryRequest
+  })
+});
+
+const memoryResult = await memoryResponse.json();
+```
+
 ## Future Roadmap
 
 After the initial MCP implementation, we plan to:

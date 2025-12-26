@@ -1,0 +1,10 @@
+.pulseCard {
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+  min-width: 140px;
+  height: 100%;
+  transition: box-shadow 120ms ease, transform 120ms ease;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+}
