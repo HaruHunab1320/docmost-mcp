@@ -7,10 +7,10 @@ import {
   usePageQuery,
   useUpdatePageMutation,
 } from "@/features/page/queries/page-query.ts";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import classes from "@/features/page/tree/styles/tree.module.css";
-import { ActionIcon, Menu, rem } from "@mantine/core";
+import { ActionIcon, Menu, TextInput, rem } from "@mantine/core";
 import {
   IconArrowRight,
   IconChevronDown,
@@ -32,6 +32,7 @@ import {
   buildTree,
   buildTreeWithChildren,
   updateTreeNodeIcon,
+  updateTreeNodeName,
 } from "@/features/page/tree/utils/utils.ts";
 import { SpaceTreeNode } from "@/features/page/tree/types.ts";
 import {
@@ -269,6 +270,14 @@ function Node({ node, style, dragHandle, tree }: NodeRendererProps<any>) {
   const { spaceSlug } = useParams();
   const timerRef = useRef(null);
   const { t } = useTranslation();
+  const [isEditing, setIsEditing] = useState(false);
+  const [draftName, setDraftName] = useState(node.data.name || "");
+
+  useEffect(() => {
+    if (!isEditing) {
+      setDraftName(node.data.name || "");
+    }
+  }, [isEditing, node.data.name]);
 
   const prefetchPage = () => {
     timerRef.current = setTimeout(() => {
@@ -320,8 +329,43 @@ function Node({ node, style, dragHandle, tree }: NodeRendererProps<any>) {
   }
 
   const handleClick = () => {
+    if (isEditing) return;
     const pageUrl = buildPageUrl(spaceSlug, node.data.slugId, node.data.name);
     navigate(pageUrl);
+  };
+
+  const startRename = (event: React.MouseEvent) => {
+    if (tree.props.disableEdit as boolean) return;
+    event.preventDefault();
+    event.stopPropagation();
+    setIsEditing(true);
+  };
+
+  const commitRename = async () => {
+    const nextName = draftName.trim() || t("untitled");
+    if (nextName === (node.data.name || "")) {
+      setIsEditing(false);
+      return;
+    }
+
+    const updatedTree = updateTreeNodeName(treeData, node.id, nextName);
+    setTreeData(updatedTree);
+    setIsEditing(false);
+
+    try {
+      await updatePageMutation.mutateAsync({ pageId: node.id, title: nextName });
+      setTimeout(() => {
+        emit({
+          operation: "updateOne",
+          spaceId: node.data.spaceId,
+          entity: ["pages"],
+          id: node.id,
+          payload: { title: nextName },
+        });
+      }, 50);
+    } catch (error) {
+      console.error("Error updating page title:", error);
+    }
   };
 
   const handleUpdateNodeIcon = (nodeId: string, newIcon: string) => {
@@ -404,7 +448,37 @@ function Node({ node, style, dragHandle, tree }: NodeRendererProps<any>) {
           />
         </div>
 
-        <span className={classes.text}>{node.data.name || t("untitled")}</span>
+        {isEditing ? (
+          <TextInput
+            size="xs"
+            value={draftName}
+            onChange={(event) => setDraftName(event.currentTarget.value)}
+            onBlur={commitRename}
+            onKeyDown={(event) => {
+              if (event.key === "Enter") {
+                event.preventDefault();
+                commitRename();
+              }
+              if (event.key === "Escape") {
+                event.preventDefault();
+                setIsEditing(false);
+              }
+            }}
+            autoFocus
+            styles={{
+              input: {
+                height: 22,
+                minHeight: 22,
+                paddingTop: 0,
+                paddingBottom: 0,
+              },
+            }}
+          />
+        ) : (
+          <span className={classes.text} onDoubleClick={startRename}>
+            {node.data.name || t("untitled")}
+          </span>
+        )}
 
         <div className={classes.actions}>
           <NodeMenu node={node} treeApi={tree} />

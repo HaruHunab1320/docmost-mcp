@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   ActionIcon,
@@ -41,6 +41,14 @@ import ProjectFormModal from "./project-form-modal";
 import { useCurrentWorkspace } from "@/features/workspace/hooks/use-current-workspace";
 import { getProjectsArray } from "../utils/project-data";
 import { ProjectLinkedPages } from "./project-linked-pages";
+import SpaceTree from "@/features/page/tree/components/space-tree";
+import { useSpaceAbility } from "@/features/space/permissions/use-space-ability";
+import {
+  SpaceCaslAction,
+  SpaceCaslSubject,
+} from "@/features/space/permissions/permissions.type";
+import { treeApiAtom } from "@/features/page/tree/atoms/tree-api-atom";
+import { useAtom } from "jotai";
 
 interface ProjectSidebarProps {
   spaceId: string;
@@ -66,8 +74,22 @@ export function ProjectSidebar({
   const [settingsOpened, { open: openSettings, close: closeSettings }] =
     useDisclosure(false);
   const [expandedProjects, setExpandedProjects] = useState<Record<string, boolean>>({});
+  const [spacePagesExpanded, setSpacePagesExpanded] = useState(false);
+  const [tree] = useAtom(treeApiAtom);
 
   const projects: Project[] = getProjectsArray(projectsData);
+  const projectHomePageIds = projects
+    .map((project) => project.homePageId)
+    .filter((id): id is string => Boolean(id));
+  const spaceRules = space?.membership?.permissions;
+  const spaceAbility = useSpaceAbility(spaceRules);
+
+  useEffect(() => {
+    if (!activeProjectId) return;
+    setExpandedProjects((prev) =>
+      prev[activeProjectId] ? prev : { ...prev, [activeProjectId]: true }
+    );
+  }, [activeProjectId]);
 
   const handleDeleteProject = (project: Project) => {
     modals.openConfirmModal({
@@ -344,6 +366,64 @@ export function ProjectSidebar({
               )}
             </Stack>
           </ScrollArea>
+        </div>
+
+        <div className={clsx(classes.section, classes.sectionPages)}>
+          <Group className={classes.pagesHeader} justify="space-between">
+            <Group gap="xs" wrap="nowrap">
+              <ActionIcon
+                variant="subtle"
+                size={18}
+                onClick={() => setSpacePagesExpanded((prev) => !prev)}
+                aria-label={
+                  spacePagesExpanded
+                    ? t("Collapse space pages")
+                    : t("Expand space pages")
+                }
+              >
+                {spacePagesExpanded ? (
+                  <IconChevronDown size={14} />
+                ) : (
+                  <IconChevronRight size={14} />
+                )}
+              </ActionIcon>
+              <Text size="xs" fw={500} c="dimmed">
+                {t("Space pages")}
+              </Text>
+            </Group>
+
+            {spacePagesExpanded &&
+              spaceAbility?.can(
+                SpaceCaslAction.Manage,
+                SpaceCaslSubject.Page
+              ) && (
+                <Tooltip label={t("Create page")} withArrow position="right">
+                  <ActionIcon
+                    variant="subtle"
+                    size={18}
+                    onClick={() => {
+                      tree?.create({ parentId: null, type: "internal", index: 0 });
+                    }}
+                    aria-label={t("Create page")}
+                  >
+                    <IconPlus />
+                  </ActionIcon>
+                </Tooltip>
+              )}
+          </Group>
+
+          {spacePagesExpanded && space && (
+            <div className={classes.pages}>
+              <SpaceTree
+                spaceId={space.id}
+                excludedPageIds={projectHomePageIds}
+                readOnly={spaceAbility?.cannot(
+                  SpaceCaslAction.Manage,
+                  SpaceCaslSubject.Page
+                )}
+              />
+            </div>
+          )}
         </div>
       </div>
 

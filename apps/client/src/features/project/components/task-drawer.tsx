@@ -1,4 +1,4 @@
-import { useState, useEffect, Suspense, lazy } from "react";
+import { useState, useEffect, Suspense, lazy, useMemo } from "react";
 import {
   Drawer,
   Button,
@@ -244,6 +244,19 @@ export function TaskDrawer({
     enabled: !!taskId && !!workspaceId,
   });
   const taskGoals = taskGoalsQuery.data || [];
+  const taskGoalIds = useMemo(
+    () => taskGoals.map((goal) => goal.id),
+    [taskGoals]
+  );
+  const labelDraftOptions = useMemo(
+    () =>
+      taskLabels.map((label: Label) => ({
+        id: label.id,
+        name: label.name,
+        color: label.color,
+      })),
+    [taskLabels]
+  );
   const createLabelMutation = useCreateTaskLabel();
   const updateLabelMutation = useUpdateTaskLabel();
   const deleteLabelMutation = useDeleteTaskLabel();
@@ -293,18 +306,33 @@ export function TaskDrawer({
   }, [task]);
 
   useEffect(() => {
-    setAssignedGoalIds(taskGoals.map((goal) => goal.id));
-  }, [taskGoals]);
+    setAssignedGoalIds((prev) => {
+      if (
+        prev.length === taskGoalIds.length &&
+        prev.every((id, idx) => id === taskGoalIds[idx])
+      ) {
+        return prev;
+      }
+      return taskGoalIds;
+    });
+  }, [taskGoalIds]);
 
   useEffect(() => {
-    setLabelDrafts(
-      taskLabels.map((label: Label) => ({
-        id: label.id,
-        name: label.name,
-        color: label.color,
-      })),
-    );
-  }, [taskLabels]);
+    setLabelDrafts((prev) => {
+      if (
+        prev.length === labelDraftOptions.length &&
+        prev.every(
+          (draft, idx) =>
+            draft.id === labelDraftOptions[idx].id &&
+            draft.name === labelDraftOptions[idx].name &&
+            draft.color === labelDraftOptions[idx].color
+        )
+      ) {
+        return prev;
+      }
+      return labelDraftOptions;
+    });
+  }, [labelDraftOptions]);
 
   // Set initial cover image if task has one
   useEffect(() => {

@@ -809,6 +809,7 @@ export function ProjectHeader({ project, onBack }: ProjectHeaderProps) {
           <div
             ref={provided.innerRef}
             {...provided.draggableProps}
+            {...provided.dragHandleProps}
             style={{
               ...provided.draggableProps.style,
               opacity: !isVisible ? 0.5 : 1,
@@ -829,7 +830,6 @@ export function ProjectHeader({ project, onBack }: ProjectHeaderProps) {
               style={{ position: "relative", padding: "4px 8px" }}
             >
               <div
-                {...provided.dragHandleProps}
                 style={{
                   display: "flex",
                   alignItems: "center",
