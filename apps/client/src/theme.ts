@@ -398,11 +398,11 @@ export const theme = createTheme({
 
   // Increase font sizes for better readability
   fontSizes: {
-    xs: "0.85rem", // 13.6px - slightly larger than default
-    sm: "0.95rem", // 15.2px - more readable small text
-    md: "1.05rem", // 16.8px - increased for better readability
-    lg: "1.15rem", // 18.4px - larger text
-    xl: "1.35rem", // 21.6px - larger headlines
+    xs: "0.9rem", // 14.4px - slightly larger than default
+    sm: "1rem", // 16px - readable small text
+    md: "1.125rem", // 18px - increased body text
+    lg: "1.25rem", // 20px - larger text
+    xl: "1.45rem", // 23.2px - larger headlines
   },
 
   components: {

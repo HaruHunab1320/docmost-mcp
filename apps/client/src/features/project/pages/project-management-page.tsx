@@ -14,7 +14,7 @@ import {
 import { ProjectList } from "../components/project-list";
 import { ProjectBoard } from "../components/project-board";
 import { Project } from "../types";
-import { useParams, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useCurrentSpace } from "@/features/space/hooks/use-current-space";
 import { useCurrentWorkspace } from "@/features/workspace/hooks/use-current-workspace";
@@ -27,6 +27,7 @@ import { useCreateProjectMutation } from "../hooks/use-projects";
 import { useDisclosure } from "@mantine/hooks";
 import ProjectFormModal from "../components/project-form-modal";
 import { QuickTaskModal } from "../components/quick-task-modal";
+import APP_ROUTE from "@/lib/app-route";
 
 export function ProjectManagementPage() {
   const { t } = useTranslation();
@@ -36,6 +37,7 @@ export function ProjectManagementPage() {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [showDashboard, setShowDashboard] = useState(true);
   const location = useLocation();
+  const navigate = useNavigate();
   const [quickTaskOpened, setQuickTaskOpened] = useState(false);
   const [quickTaskProjectId, setQuickTaskProjectId] = useState<string | null>(
     null
@@ -109,16 +111,38 @@ export function ProjectManagementPage() {
   const renderBreadcrumbs = () => {
     const items = [
       { title: workspaceData.name, href: "/dashboard" },
-      { title: spaceData.name, href: `/spaces/${spaceId}` },
-      { title: t("Projects"), href: `/spaces/${spaceId}/projects` },
+      { title: spaceData.name, href: APP_ROUTE.SPACE.TODAY(spaceId) },
+      {
+        title: t("Projects"),
+        href: `/spaces/${spaceId}/projects`,
+        onClick: () => {
+          setSelectedProject(null);
+          setShowDashboard(false);
+          navigate(`/spaces/${spaceId}/projects`);
+        },
+      },
     ];
 
     if (selectedProject) {
       items.push({ title: selectedProject.name, href: "#" });
     } else if (!showDashboard) {
-      items.push({ title: t("All Projects"), href: "#" });
+      items.push({
+        title: t("All Projects"),
+        href: "#",
+        onClick: () => {
+          setSelectedProject(null);
+          setShowDashboard(false);
+        },
+      });
     } else {
-      items.push({ title: t("Dashboard"), href: "#" });
+      items.push({
+        title: t("Dashboard"),
+        href: "#",
+        onClick: () => {
+          setSelectedProject(null);
+          setShowDashboard(true);
+        },
+      });
     }
 
     return (
@@ -127,21 +151,16 @@ export function ProjectManagementPage() {
           <Anchor
             key={index}
             href={item.href}
+            component={item.onClick ? "button" : Link}
+            to={item.onClick ? undefined : item.href}
             onClick={(e) => {
               e.preventDefault();
-              if (index === items.length - 1 && item.title === t("Dashboard")) {
-                // Don't do anything if we're already on the dashboard
-              } else if (
-                index === items.length - 1 &&
-                item.title === t("All Projects")
-              ) {
-                setShowDashboard(true);
-              } else if (
-                index === items.length - 2 &&
-                items[items.length - 1].title !== t("Dashboard")
-              ) {
-                setSelectedProject(null);
-                setShowDashboard(false);
+              if (item.onClick) {
+                item.onClick();
+                return;
+              }
+              if (item.href) {
+                navigate(item.href);
               }
             }}
           >

@@ -16,6 +16,7 @@ import { useCurrentSpace } from "@/features/space/hooks/use-current-space";
 import { useCurrentWorkspace } from "@/features/workspace/hooks/use-current-workspace";
 import { useProjects } from "../hooks/use-projects";
 import { ProjectView } from "../components/project-view";
+import APP_ROUTE from "@/lib/app-route";
 
 export function TasksPage() {
   const { t } = useTranslation();
@@ -69,7 +70,7 @@ export function TasksPage() {
   const renderBreadcrumbs = () => {
     const items = [
       { title: workspaceData?.name || "Workspace", href: "/dashboard" },
-      { title: spaceData?.name || "Space", href: `/spaces/${spaceId}` },
+      { title: spaceData?.name || "Space", href: APP_ROUTE.SPACE.TODAY(spaceId) },
       { title: t("Projects"), href: `/spaces/${spaceId}/projects` },
     ];
 

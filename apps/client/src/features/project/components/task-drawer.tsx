@@ -213,10 +213,6 @@ export function TaskDrawer({
   const { data: task, isLoading, refetch } = useTask(taskId);
   const bucketValue = task ? getTaskBucket(task) : "none";
   const selectedLabelIds = task?.labels?.map((label) => label.id) || [];
-  const labelOptions = taskLabels.map((label: Label) => ({
-    value: label.id,
-    label: label.name,
-  }));
   const labelColorOptions: { value: LabelColor; label: string }[] = [
     { value: "red", label: "Red" },
     { value: "pink", label: "Pink" },
@@ -232,6 +228,12 @@ export function TaskDrawer({
     { value: "orange", label: "Orange" },
     { value: "gray", label: "Gray" },
   ];
+  const { data: taskLabelsData = [] } = useTaskLabels();
+  const taskLabels = Array.isArray(taskLabelsData) ? taskLabelsData : [];
+  const labelOptions = taskLabels.map((label: Label) => ({
+    value: label.id,
+    label: label.name,
+  }));
   const taskGoalsQuery = useQuery({
     queryKey: ["task-goals", taskId, workspaceId],
     queryFn: () =>
@@ -242,8 +244,6 @@ export function TaskDrawer({
     enabled: !!taskId && !!workspaceId,
   });
   const taskGoals = taskGoalsQuery.data || [];
-  const { data: taskLabelsData = [] } = useTaskLabels();
-  const taskLabels = Array.isArray(taskLabelsData) ? taskLabelsData : [];
   const createLabelMutation = useCreateTaskLabel();
   const updateLabelMutation = useUpdateTaskLabel();
   const deleteLabelMutation = useDeleteTaskLabel();
