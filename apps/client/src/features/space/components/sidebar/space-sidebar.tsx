@@ -89,10 +89,6 @@ export function SpaceSidebar() {
   const spaceRules = space?.membership?.permissions;
   const spaceAbility = useSpaceAbility(spaceRules);
 
-  if (!space) {
-    return <></>;
-  }
-
   const projects: Project[] = getProjectsArray(projectsData);
   const projectHomePageIds = projects
     .map((project) => project.homePageId)
@@ -119,6 +115,10 @@ export function SpaceSidebar() {
       .filter(([, value]) => value.action === "pin")
       .map(([id, value]) => ({ id, name: value.name || "Entity" }));
   }, [pinnedEntitiesQuery.data]);
+
+  if (!space) {
+    return <></>;
+  }
 
   function handleCreatePage() {
     tree?.create({ parentId: null, type: "internal", index: 0 });

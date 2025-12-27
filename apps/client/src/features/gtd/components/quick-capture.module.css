@@ -23,10 +23,10 @@
 }
 
 .group {
-  border-radius: 999px;
-  padding: 2px;
-  background: var(--mantine-color-default);
-  border: 1px solid var(--mantine-color-default-border);
+  border-radius: 0;
+  padding: 0;
+  background: transparent;
+  border: none;
   align-items: center;
   gap: 8px;
 }
