@@ -16,6 +16,7 @@ import Aside from "@/components/layouts/global/aside.tsx";
 import classes from "./app-shell.module.css";
 import { useTrialEndAction } from "@/ee/hooks/use-trial-end-action.tsx";
 import { AgentChatDrawer } from "@/features/agent/components/agent-chat-drawer";
+import { PageTabsBar } from "@/components/layouts/global/page-tabs-bar";
 
 export default function GlobalAppShell({
   children,
@@ -104,6 +105,7 @@ export default function GlobalAppShell({
       <AppShell.Header px="md" className={classes.header}>
         <AppHeader />
       </AppShell.Header>
+      <PageTabsBar />
       {!isHomeRoute && (
         <AppShell.Navbar
           className={classes.navbar}

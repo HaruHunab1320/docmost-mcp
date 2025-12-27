@@ -137,6 +137,32 @@ export class WorkspaceRepo {
       .executeTakeFirst();
   }
 
+  async updateIntegrationSettings(
+    workspaceId: string,
+    integrationSettings: Record<string, any>,
+    trx?: KyselyTransaction,
+  ): Promise<Workspace> {
+    const db = dbOrTx(this.db, trx);
+    const sanitized = Object.fromEntries(
+      Object.entries(integrationSettings || {}).filter(
+        ([, value]) => value !== undefined,
+      ),
+    );
+    const payload = JSON.stringify(sanitized);
+
+    return db
+      .updateTable('workspaces')
+      .set({
+        settings: sql`COALESCE(settings, '{}'::jsonb)
+          || jsonb_build_object('integrations', COALESCE(settings->'integrations', '{}'::jsonb)
+          || ${sql.lit(payload)}::jsonb)`,
+        updatedAt: new Date(),
+      })
+      .where('id', '=', workspaceId)
+      .returning(this.baseFields)
+      .executeTakeFirst();
+  }
+
   async insertWorkspace(
     insertableWorkspace: InsertableWorkspace,
     trx?: KyselyTransaction,

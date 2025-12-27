@@ -8,6 +8,7 @@ import {
   IPublicWorkspace,
   IInvitationLink,
   IVersion,
+  IWorkspaceIntegrations,
 } from "../types/workspace.types";
 import { IPagination, QueryParams } from "@/lib/types.ts";
 import { ISetupWorkspace } from "@/features/auth/types/auth.types.ts";
@@ -105,6 +106,27 @@ export async function createWorkspace(
 
 export async function getAppVersion(): Promise<IVersion> {
   const req = await api.post("/version");
+  return req.data;
+}
+
+export async function getWorkspaceIntegrations(): Promise<IWorkspaceIntegrations> {
+  const req = await api.post<IWorkspaceIntegrations>("/workspace/integrations");
+  return req.data;
+}
+
+export async function updateWorkspaceIntegrations(
+  data: {
+    repoTokens?: {
+      githubToken?: string;
+      gitlabToken?: string;
+      bitbucketToken?: string;
+    };
+  }
+): Promise<IWorkspaceIntegrations> {
+  const req = await api.post<IWorkspaceIntegrations>(
+    "/workspace/integrations/update",
+    data
+  );
   return req.data;
 }
 

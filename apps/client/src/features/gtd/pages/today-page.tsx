@@ -29,6 +29,13 @@ import { AgentDailySummary } from "@/features/agent/components/agent-daily-summa
 import { AgentApprovalsPanel } from "@/features/agent/components/agent-approvals-panel";
 import { AgentProactiveQuestions } from "@/features/agent/components/agent-proactive-questions";
 import { GoalPanel } from "@/features/goal/components/goal-panel";
+import {
+  getReviewDueDate,
+  getWeekLabel,
+  isReviewDue,
+  isWeeklyReviewCompleted,
+  readWeeklyChecks,
+} from "@/features/gtd/utils/review-schedule";
 import classes from "./today-page.module.css";
 
 function isToday(date: Date) {
@@ -45,6 +52,32 @@ export function TodayPage() {
   const { spaceId } = useParams<{ spaceId: string }>();
   const [workspace] = useAtom(workspaceAtom);
   const [memoryOpened, memoryHandlers] = useDisclosure(false);
+  const reviewDate = useMemo(() => new Date(), []);
+  const reviewDue = useMemo(() => isReviewDue(reviewDate), [reviewDate]);
+  const reviewCompleted = useMemo(() => {
+    if (!spaceId) return false;
+    return isWeeklyReviewCompleted(spaceId, reviewDate);
+  }, [reviewDate, spaceId]);
+  const reviewDueDate = useMemo(
+    () => getReviewDueDate(reviewDate),
+    [reviewDate]
+  );
+  const reviewWeekLabel = useMemo(
+    () => getWeekLabel(reviewDate),
+    [reviewDate]
+  );
+  const reviewChecks = useMemo(() => {
+    if (!spaceId) return null;
+    return readWeeklyChecks(spaceId, reviewDate);
+  }, [reviewDate, spaceId]);
+  const reviewProgress = useMemo(() => {
+    if (!reviewChecks) return null;
+    const values = Object.values(reviewChecks);
+    return {
+      total: values.length,
+      done: values.filter(Boolean).length,
+    };
+  }, [reviewChecks]);
 
   const { items: tasks, isLoading, hasNextPage, loadMore } =
     usePagedSpaceTasks(spaceId || "");
@@ -251,6 +284,42 @@ export function TodayPage() {
             )}
           </Card>
         </Stack>
+      ) : null}
+
+      {reviewDue && !reviewCompleted ? (
+        <Card withBorder radius="md" p="sm" mb="xl">
+          <Group justify="space-between" mb="xs">
+            <Title order={4}>{t("Weekly review due")}</Title>
+            <Button
+              component={Link}
+              to={APP_ROUTE.SPACE.REVIEW(spaceId)}
+              size="xs"
+              variant="subtle"
+            >
+              {t("Open review")}
+            </Button>
+          </Group>
+          <Text size="sm" c="dimmed">
+            {t("Week of {{range}}", { range: reviewWeekLabel })}
+          </Text>
+          <Text size="xs" c="dimmed">
+            {t("Due by {{date}}", {
+              date: reviewDueDate.toLocaleDateString(),
+            })}
+          </Text>
+          {reviewProgress ? (
+            <Text size="sm">
+              {t("Progress {{done}}/{{total}}", {
+                done: reviewProgress.done,
+                total: reviewProgress.total,
+              })}
+            </Text>
+          ) : (
+            <Text size="sm" c="dimmed">
+              {t("Checklist not started")}
+            </Text>
+          )}
+        </Card>
       ) : null}
 
       {workspace?.id && workspace.settings?.agent?.enabled !== false ? (

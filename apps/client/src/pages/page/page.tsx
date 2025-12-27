@@ -5,6 +5,7 @@ import HistoryModal from "@/features/page-history/components/history-modal";
 import { Helmet } from "react-helmet-async";
 import PageHeader from "@/features/page/components/header/page-header.tsx";
 import { extractPageSlugId } from "@/lib";
+import { buildPageUrl } from "@/features/page/page.utils";
 import { useGetSpaceBySlugQuery } from "@/features/space/queries/space-query.ts";
 import { useSpaceAbility } from "@/features/space/permissions/use-space-ability.ts";
 import {
@@ -21,6 +22,7 @@ import {
   MCPResourceType,
 } from "@/features/websocket/types/mcp-event.types";
 import { Loader } from "@mantine/core";
+import { usePageTabs } from "@/features/page/hooks/use-page-tabs";
 
 export default function Page() {
   const { t } = useTranslation();
@@ -28,6 +30,7 @@ export default function Page() {
   const [socket] = useAtom(mcpSocketAtom);
   const pageId = extractPageSlugId(pageSlug);
   const [refreshing, setRefreshing] = useState(false);
+  const { upsertTab } = usePageTabs();
 
   const {
     data: page,
@@ -90,6 +93,16 @@ export default function Page() {
       };
     }
   }, [socket, pageId, handlePageEvent]);
+
+  useEffect(() => {
+    if (!page || !space?.slug) return;
+    upsertTab({
+      id: page.id,
+      title: page.title || t("untitled"),
+      url: buildPageUrl(space.slug, page.slugId || page.id, page.title),
+      icon: page.icon,
+    });
+  }, [page, space?.slug, t, upsertTab]);
 
   if (isLoading) {
     return (

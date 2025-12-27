@@ -92,6 +92,39 @@ export interface AgentMemories {
   workspaceId: string;
 }
 
+export interface AgentReviewPrompts {
+  createdAt: Generated<Timestamp>;
+  id: Generated<string>;
+  metadata: Json | null;
+  question: string;
+  resolvedAt: Timestamp | null;
+  source: string | null;
+  spaceId: string;
+  status: Generated<string>;
+  weekKey: string;
+  workspaceId: string;
+}
+
+export interface ResearchJobs {
+  completedAt: Timestamp | null;
+  createdAt: Generated<Timestamp>;
+  creatorId: string | null;
+  goal: string | null;
+  id: Generated<string>;
+  logPageId: string | null;
+  outputMode: Generated<string>;
+  reportPageId: string | null;
+  repoTargets: Json | null;
+  sources: Json | null;
+  spaceId: string;
+  startedAt: Timestamp | null;
+  status: Generated<string>;
+  timeBudgetMinutes: Generated<number>;
+  topic: string;
+  updatedAt: Generated<Timestamp>;
+  workspaceId: string;
+}
+
 export interface Goals {
   createdAt: Generated<Timestamp>;
   description: string | null;
@@ -412,7 +445,9 @@ export interface Workspaces {
 
 export interface DB {
   agentMemories: AgentMemories;
+  agentReviewPrompts: AgentReviewPrompts;
   attachments: Attachments;
+  researchJobs: ResearchJobs;
   authAccounts: AuthAccounts;
   authProviders: AuthProviders;
   backlinks: Backlinks;

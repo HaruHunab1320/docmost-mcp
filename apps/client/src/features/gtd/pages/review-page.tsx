@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   Button,
+  Checkbox,
   Container,
   Group,
   Stack,
@@ -19,40 +20,46 @@ import { filterTasksByBucket } from "@/features/gtd/utils/task-buckets";
 import { useSpaceQuery } from "@/features/space/queries/space-query";
 import { getOrCreateWeeklyReviewPage } from "@/features/gtd/utils/weekly-review";
 import { buildPageUrl } from "@/features/page/page.utils";
-import { ShortcutHint } from "@/features/gtd/components/shortcut-hint";
+import {
+  getReviewDueDate,
+  getWeekKey,
+  getWeekLabel,
+  getWeeklyReviewCompletionKey,
+  getWeeklyReviewStorageKey,
+  isReviewDue,
+  readWeeklyChecks,
+} from "@/features/gtd/utils/review-schedule";
+
 import APP_ROUTE from "@/lib/app-route";
 
 const STALE_DAYS = 14;
 const REVIEW_ITEMS = [
-  "Clear Inbox",
-  "Update next actions for active projects",
-  "Review waiting/on-hold items",
-  "Review someday/maybe list",
-  "Review calendar and upcoming deadlines",
+  {
+    label: "Clear Inbox",
+    actionLabel: "Open Inbox",
+    getHref: (spaceId: string) => APP_ROUTE.SPACE.INBOX(spaceId),
+  },
+  {
+    label: "Update next actions for active projects",
+    actionLabel: "Open Projects",
+    getHref: (spaceId: string) => APP_ROUTE.SPACE.PROJECTS(spaceId),
+  },
+  {
+    label: "Review waiting/on-hold items",
+    actionLabel: "Open Waiting",
+    getHref: (spaceId: string) => APP_ROUTE.SPACE.WAITING(spaceId),
+  },
+  {
+    label: "Review someday/maybe list",
+    actionLabel: "Open Someday",
+    getHref: (spaceId: string) => APP_ROUTE.SPACE.SOMEDAY(spaceId),
+  },
+  {
+    label: "Review calendar and upcoming deadlines",
+    actionLabel: "Open Today",
+    getHref: (spaceId: string) => APP_ROUTE.SPACE.TODAY(spaceId),
+  },
 ];
-
-function getWeekKey(date = new Date()) {
-  const firstDay = new Date(date.getFullYear(), 0, 1);
-  const dayOffset = firstDay.getDay() || 7;
-  const weekStart = new Date(firstDay);
-  weekStart.setDate(firstDay.getDate() + (7 - dayOffset));
-  const diff =
-    date.getTime() -
-    new Date(weekStart.getFullYear(), weekStart.getMonth(), weekStart.getDate())
-      .getTime();
-  const weekNumber = Math.ceil((diff / (1000 * 60 * 60 * 24) + 1) / 7);
-  return `${date.getFullYear()}-W${String(weekNumber).padStart(2, "0")}`;
-}
-
-function getWeekLabel(date = new Date()) {
-  const start = new Date(date);
-  const day = start.getDay();
-  const diffToMonday = (day === 0 ? -6 : 1) - day;
-  start.setDate(start.getDate() + diffToMonday);
-  const end = new Date(start);
-  end.setDate(start.getDate() + 6);
-  return `${start.toLocaleDateString()} – ${end.toLocaleDateString()}`;
-}
 
 export function ReviewPage() {
   const { t } = useTranslation();
@@ -68,6 +75,11 @@ export function ReviewPage() {
   const [drawerOpened, setDrawerOpened] = useState(false);
   const [creatingReviewPage, setCreatingReviewPage] = useState(false);
   const { data: space } = useSpaceQuery(spaceId || "");
+  const reviewDate = useMemo(() => new Date(), []);
+  const weekKey = useMemo(() => getWeekKey(reviewDate), [reviewDate]);
+  const weekLabel = useMemo(() => getWeekLabel(reviewDate), [reviewDate]);
+  const dueDate = useMemo(() => getReviewDueDate(reviewDate), [reviewDate]);
+  const reviewDue = useMemo(() => isReviewDue(reviewDate), [reviewDate]);
 
   const {
     items: tasks,
@@ -85,29 +97,51 @@ export function ReviewPage() {
       ? projectsData.data
       : [];
 
-  const reviewKey = spaceId ? `docmost.review.${spaceId}.${getWeekKey()}` : "";
+  const reviewKey = spaceId
+    ? getWeeklyReviewStorageKey(spaceId, reviewDate)
+    : "";
+  const completionKey = spaceId
+    ? getWeeklyReviewCompletionKey(spaceId, reviewDate)
+    : "";
 
   useEffect(() => {
-    if (!reviewKey) return;
-    const stored = localStorage.getItem(reviewKey);
+    if (!reviewKey || !spaceId) return;
+    const stored = readWeeklyChecks(spaceId, reviewDate);
     if (stored) {
-      setWeeklyChecks(JSON.parse(stored));
+      setWeeklyChecks(stored);
       return;
     }
     const defaults = REVIEW_ITEMS.reduce<Record<string, boolean>>(
       (acc, item) => {
-        acc[item] = false;
+        acc[item.label] = false;
         return acc;
       },
       {}
     );
     setWeeklyChecks(defaults);
-  }, [reviewKey]);
+  }, [reviewDate, reviewKey, spaceId]);
 
   useEffect(() => {
     if (!reviewKey) return;
     localStorage.setItem(reviewKey, JSON.stringify(weeklyChecks));
-  }, [reviewKey, weeklyChecks]);
+    if (!completionKey) return;
+    const allChecked =
+      REVIEW_ITEMS.length > 0 &&
+      REVIEW_ITEMS.every((item) => Boolean(weeklyChecks[item.label]));
+    if (allChecked) {
+      localStorage.setItem(completionKey, new Date().toISOString());
+    } else {
+      localStorage.removeItem(completionKey);
+    }
+  }, [completionKey, reviewKey, weeklyChecks]);
+
+  const checkedCount = useMemo(() => {
+    return REVIEW_ITEMS.reduce((count, item) => {
+      return count + (weeklyChecks[item.label] ? 1 : 0);
+    }, 0);
+  }, [weeklyChecks]);
+  const totalCount = REVIEW_ITEMS.length;
+  const reviewCompleted = totalCount > 0 && checkedCount === totalCount;
 
   const summary = useMemo(() => {
     const inbox = tasks.filter((task) => !task.projectId && !task.isCompleted);
@@ -118,7 +152,9 @@ export function ReviewPage() {
     });
 
     const projectStats = projects.map((project) => {
-      const projectTasks = tasks.filter((task) => task.projectId === project.id);
+      const projectTasks = tasks.filter(
+        (task) => task.projectId === project.id
+      );
       const activeTasks = projectTasks.filter((task) => !task.isCompleted);
       const latestUpdated = projectTasks.reduce<Date | null>((latest, task) => {
         const updated = new Date(task.updatedAt);
@@ -148,13 +184,11 @@ export function ReviewPage() {
 
     const suggestions = projectStats
       .map((stat) => {
-        const candidate = stat.activeTasks
-          .slice()
-          .sort((a, b) => {
-            const aDate = new Date(a.updatedAt).getTime();
-            const bDate = new Date(b.updatedAt).getTime();
-            return bDate - aDate;
-          })[0];
+        const candidate = stat.activeTasks.slice().sort((a, b) => {
+          const aDate = new Date(a.updatedAt).getTime();
+          const bDate = new Date(b.updatedAt).getTime();
+          return bDate - aDate;
+        })[0];
         return candidate
           ? {
               task: candidate,
@@ -228,32 +262,13 @@ export function ReviewPage() {
     <Container size="md" py="xl">
       <Stack gap="xs" mb="md">
         <Group justify="space-between">
-          <Title order={2}>{t("Review")}</Title>
-          <Button
-            variant="light"
-            loading={creatingReviewPage}
-            onClick={async () => {
-              if (!space) return;
-              setCreatingReviewPage(true);
-              try {
-                const reviewPage = await getOrCreateWeeklyReviewPage({
-                  spaceId: space.id,
-                });
-                const url = buildPageUrl(
-                  space.slug,
-                  reviewPage.slugId,
-                  reviewPage.title
-                );
-                window.location.href = url;
-              } finally {
-                setCreatingReviewPage(false);
-              }
-            }}
-          >
-            {t("Open weekly review page")}
-          </Button>
+          <Title order={2}>{t("Weekly Review")}</Title>
         </Group>
-        <ShortcutHint />
+        <Text size="sm" c="dimmed">
+          {t(
+            "Use this page to reset your system: clear inboxes, confirm next actions, and review waiting/someday lists."
+          )}
+        </Text>
       </Stack>
 
       <Stack gap="lg">
@@ -264,40 +279,79 @@ export function ReviewPage() {
         )}
         <Stack gap="xs">
           <Group justify="space-between">
-            <Title order={4}>{t("Weekly Review")}</Title>
-            <Button
-              variant="subtle"
-              onClick={() => {
-                const defaults = REVIEW_ITEMS.reduce<Record<string, boolean>>(
-                  (acc, item) => {
-                    acc[item] = false;
-                    return acc;
-                  },
-                  {}
-                );
-                setWeeklyChecks(defaults);
-              }}
-            >
-              {t("Reset")}
-            </Button>
+            <Title order={4}>{t("Weekly checklist")}</Title>
+            <Group gap="xs">
+              <Button
+                variant="light"
+                size="xs"
+                loading={creatingReviewPage}
+                onClick={async () => {
+                  if (!space) return;
+                  setCreatingReviewPage(true);
+                  try {
+                    const reviewPage = await getOrCreateWeeklyReviewPage({
+                      spaceId: space.id,
+                    });
+                    const url = buildPageUrl(
+                      space.slug,
+                      reviewPage.slugId,
+                      reviewPage.title
+                    );
+                    window.location.href = url;
+                  } finally {
+                    setCreatingReviewPage(false);
+                  }
+                }}
+              >
+                {t("Create review note")}
+              </Button>
+            </Group>
           </Group>
           <Text size="sm" c="dimmed">
-            {t("Week of {{range}}", { range: getWeekLabel() })}
+            {t("Week of {{range}}", { range: weekLabel })}
           </Text>
+          <Group gap="sm">
+            <Text size="xs" c="dimmed">
+              {t("Due {{date}}", { date: dueDate.toLocaleDateString() })}
+            </Text>
+            <Text size="xs" c="dimmed">
+              {t("Progress {{done}}/{{total}}", {
+                done: checkedCount,
+                total: totalCount,
+              })}
+            </Text>
+            {reviewCompleted ? (
+              <Text size="xs" c="green">
+                {t("Completed")}
+              </Text>
+            ) : reviewDue ? (
+              <Text size="xs" c="orange">
+                {t("Due now")}
+              </Text>
+            ) : null}
+          </Group>
           <Stack gap="xs">
             {REVIEW_ITEMS.map((item) => (
-              <Button
-                key={item}
-                variant={weeklyChecks[item] ? "filled" : "light"}
-                onClick={() =>
-                  setWeeklyChecks((prev) => ({
-                    ...prev,
-                    [item]: !prev[item],
-                  }))
-                }
-              >
-                {weeklyChecks[item] ? "✓ " : ""} {t(item)}
-              </Button>
+              <Group key={item.label} justify="space-between">
+                <Checkbox
+                  checked={!!weeklyChecks[item.label]}
+                  label={t(item.label)}
+                  onChange={() =>
+                    setWeeklyChecks((prev) => ({
+                      ...prev,
+                      [item.label]: !prev[item.label],
+                    }))
+                  }
+                />
+                <Button
+                  component={Link}
+                  to={item.getHref(spaceId)}
+                  variant="subtle"
+                  size="xs"
+                >
+                  {t(item.actionLabel)}
+                </Button>
+              </Group>
             ))}
           </Stack>
         </Stack>

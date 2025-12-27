@@ -33,6 +33,7 @@ import { InjectQueue } from '@nestjs/bullmq';
 import { QueueJob, QueueName } from '../../../integrations/queue/constants';
 import { Queue } from 'bullmq';
 import { AgentSettingsDto } from '../dto/agent-settings.dto';
+import { WorkspaceIntegrationSettingsDto } from '../dto/workspace-integration-settings.dto';
 import { resolveAgentSettings } from '../../agent/agent-settings';
 
 @Injectable()
@@ -72,6 +73,15 @@ export class WorkspaceService {
       throw new NotFoundException('Workspace not found');
     }
     return resolveAgentSettings(workspace.settings);
+  }
+
+  async getIntegrationSettings(workspaceId: string) {
+    const workspace = await this.workspaceRepo.findById(workspaceId);
+    if (!workspace) {
+      throw new NotFoundException('Workspace not found');
+    }
+    const integrations = (workspace.settings as any)?.integrations;
+    return this.buildIntegrationResponse(integrations);
   }
 
   async getWorkspacePublicData(workspaceId: string) {
@@ -335,6 +345,29 @@ export class WorkspaceService {
       agentSettingsDto,
     );
     return resolveAgentSettings(updated.settings);
+  }
+
+  async updateIntegrationSettings(
+    workspaceId: string,
+    integrationSettingsDto: WorkspaceIntegrationSettingsDto,
+  ) {
+    const updated = await this.workspaceRepo.updateIntegrationSettings(
+      workspaceId,
+      integrationSettingsDto,
+    );
+    const integrations = (updated.settings as any)?.integrations;
+    return this.buildIntegrationResponse(integrations);
+  }
+
+  private buildIntegrationResponse(integrations: any) {
+    const repoTokens = integrations?.repoTokens || {};
+    return {
+      repoTokens: {
+        githubToken: Boolean(repoTokens.githubToken),
+        gitlabToken: Boolean(repoTokens.gitlabToken),
+        bitbucketToken: Boolean(repoTokens.bitbucketToken),
+      },
+    };
   }
 
   async getWorkspaceUsers(

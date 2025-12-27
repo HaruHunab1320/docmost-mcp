@@ -8,6 +8,7 @@ import { resolveAgentSettings } from './agent-settings';
 import { AgentPolicyService } from './agent-policy.service';
 import { MCPService } from '../../integrations/mcp/mcp.service';
 import { MCPApprovalService } from '../../integrations/mcp/services/mcp-approval.service';
+import { AgentReviewPromptsService } from './agent-review-prompts.service';
 import SpaceAbilityFactory from '../casl/abilities/space-ability.factory';
 import {
   SpaceCaslAction,
@@ -25,6 +26,7 @@ type AgentAction = {
 type AgentLoopPlan = {
   summary: string;
   actions: AgentAction[];
+  reviewQuestions?: string[];
 };
 
 type ActionResult = {
@@ -107,6 +109,7 @@ export class AgentLoopService {
     private readonly policyService: AgentPolicyService,
     private readonly mcpService: MCPService,
     private readonly approvalService: MCPApprovalService,
+    private readonly reviewPromptService: AgentReviewPromptsService,
     private readonly spaceAbility: SpaceAbilityFactory,
     private readonly spaceRepo: SpaceRepo,
   ) {}
@@ -162,9 +165,10 @@ export class AgentLoopService {
     return [
       `You are Raven Docs' autonomous agent.`,
       `Generate a concise JSON plan with actionable next steps.`,
-      `Return ONLY JSON with fields: summary (string), actions (array). No markdown.`,
+      `Return ONLY JSON with fields: summary (string), actions (array), reviewQuestions (array, optional). No markdown.`,
       `Each action: { "method": "${methods.join('|')}", "params": { ... }, "rationale": "..." }`,
       `Only include up to 3 actions that are safe and helpful.`,
+      `If you have follow-up questions for the weekly review, include them in reviewQuestions (array of strings). Use an empty array if none.`,
       `Space: ${context.spaceName}`,
       `Goals: ${context.goals
         .map((goal) => `${goal.name} (${goal.horizon})`)
@@ -293,6 +297,19 @@ export class AgentLoopService {
     const actionResults: ActionResult[] = [];
     const validationNotes: string[] = [];
     const actions = Array.isArray(plan.actions) ? plan.actions.slice(0, 3) : [];
+    const reviewQuestions = Array.isArray(plan.reviewQuestions)
+      ? plan.reviewQuestions.map((question) => String(question))
+      : [];
+
+    if (reviewQuestions.length) {
+      await this.reviewPromptService.createPrompts({
+        workspaceId: workspace.id,
+        spaceId,
+        weekKey: getWeekKey(new Date()),
+        questions: reviewQuestions,
+        source: 'agent-loop',
+      });
+    }
 
     for (const action of actions) {
       if (!action?.method || !this.policyService.isSupportedMethod(action.method)) {

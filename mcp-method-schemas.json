@@ -1926,6 +1926,53 @@
       "relatedMethods": ["memory.daily"]
     },
     {
+      "name": "repo.listTree",
+      "description": "List repository tree entries for a path",
+      "category": "Repo",
+      "parameters": {
+        "host": { "type": "string", "description": "Repo host: github|gitlab|bitbucket" },
+        "owner": { "type": "string", "description": "Repository owner or workspace" },
+        "repo": { "type": "string", "description": "Repository name" },
+        "ref": { "type": "string", "description": "Branch, tag, or commit" },
+        "path": { "type": "string", "description": "Path to list" }
+      },
+      "returns": {
+        "entries": { "type": "array", "description": "Tree entries" },
+        "path": { "type": "string", "description": "Requested path" },
+        "ref": { "type": "string", "description": "Resolved ref" }
+      },
+      "errors": [
+        { "code": "INVALID_PARAMS", "message": "Missing owner or repo", "resolution": "Provide owner and repo" },
+        { "code": "INTERNAL_ERROR", "message": "Repo API error", "resolution": "Check host and access token" }
+      ],
+      "examples": [],
+      "relatedMethods": ["repo.readFile"]
+    },
+    {
+      "name": "repo.readFile",
+      "description": "Read a file from a repository",
+      "category": "Repo",
+      "parameters": {
+        "host": { "type": "string", "description": "Repo host: github|gitlab|bitbucket" },
+        "owner": { "type": "string", "description": "Repository owner or workspace" },
+        "repo": { "type": "string", "description": "Repository name" },
+        "ref": { "type": "string", "description": "Branch, tag, or commit" },
+        "path": { "type": "string", "description": "File path" },
+        "maxBytes": { "type": "number", "description": "Maximum bytes to return" }
+      },
+      "returns": {
+        "content": { "type": "string", "description": "File content" },
+        "truncated": { "type": "boolean", "description": "Whether content is truncated" },
+        "size": { "type": "number", "description": "Original size in bytes" }
+      },
+      "errors": [
+        { "code": "INVALID_PARAMS", "message": "Missing owner, repo, or path", "resolution": "Provide owner, repo, path" },
+        { "code": "INTERNAL_ERROR", "message": "Repo API error", "resolution": "Check host and access token" }
+      ],
+      "examples": [],
+      "relatedMethods": ["repo.listTree"]
+    },
+    {
       "name": "ai.generate",
       "description": "Generate content with Gemini models",
       "category": "AI",

@@ -63,3 +63,11 @@ export interface IVersion {
   latestVersion: string;
   releaseUrl: string;
 }
+
+export interface IWorkspaceIntegrations {
+  repoTokens?: {
+    githubToken?: boolean;
+    gitlabToken?: boolean;
+    bitbucketToken?: boolean;
+  };
+}

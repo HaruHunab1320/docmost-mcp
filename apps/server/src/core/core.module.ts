@@ -21,6 +21,7 @@ import { EnvironmentModule } from '../integrations/environment/environment.modul
 import { AgentMemoryModule } from './agent-memory/agent-memory.module';
 import { AgentModule } from './agent/agent.module';
 import { GoalModule } from './goal/goal.module';
+import { ResearchModule } from './research/research.module';
 
 const modules = [
   UserModule,
@@ -37,6 +38,7 @@ const modules = [
   AgentMemoryModule,
   AgentModule,
   GoalModule,
+  ResearchModule,
 ];
 
 @Module({

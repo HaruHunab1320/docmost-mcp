@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  ForbiddenException,
   HttpCode,
   HttpStatus,
   Post,
@@ -19,6 +20,26 @@ import { AgentLoopDto } from './agent-loop.dto';
 import { AgentHandoffDto } from './agent-handoff.dto';
 import { AgentHandoffService } from './agent-handoff.service';
 import { AgentLoopSchedulerService } from './agent-loop-scheduler.service';
+import { AgentReviewPromptsService } from './agent-review-prompts.service';
+import { AgentReviewPromptsDto } from './agent-review-prompts.dto';
+import SpaceAbilityFactory from '../casl/abilities/space-ability.factory';
+import {
+  SpaceCaslAction,
+  SpaceCaslSubject,
+} from '../casl/interfaces/space-ability.type';
+
+const getWeekKey = (date = new Date()) => {
+  const firstDay = new Date(date.getFullYear(), 0, 1);
+  const dayOffset = firstDay.getDay() || 7;
+  const weekStart = new Date(firstDay);
+  weekStart.setDate(firstDay.getDate() + (7 - dayOffset));
+  const diff =
+    date.getTime() -
+    new Date(weekStart.getFullYear(), weekStart.getMonth(), weekStart.getDate())
+      .getTime();
+  const weekNumber = Math.ceil((diff / (1000 * 60 * 60 * 24) + 1) / 7);
+  return `${date.getFullYear()}-W${String(weekNumber).padStart(2, '0')}`;
+};
 
 @UseGuards(JwtAuthGuard)
 @Controller('agent')
@@ -29,6 +50,8 @@ export class AgentController {
     private readonly agentLoopService: AgentLoopService,
     private readonly agentLoopScheduler: AgentLoopSchedulerService,
     private readonly handoffService: AgentHandoffService,
+    private readonly reviewPromptService: AgentReviewPromptsService,
+    private readonly spaceAbility: SpaceAbilityFactory,
   ) {}
 
   @HttpCode(HttpStatus.OK)
@@ -81,5 +104,43 @@ export class AgentController {
   ) {
     const name = dto.name || 'External agent handoff';
     return this.handoffService.createHandoffKey(user.id, workspace.id, name);
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Post('review-prompts/list')
+  async listReviewPrompts(
+    @Body() dto: AgentReviewPromptsDto,
+    @AuthUser() user: User,
+    @AuthWorkspace() workspace: Workspace,
+  ) {
+    const ability = await this.spaceAbility.createForUser(user, dto.spaceId);
+    if (ability.cannot(SpaceCaslAction.Read, SpaceCaslSubject.Page)) {
+      throw new ForbiddenException('No access to space');
+    }
+    const weekKey = dto.weekKey || getWeekKey(new Date());
+    return this.reviewPromptService.listPending({
+      workspaceId: workspace.id,
+      spaceId: dto.spaceId,
+      weekKey,
+    });
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Post('review-prompts/consume')
+  async consumeReviewPrompts(
+    @Body() dto: AgentReviewPromptsDto,
+    @AuthUser() user: User,
+    @AuthWorkspace() workspace: Workspace,
+  ) {
+    const ability = await this.spaceAbility.createForUser(user, dto.spaceId);
+    if (ability.cannot(SpaceCaslAction.Read, SpaceCaslSubject.Page)) {
+      throw new ForbiddenException('No access to space');
+    }
+    const weekKey = dto.weekKey || getWeekKey(new Date());
+    return this.reviewPromptService.consumePending({
+      workspaceId: workspace.id,
+      spaceId: dto.spaceId,
+      weekKey,
+    });
   }
 }

@@ -19,6 +19,8 @@ import { ImportHandler } from './handlers/import.handler';
 import { ExportHandler } from './handlers/export.handler';
 import { AIHandler } from './handlers/ai.handler';
 import { MemoryHandler } from './handlers/memory.handler';
+import { RepoHandler } from './handlers/repo.handler';
+import { RepoBrowseService } from '../repo/repo-browse.service';
 import { PageModule } from '../../core/page/page.module';
 import { ProjectModule } from '../../core/project/project.module';
 import { SpaceModule } from '../../core/space/space.module';
@@ -104,11 +106,13 @@ import { AgentPolicyService } from '../../core/agent/agent-policy.service';
     ExportHandler,
     AIHandler,
     MemoryHandler,
+    RepoHandler,
     // Register services
     MCPSchemaService,
     MCPContextService,
     MCPApprovalService,
     AgentPolicyService,
+    RepoBrowseService,
     // Register WebSocket components
     {
       provide: MCPWebSocketGateway,

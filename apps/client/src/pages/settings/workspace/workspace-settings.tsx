@@ -6,6 +6,7 @@ import { Helmet } from "react-helmet-async";
 import ManageHostname from "@/ee/components/manage-hostname.tsx";
 import { Divider } from "@mantine/core";
 import { AgentSettingsPanel } from "@/features/agent/components/agent-settings-panel";
+import { WorkspaceRepoTokensPanel } from "@/features/workspace/components/settings/components/workspace-repo-tokens-panel";
 
 export default function WorkspaceSettings() {
   const { t } = useTranslation();
@@ -26,6 +27,10 @@ export default function WorkspaceSettings() {
 
       <Divider my="md" />
       <AgentSettingsPanel />
+
+      <Divider my="md" />
+      <SettingsTitle title={t("Repository tokens")} />
+      <WorkspaceRepoTokensPanel />
     </>
   );
 }

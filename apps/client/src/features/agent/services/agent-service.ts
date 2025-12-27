@@ -48,6 +48,22 @@ export async function createAgentHandoff(params: {
   return req.data;
 }
 
+export async function consumeWeeklyReviewPrompts(params: {
+  spaceId: string;
+  weekKey?: string;
+}): Promise<
+  Array<{
+    id: string;
+    question: string;
+    weekKey: string;
+    createdAt: string;
+    source?: string | null;
+  }>
+> {
+  const req = await api.post("/agent/review-prompts/consume", params);
+  return req.data;
+}
+
 export async function listApprovals(): Promise<
   Array<{ token: string; method: string; params: Record<string, any>; expiresAt: string }>
 > {

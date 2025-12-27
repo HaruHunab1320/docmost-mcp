@@ -18,6 +18,7 @@ import { ImportHandler } from './handlers/import.handler';
 import { ExportHandler } from './handlers/export.handler';
 import { AIHandler } from './handlers/ai.handler';
 import { MemoryHandler } from './handlers/memory.handler';
+import { RepoHandler } from './handlers/repo.handler';
 import { User } from '@docmost/db/types/entity.types';
 import {
   createInternalError,
@@ -65,6 +66,7 @@ export class MCPService {
     private readonly exportHandler: ExportHandler,
     private readonly aiHandler: AIHandler,
     private readonly memoryHandler: MemoryHandler,
+    private readonly repoHandler: RepoHandler,
   ) {}
 
   /**
@@ -300,6 +302,14 @@ export class MCPService {
               operation,
               request.params,
               user.id,
+            );
+            break;
+          case 'repo':
+            this.logger.debug(`MCPService: Delegating to repo handler`);
+            result = await this.handleRepoRequest(
+              operation,
+              request.params,
+              user,
             );
             break;
           default:
@@ -573,6 +583,21 @@ export class MCPService {
         return this.memoryHandler.days(params, userId);
       default:
         throw createMethodNotFoundError(`memory.${operation}`);
+    }
+  }
+
+  private async handleRepoRequest(
+    operation: string,
+    params: any,
+    user: User,
+  ): Promise<any> {
+    switch (operation) {
+      case 'listTree':
+        return this.repoHandler.listTree(params, user);
+      case 'readFile':
+        return this.repoHandler.readFile(params, user);
+      default:
+        throw createMethodNotFoundError(`repo.${operation}`);
     }
   }
 

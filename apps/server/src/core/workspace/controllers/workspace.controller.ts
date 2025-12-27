@@ -36,6 +36,7 @@ import { EnvironmentService } from '../../../integrations/environment/environmen
 import { CheckHostnameDto } from '../dto/check-hostname.dto';
 import { RemoveWorkspaceUserDto } from '../dto/remove-workspace-user.dto';
 import { AgentSettingsDto } from '../dto/agent-settings.dto';
+import { WorkspaceIntegrationSettingsDto } from '../dto/workspace-integration-settings.dto';
 
 @UseGuards(JwtAuthGuard)
 @Controller('workspace')
@@ -77,6 +78,22 @@ export class WorkspaceController {
   }
 
   @HttpCode(HttpStatus.OK)
+  @Post('/integrations')
+  async getIntegrationSettings(
+    @AuthUser() user: User,
+    @AuthWorkspace() workspace: Workspace,
+  ) {
+    const ability = this.workspaceAbility.createForUser(user, workspace);
+    if (
+      ability.cannot(WorkspaceCaslAction.Read, WorkspaceCaslSubject.Settings)
+    ) {
+      throw new ForbiddenException();
+    }
+
+    return this.workspaceService.getIntegrationSettings(workspace.id);
+  }
+
+  @HttpCode(HttpStatus.OK)
   @Post('/agent-settings/update')
   async updateAgentSettings(
     @Body() dto: AgentSettingsDto,
@@ -91,6 +108,23 @@ export class WorkspaceController {
     }
 
     return this.workspaceService.updateAgentSettings(workspace.id, dto);
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Post('/integrations/update')
+  async updateIntegrationSettings(
+    @Body() dto: WorkspaceIntegrationSettingsDto,
+    @AuthUser() user: User,
+    @AuthWorkspace() workspace: Workspace,
+  ) {
+    const ability = this.workspaceAbility.createForUser(user, workspace);
+    if (
+      ability.cannot(WorkspaceCaslAction.Manage, WorkspaceCaslSubject.Settings)
+    ) {
+      throw new ForbiddenException();
+    }
+
+    return this.workspaceService.updateIntegrationSettings(workspace.id, dto);
   }
 
   @HttpCode(HttpStatus.OK)

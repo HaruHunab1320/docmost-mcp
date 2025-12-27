@@ -1,0 +1,61 @@
+.tabsBar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-bottom: 1px solid light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-6));
+  background: var(--docmost-surface-bg, var(--mantine-color-body));
+  position: sticky;
+  top: 0;
+  z-index: 3;
+}
+
+.tabsList {
+  display: flex;
+  gap: 6px;
+  flex: 1;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.tabItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  color: inherit;
+  background: transparent;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.tabItem:hover {
+  border-color: light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-5));
+  background: light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-7));
+}
+
+.tabItemActive {
+  border-color: light-dark(var(--mantine-color-gray-4), var(--mantine-color-dark-4));
+  background: light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-6));
+}
+
+.tabTitle {
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tabClose {
+  opacity: 0.6;
+}
+
+.tabClose:hover {
+  opacity: 1;
+}
+
+.tabsActions {
+  display: inline-flex;
+  gap: 6px;
+}
