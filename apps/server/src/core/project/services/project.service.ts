@@ -17,6 +17,81 @@ import { AgentMemoryService } from '../../agent-memory/agent-memory.service';
 
 @Injectable()
 export class ProjectService {
+  private buildProjectOverviewContent(project: Project) {
+    return JSON.stringify({
+      type: 'doc',
+      content: [
+        {
+          type: 'heading',
+          attrs: { level: 1 },
+          content: [{ type: 'text', text: `${project.name} Overview` }],
+        },
+        {
+          type: 'paragraph',
+          content: [
+            {
+              type: 'text',
+              text: 'Summary, goals, and current status for this project.',
+            },
+          ],
+        },
+        {
+          type: 'heading',
+          attrs: { level: 2 },
+          content: [{ type: 'text', text: 'Goals' }],
+        },
+        {
+          type: 'bulletList',
+          content: [
+            {
+              type: 'listItem',
+              content: [
+                { type: 'paragraph', content: [{ type: 'text', text: '' }] },
+              ],
+            },
+          ],
+        },
+        {
+          type: 'heading',
+          attrs: { level: 2 },
+          content: [{ type: 'text', text: 'Key Tasks' }],
+        },
+        {
+          type: 'paragraph',
+          content: [
+            {
+              type: 'text',
+              text: 'Link or reference the most important tasks.',
+            },
+          ],
+        },
+        {
+          type: 'heading',
+          attrs: { level: 2 },
+          content: [{ type: 'text', text: 'Timeline' }],
+        },
+        {
+          type: 'paragraph',
+          content: [
+            {
+              type: 'text',
+              text: 'Start date, target date, and milestones.',
+            },
+          ],
+        },
+        {
+          type: 'heading',
+          attrs: { level: 2 },
+          content: [{ type: 'text', text: 'Notes' }],
+        },
+        {
+          type: 'paragraph',
+          content: [{ type: 'text', text: '' }],
+        },
+      ],
+    });
+  }
+
   constructor(
     private readonly projectRepo: ProjectRepo,
     private readonly spaceRepo: SpaceRepo,
@@ -109,13 +184,15 @@ export class ProjectService {
 
     const result = await executeTx(this.db, async (trx) => {
       const project = await this.projectRepo.create(projectData, trx);
+      const overviewContent = this.buildProjectOverviewContent(project);
       const projectPage = await this.pageService.create(
         userId,
         workspaceId,
         {
-          title: project.name,
+          title: `${project.name} Overview`,
           icon: project.icon,
           spaceId: project.spaceId,
+          content: overviewContent,
         },
         trx,
       );
@@ -166,13 +243,15 @@ export class ProjectService {
     }
 
     return executeTx(this.db, async (trx) => {
+      const overviewContent = this.buildProjectOverviewContent(project);
       const projectPage = await this.pageService.create(
         userId,
         workspaceId,
         {
-          title: project.name,
+          title: `${project.name} Overview`,
           icon: project.icon,
           spaceId: project.spaceId,
+          content: overviewContent,
         },
         trx,
       );
