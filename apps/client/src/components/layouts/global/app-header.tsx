@@ -2,7 +2,7 @@ import { ActionIcon, Badge, Group, Text, Tooltip } from "@mantine/core";
 import classes from "./app-header.module.css";
 import React, { useEffect } from "react";
 import TopMenu from "@/components/layouts/global/top-menu.tsx";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import APP_ROUTE from "@/lib/app-route.ts";
 import { useAtom } from "jotai";
 import {
@@ -35,6 +35,7 @@ function isEditableTarget(target: EventTarget | null) {
 
 export function AppHeader() {
   const { t } = useTranslation();
+  const location = useLocation();
   const [mobileOpened] = useAtom(mobileSidebarAtom);
   const toggleMobile = useToggleSidebar(mobileSidebarAtom);
 
@@ -43,7 +44,7 @@ export function AppHeader() {
   const [, setAgentChatOpened] = useAtom(agentChatDrawerAtom);
   const { isTrial, trialDaysLeft } = useTrial();
 
-  const isHomeRoute = location.pathname.startsWith("/home");
+  const isHomeRoute = location.pathname === "/home";
   const isMac = React.useMemo(() => {
     if (typeof navigator === "undefined") return false;
     return /Mac|iPod|iPhone|iPad/.test(navigator.platform);
@@ -124,7 +125,7 @@ export function AppHeader() {
         </Group>
 
         <Group wrap="nowrap">
-          <QuickCapture />
+          {!isHomeRoute && <QuickCapture />}
         </Group>
 
         <Group px={"xl"} wrap="nowrap">

@@ -14,7 +14,7 @@ import { saveAs } from "file-saver";
 export async function getSpaces(
   params?: QueryParams,
 ): Promise<IPagination<ISpace>> {
-  const req = await api.post("/spaces", params);
+  const req = await api.post("/spaces", params ?? {});
   return req.data;
 }
 

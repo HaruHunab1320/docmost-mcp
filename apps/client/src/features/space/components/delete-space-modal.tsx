@@ -9,11 +9,19 @@ import { Trans, useTranslation } from "react-i18next";
 
 interface DeleteSpaceModalProps {
   space: ISpace;
+  opened?: boolean;
+  onClose?: () => void;
 }
 
-export default function DeleteSpaceModal({ space }: DeleteSpaceModalProps) {
+export default function DeleteSpaceModal({
+  space,
+  opened,
+  onClose,
+}: DeleteSpaceModalProps) {
   const { t } = useTranslation();
-  const [opened, { open, close }] = useDisclosure(false);
+  const [localOpened, { open, close }] = useDisclosure(false);
+  const modalOpened = opened ?? localOpened;
+  const handleClose = onClose ?? close;
   const deleteSpaceMutation = useDeleteSpaceMutation();
   const navigate = useNavigate();
 
@@ -46,13 +54,15 @@ export default function DeleteSpaceModal({ space }: DeleteSpaceModalProps) {
 
   return (
     <>
-      <Button onClick={open} variant="light" color="red">
-        {t("Delete")}
-      </Button>
+      {opened === undefined && (
+        <Button onClick={open} variant="light" color="red">
+          {t("Delete")}
+        </Button>
+      )}
 
       <Modal
-        opened={opened}
-        onClose={close}
+        opened={modalOpened}
+        onClose={handleClose}
         title={t("Are you sure you want to delete this space?")}
       >
         <Divider size="xs" mb="xs" />
@@ -76,7 +86,7 @@ export default function DeleteSpaceModal({ space }: DeleteSpaceModalProps) {
           data-autofocus
         />
         <Group justify="flex-end" mt="md">
-          <Button onClick={close} variant="default">
+          <Button onClick={handleClose} variant="default">
             {t("Cancel")}
           </Button>
           <Button onClick={handleDelete} color="red">

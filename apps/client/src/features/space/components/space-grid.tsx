@@ -7,6 +7,8 @@ import {
   Button,
   Group,
   Loader,
+  ActionIcon,
+  Menu,
 } from "@mantine/core";
 import React, { useEffect, useCallback, useState } from "react";
 import {
@@ -18,21 +20,44 @@ import { Link } from "react-router-dom";
 import classes from "./space-grid.module.css";
 import { formatMemberCount } from "@/lib";
 import { useTranslation } from "react-i18next";
-import { IconRefresh } from "@tabler/icons-react";
+import {
+  IconDots,
+  IconLink,
+  IconRefresh,
+  IconSettings,
+  IconTrash,
+  IconUsers,
+  IconDownload,
+} from "@tabler/icons-react";
 import { useAtom } from "jotai";
 import { mcpSocketAtom } from "@/features/websocket/atoms/mcp-socket-atom";
 import {
   MCPEventType,
   MCPResourceType,
 } from "@/features/websocket/types/mcp-event.types";
+import CreateSpaceModal from "@/features/space/components/create-space-modal";
+import SpaceSettingsModal from "@/features/space/components/settings-modal";
+import ExportModal from "@/components/common/export-modal";
+import DeleteSpaceModal from "@/features/space/components/delete-space-modal";
+import { useDisclosure, useClipboard } from "@mantine/hooks";
 
 export default function SpaceGrid() {
   const { t } = useTranslation();
+  const clipboard = useClipboard({ timeout: 1500 });
   const [socket] = useAtom(mcpSocketAtom);
   const { data, isLoading, refetch, isRefetching } = useGetSpacesQuery({
     page: 1,
   });
   const [refreshing, setRefreshing] = useState<boolean>(false);
+  const [settingsSpaceId, setSettingsSpaceId] = useState<string | null>(null);
+  const [settingsTab, setSettingsTab] = useState<"general" | "members">(
+    "general",
+  );
+  const [exportSpaceId, setExportSpaceId] = useState<string | null>(null);
+  const [deleteSpaceId, setDeleteSpaceId] = useState<string | null>(null);
+  const [settingsOpened, settingsHandlers] = useDisclosure(false);
+  const [exportOpened, exportHandlers] = useDisclosure(false);
+  const [deleteOpened, deleteHandlers] = useDisclosure(false);
 
   // Handle immediate refetch when a space is created
   const handleSpaceEvent = useCallback(
@@ -99,7 +124,7 @@ export default function SpaceGrid() {
     refetch().finally(() => setRefreshing(false));
   };
 
-  const cards = data?.items.map((space, index) => (
+  const cards = data?.items.map((space) => (
     <Card
       key={space.id}
       p="xs"
@@ -110,7 +135,85 @@ export default function SpaceGrid() {
       className={classes.card}
       withBorder
     >
-      <Card.Section className={classes.cardSection} h={40}></Card.Section>
+      <Card.Section className={classes.cardSection} h={40}>
+        <Group justify="flex-end" p="xs">
+          <Menu position="bottom-end" withinPortal>
+            <Menu.Target>
+              <ActionIcon
+                variant="subtle"
+                size="sm"
+                onClick={(event) => {
+                  event.preventDefault();
+                  event.stopPropagation();
+                }}
+                aria-label={t("Space actions")}
+              >
+                <IconDots size={16} />
+              </ActionIcon>
+            </Menu.Target>
+            <Menu.Dropdown>
+              <Menu.Item
+                leftSection={<IconLink size={16} />}
+                onClick={(event) => {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  clipboard.copy(getSpaceUrl(space.slug));
+                }}
+              >
+                {clipboard.copied ? t("Link copied") : t("Copy link")}
+              </Menu.Item>
+              <Menu.Item
+                leftSection={<IconSettings size={16} />}
+                onClick={(event) => {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  setSettingsSpaceId(space.id);
+                  setSettingsTab("general");
+                  settingsHandlers.open();
+                }}
+              >
+                {t("Edit space")}
+              </Menu.Item>
+              <Menu.Item
+                leftSection={<IconUsers size={16} />}
+                onClick={(event) => {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  setSettingsSpaceId(space.id);
+                  setSettingsTab("members");
+                  settingsHandlers.open();
+                }}
+              >
+                {t("Manage members")}
+              </Menu.Item>
+              <Menu.Item
+                leftSection={<IconDownload size={16} />}
+                onClick={(event) => {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  setExportSpaceId(space.id);
+                  exportHandlers.open();
+                }}
+              >
+                {t("Export space")}
+              </Menu.Item>
+              <Menu.Divider />
+              <Menu.Item
+                color="red"
+                leftSection={<IconTrash size={16} />}
+                onClick={(event) => {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  setDeleteSpaceId(space.id);
+                  deleteHandlers.open();
+                }}
+              >
+                {t("Delete space")}
+              </Menu.Item>
+            </Menu.Dropdown>
+          </Menu>
+        </Group>
+      </Card.Section>
       <Avatar
         name={space.name}
         color="initials"
@@ -135,18 +238,23 @@ export default function SpaceGrid() {
         <Text fz="sm" fw={500}>
           {t("Spaces you belong to")}
         </Text>
-        <Button
-          variant="subtle"
-          size="xs"
-          leftSection={
-            refreshing ? <Loader size="xs" /> : <IconRefresh size={16} />
-          }
-          onClick={handleManualRefresh}
-          loading={refreshing}
-          disabled={refreshing || isRefetching}
-        >
-          {refreshing ? t("Refreshing...") : t("Refresh")}
-        </Button>
+        <Group gap="xs">
+          <CreateSpaceModal
+            buttonProps={{ size: "xs", variant: "light" }}
+          />
+          <Button
+            variant="subtle"
+            size="xs"
+            leftSection={
+              refreshing ? <Loader size="xs" /> : <IconRefresh size={16} />
+            }
+            onClick={handleManualRefresh}
+            loading={refreshing}
+            disabled={refreshing || isRefetching}
+          >
+            {refreshing ? t("Refreshing...") : t("Refresh")}
+          </Button>
+        </Group>
       </Group>
 
       <SimpleGrid cols={{ base: 1, xs: 2, sm: 3 }}>
@@ -165,6 +273,41 @@ export default function SpaceGrid() {
           cards
         )}
       </SimpleGrid>
+
+      {settingsSpaceId && (
+        <SpaceSettingsModal
+          spaceId={settingsSpaceId}
+          opened={settingsOpened}
+          onClose={() => {
+            settingsHandlers.close();
+            setSettingsSpaceId(null);
+          }}
+          defaultTab={settingsTab}
+        />
+      )}
+
+      {exportSpaceId && (
+        <ExportModal
+          type="space"
+          id={exportSpaceId}
+          open={exportOpened}
+          onClose={() => {
+            exportHandlers.close();
+            setExportSpaceId(null);
+          }}
+        />
+      )}
+
+      {deleteSpaceId && data?.items?.some((space) => space.id === deleteSpaceId) && (
+        <DeleteSpaceModal
+          space={data.items.find((space) => space.id === deleteSpaceId)!}
+          opened={deleteOpened}
+          onClose={() => {
+            deleteHandlers.close();
+            setDeleteSpaceId(null);
+          }}
+        />
+      )}
     </>
   );
 }

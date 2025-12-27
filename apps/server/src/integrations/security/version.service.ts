@@ -11,14 +11,24 @@ export class VersionService {
     const releaseUrl = `https://github.com/${releaseRepo}/releases`;
     const apiUrl = `https://api.github.com/repos/${releaseRepo}/releases/latest`;
 
-    let latestVersion = 0;
+    let latestVersion = '';
     try {
       const response = await fetch(apiUrl);
-      if (!response.ok) return;
+      if (!response.ok) {
+        return {
+          currentVersion: packageJson?.version,
+          latestVersion: '',
+          releaseUrl,
+        };
+      }
       const data = await response.json();
       latestVersion = data?.tag_name?.replace('v', '');
     } catch (err) {
-      /* empty */
+      return {
+        currentVersion: packageJson?.version,
+        latestVersion: '',
+        releaseUrl,
+      };
     }
 
     return {

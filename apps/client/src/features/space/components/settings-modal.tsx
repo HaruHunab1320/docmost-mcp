@@ -1,7 +1,7 @@
 import {Modal, Tabs, rem, Group, ScrollArea, Text} from "@mantine/core";
 import SpaceMembersList from "@/features/space/components/space-members.tsx";
 import AddSpaceMembersModal from "@/features/space/components/add-space-members-modal.tsx";
-import React, {useMemo} from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import SpaceDetails from "@/features/space/components/space-details.tsx";
 import {useSpaceQuery} from "@/features/space/queries/space-query.ts";
 import {useSpaceAbility} from "@/features/space/permissions/use-space-ability.ts";
@@ -15,18 +15,27 @@ interface SpaceSettingsModalProps {
   spaceId: string;
   opened: boolean;
   onClose: () => void;
+  defaultTab?: "general" | "members";
 }
 
 export default function SpaceSettingsModal({
   spaceId,
   opened,
   onClose,
+  defaultTab = "members",
 }: SpaceSettingsModalProps) {
   const { t } = useTranslation();
   const { data: space, isLoading } = useSpaceQuery(spaceId);
+  const [activeTab, setActiveTab] = useState<string>(defaultTab);
 
   const spaceRules = space?.membership?.permissions;
   const spaceAbility = useSpaceAbility(spaceRules);
+
+  useEffect(() => {
+    if (opened) {
+      setActiveTab(defaultTab);
+    }
+  }, [defaultTab, opened]);
 
   return (
     <>
@@ -49,7 +58,7 @@ export default function SpaceSettingsModal({
           </Modal.Header>
           <Modal.Body>
             <div style={{height: rem(600)}}>
-              <Tabs defaultValue="members">
+              <Tabs value={activeTab} onChange={setActiveTab}>
                 <Tabs.List>
                   <Tabs.Tab fw={500} value="general">
                     {t("Settings")}

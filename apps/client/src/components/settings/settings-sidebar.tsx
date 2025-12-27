@@ -141,6 +141,9 @@ export default function SettingsSidebar() {
   };
 
   const menuItems = groupedData.map((group) => {
+    if (group.heading === "Workspace" && !workspace?.id) {
+      return null;
+    }
     if (group.heading === "System" && (!isAdmin || isCloud())) {
       return null;
     }
