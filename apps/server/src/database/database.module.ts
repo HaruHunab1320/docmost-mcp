@@ -5,6 +5,7 @@ import { DB } from './types/db';
 import { ProjectRepo } from './repos/project/project.repo';
 import { SpaceRepo } from './repos/space/space.repo';
 import { TaskRepo } from './repos/task/task.repo';
+import { TaskLabelRepo } from './repos/task/task-label.repo';
 import { KYSELY } from '../lib/kysely/nestjs-kysely';
 import { SpaceMemberRepo } from './repos/space/space-member.repo';
 import { GroupRepo } from './repos/group/group.repo';
@@ -44,6 +45,7 @@ import { MigrationService } from './services/migration.service';
     ProjectRepo,
     SpaceRepo,
     TaskRepo,
+    TaskLabelRepo,
     SpaceMemberRepo,
     GroupRepo,
     GroupUserRepo,
@@ -63,6 +65,7 @@ import { MigrationService } from './services/migration.service';
     ProjectRepo,
     SpaceRepo,
     TaskRepo,
+    TaskLabelRepo,
     SpaceMemberRepo,
     GroupRepo,
     GroupUserRepo,

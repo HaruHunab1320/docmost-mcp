@@ -13,6 +13,18 @@ import { useNavigate } from "react-router-dom";
 import { getSpaceUrl } from "@/lib/config";
 import { buildPageUrl } from "@/features/page/page.utils";
 
+const shouldLog = import.meta.env?.VITE_ENABLE_LOGS === "true";
+const debugLog = (...args: unknown[]) => {
+  if (shouldLog) {
+    globalThis.console?.log(...args);
+  }
+};
+const debugWarn = (...args: unknown[]) => {
+  if (shouldLog) {
+    globalThis.console?.warn(...args);
+  }
+};
+
 /**
  * A hook that listens for MCP events and updates the application state accordingly
  */
@@ -25,14 +37,14 @@ export const useMCPEvents = () => {
 
   useEffect(() => {
     if (!socket) {
-      console.log(
+      debugLog(
         "%c[MCP-EVENTS] Socket not available, continuing without real-time updates",
         "background: #FF9800; color: white; padding: 3px; border-radius: 3px;"
       );
 
       // Set up a fallback polling mechanism for critical data
       const pollingInterval = setInterval(() => {
-        console.log(
+        debugLog(
           "%c[MCP-EVENTS] Performing fallback polling for critical data",
           "background: #2196F3; color: white; padding: 3px; border-radius: 3px;"
         );
@@ -63,36 +75,36 @@ export const useMCPEvents = () => {
 
     // Avoid double registration
     if (eventHandlerRegistered.current) {
-      console.log(
+      debugLog(
         "%c[MCP-EVENTS] Event handlers already registered, skipping",
         "background: #FF9800; color: white; padding: 3px; border-radius: 3px;"
       );
       return;
     }
 
-    console.log(
+    debugLog(
       "%c[MCP-EVENTS] Setting up event listeners",
       "background: #2196F3; color: white; padding: 3px; border-radius: 3px;"
     );
 
     // Define the event handler
     const handleMCPEvent = (event: MCPEvent) => {
-      console.log(
+      debugLog(
         `%c[MCP-EVENT RECEIVED] ${event.type}.${event.resource} %cID: ${event.resourceId}`,
         "background: #4CAF50; color: white; padding: 3px; border-radius: 3px;",
         "color: #2196F3; font-weight: bold;"
       );
-      console.log("Event details:", event);
+      debugLog("Event details:", event);
 
       // Add diagnostic logs to debug the UI case
-      console.log(
+      debugLog(
         `Resource type from event: "${event.resource}" (type: ${typeof event.resource})`
       );
-      console.log(
+      debugLog(
         `MCPResourceType.UI value: "${MCPResourceType.UI}" (type: ${typeof MCPResourceType.UI})`
       );
-      console.log(`Do they match? ${event.resource === MCPResourceType.UI}`);
-      console.log(
+      debugLog(`Do they match? ${event.resource === MCPResourceType.UI}`);
+      debugLog(
         `All MCPResourceType values:`,
         Object.values(MCPResourceType)
       );
@@ -100,63 +112,63 @@ export const useMCPEvents = () => {
       // Handle different resource types
       switch (event.resource) {
         case MCPResourceType.PAGE:
-          console.log(
+          debugLog(
             `%c[MCP-EVENT] Processing PAGE event`,
             "color: #FF9800; font-weight: bold;"
           );
           handlePageEvent(event);
           break;
         case MCPResourceType.SPACE:
-          console.log(
+          debugLog(
             `%c[MCP-EVENT] Processing SPACE event`,
             "color: #FF9800; font-weight: bold;"
           );
           handleSpaceEvent(event);
           break;
         case MCPResourceType.COMMENT:
-          console.log(
+          debugLog(
             `%c[MCP-EVENT] Processing COMMENT event`,
             "color: #FF9800; font-weight: bold;"
           );
           handleCommentEvent(event);
           break;
         case MCPResourceType.ATTACHMENT:
-          console.log(
+          debugLog(
             `%c[MCP-EVENT] Processing ATTACHMENT event`,
             "color: #FF9800; font-weight: bold;"
           );
           handleAttachmentEvent(event);
           break;
         case MCPResourceType.GROUP:
-          console.log(
+          debugLog(
             `%c[MCP-EVENT] Processing GROUP event`,
             "color: #FF9800; font-weight: bold;"
           );
           handleGroupEvent(event);
           break;
         case MCPResourceType.USER:
-          console.log(
+          debugLog(
             `%c[MCP-EVENT] Processing USER event`,
             "color: #FF9800; font-weight: bold;"
           );
           handleUserEvent(event);
           break;
         case MCPResourceType.WORKSPACE:
-          console.log(
+          debugLog(
             `%c[MCP-EVENT] Processing WORKSPACE event`,
             "color: #FF9800; font-weight: bold;"
           );
           handleWorkspaceEvent(event);
           break;
         case MCPResourceType.TASK:
-          console.log(
+          debugLog(
             `%c[MCP-EVENT] Processing TASK event`,
             "color: #FF9800; font-weight: bold;"
           );
           handleTaskEvent(event);
           break;
         case MCPResourceType.UI:
-          console.log(
+          debugLog(
             `%c[MCP-EVENT] Processing UI event via MCPResourceType.UI case`,
             "color: #FF9800; font-weight: bold;"
           );
@@ -164,7 +176,7 @@ export const useMCPEvents = () => {
           break;
 
         default:
-          console.warn(
+          debugWarn(
             `%c[MCP-EVENT] Unknown resource type: ${event.resource}`,
             "color: #F44336; font-weight: bold;"
           );
@@ -178,14 +190,14 @@ export const useMCPEvents = () => {
     socket.on("mcp:event", handleMCPEvent);
     eventHandlerRegistered.current = true;
 
-    console.log(
+    debugLog(
       "%c[MCP-EVENTS] Event listener registered successfully",
       "background: #4CAF50; color: white; padding: 3px; border-radius: 3px;"
     );
 
     // Cleanup function to remove event listener when component unmounts
     return () => {
-      console.log(
+      debugLog(
         "%c[MCP-EVENTS] Removing event listeners",
         "background: #607D8B; color: white; padding: 3px; border-radius: 3px;"
       );
@@ -196,13 +208,13 @@ export const useMCPEvents = () => {
 
   // Function to handle page events
   const handlePageEvent = (event: MCPEvent) => {
-    console.log(
+    debugLog(
       `%c[MCP-HANDLER] Handling PAGE event ${event.type}`,
       "background: #4CAF50; color: white; padding: 3px; border-radius: 3px;"
     );
 
     // Always refetch pages data immediately
-    console.log(
+    debugLog(
       `%c[MCP-HANDLER] 🔄 IMMEDIATELY refetching pages list`,
       "background: #FF9800; color: white; padding: 3px; border-radius: 3px;"
     );
@@ -215,7 +227,7 @@ export const useMCPEvents = () => {
     });
 
     // Specifically invalidate sidebar-pages queries to force tree update
-    console.log(
+    debugLog(
       `%c[MCP-HANDLER] 🔄 IMMEDIATELY invalidating sidebar-pages queries`,
       "background: #FF9800; color: white; padding: 3px; border-radius: 3px;"
     );
@@ -234,7 +246,7 @@ export const useMCPEvents = () => {
 
     if (event.resourceId) {
       // Handle specific page
-      console.log(
+      debugLog(
         `%c[MCP-HANDLER] 🔄 IMMEDIATELY refetching page ${event.resourceId}`,
         "background: #FF9800; color: white; padding: 3px; border-radius: 3px;"
       );
@@ -252,7 +264,7 @@ export const useMCPEvents = () => {
 
     // If this is a page in a space, also handle space's pages
     if (event.spaceId) {
-      console.log(
+      debugLog(
         `%c[MCP-HANDLER] 🔄 IMMEDIATELY refetching pages for space ${event.spaceId}`,
         "background: #FF9800; color: white; padding: 3px; border-radius: 3px;"
       );
@@ -285,7 +297,7 @@ export const useMCPEvents = () => {
       event.type === MCPEventType.MOVED ||
       event.type === MCPEventType.UPDATED
     ) {
-      console.log(
+      debugLog(
         `%c[MCP-HANDLER] 🔄 IMMEDIATELY refetching page tree data`,
         "background: #FF9800; color: white; padding: 3px; border-radius: 3px;"
       );
@@ -297,7 +309,7 @@ export const useMCPEvents = () => {
 
       // CRITICAL FIX: Refetch root-sidebar-pages used by the sidebar navigation tree
       if (event.spaceId) {
-        console.log(
+        debugLog(
           `%c[MCP-HANDLER] 🔄 IMMEDIATELY refetching root-sidebar-pages for space ${event.spaceId}`,
           "background: #FF9800; color: white; padding: 3px; border-radius: 3px; font-weight: bold;"
         );
@@ -310,7 +322,7 @@ export const useMCPEvents = () => {
 
         // Also invalidate the tree data atom to force a re-render
         if (treeData && treeData.length > 0) {
-          console.log(
+          debugLog(
             `%c[MCP-HANDLER] 🧹 Invalidating tree data atom to force sidebar refresh`,
             "background: #4CAF50; color: white; padding: 3px; border-radius: 3px; font-weight: bold;"
           );
@@ -320,7 +332,7 @@ export const useMCPEvents = () => {
 
       // For created pages, use a special approach
       if (event.type === MCPEventType.CREATED) {
-        console.log(
+        debugLog(
           `%c[MCP-HANDLER] 🚨 NEW PAGE CREATED - forcing immediate refresh of all related queries`,
           "background: #F44336; color: white; padding: 3px; border-radius: 3px; font-weight: bold;"
         );
@@ -334,7 +346,7 @@ export const useMCPEvents = () => {
 
           // If we have the new page data in the event, add it directly to the cache
           if (event.data && pagesData?.items) {
-            console.log(
+            debugLog(
               `%c[MCP-HANDLER] 📝 Directly updating pages cache with new page`,
               "background: #9C27B0; color: white; padding: 3px; border-radius: 3px;"
             );
@@ -368,7 +380,7 @@ export const useMCPEvents = () => {
           ]) as any;
 
           if (event.data && recentChangesData?.items) {
-            console.log(
+            debugLog(
               `%c[MCP-HANDLER] 📝 Directly updating recent changes cache with new page`,
               "background: #9C27B0; color: white; padding: 3px; border-radius: 3px;"
             );
@@ -405,7 +417,7 @@ export const useMCPEvents = () => {
           ]) as any;
 
           if (event.data && globalRecentChangesData?.items) {
-            console.log(
+            debugLog(
               `%c[MCP-HANDLER] 📝 Directly updating global recent changes cache with new page`,
               "background: #9C27B0; color: white; padding: 3px; border-radius: 3px;"
             );
@@ -443,7 +455,7 @@ export const useMCPEvents = () => {
         event.spaceId &&
         event.resourceId
       ) {
-        console.log(
+        debugLog(
           `%c[MCP-HANDLER] 🔄 Updating page in recent changes`,
           "background: #FF9800; color: white; padding: 3px; border-radius: 3px;"
         );
@@ -502,7 +514,7 @@ export const useMCPEvents = () => {
     }
 
     // Also refetch any active navigation-related queries
-    console.log(
+    debugLog(
       `%c[MCP-HANDLER] 🔄 Refetching navigation and breadcrumb data`,
       "background: #2196F3; color: white; padding: 3px; border-radius: 3px;"
     );
@@ -516,7 +528,7 @@ export const useMCPEvents = () => {
     });
 
     // Refresh recent changes queries for space home page
-    console.log(
+    debugLog(
       `%c[MCP-HANDLER] 🔄 Refetching recent changes for space home page`,
       "background: #2196F3; color: white; padding: 3px; border-radius: 3px;"
     );
@@ -535,7 +547,7 @@ export const useMCPEvents = () => {
   };
 
   const handleTaskEvent = (event: MCPEvent) => {
-    console.log(
+    debugLog(
       `%c[MCP-HANDLER] Handling TASK event ${event.type}`,
       "background: #4CAF50; color: white; padding: 3px; border-radius: 3px;"
     );
@@ -551,13 +563,13 @@ export const useMCPEvents = () => {
 
   // Function to handle space events
   const handleSpaceEvent = (event: MCPEvent) => {
-    console.log(
+    debugLog(
       `%c[MCP-HANDLER] Handling SPACE event ${event.type}`,
       "background: #4CAF50; color: white; padding: 3px; border-radius: 3px;"
     );
 
     // Always refetch spaces data immediately
-    console.log(
+    debugLog(
       `%c[MCP-HANDLER] 🔄 IMMEDIATELY refetching spaces list`,
       "background: #FF9800; color: white; padding: 3px; border-radius: 3px;"
     );
@@ -571,7 +583,7 @@ export const useMCPEvents = () => {
 
     if (event.resourceId) {
       // Handle specific space
-      console.log(
+      debugLog(
         `%c[MCP-HANDLER] 🔄 IMMEDIATELY refetching space ${event.resourceId}`,
         "background: #FF9800; color: white; padding: 3px; border-radius: 3px;"
       );
@@ -583,7 +595,7 @@ export const useMCPEvents = () => {
 
       // Handle by slug if it's in the event data
       if (event.data?.slug) {
-        console.log(
+        debugLog(
           `%c[MCP-HANDLER] 🔄 IMMEDIATELY refetching space with slug ${event.data.slug}`,
           "background: #FF9800; color: white; padding: 3px; border-radius: 3px;"
         );
@@ -596,7 +608,7 @@ export const useMCPEvents = () => {
     }
 
     // Handle space permissions
-    console.log(
+    debugLog(
       `%c[MCP-HANDLER] 🔄 Refetching space permissions`,
       "background: #2196F3; color: white; padding: 3px; border-radius: 3px;"
     );
@@ -605,7 +617,7 @@ export const useMCPEvents = () => {
     });
 
     // Handle page tree
-    console.log(
+    debugLog(
       `%c[MCP-HANDLER] 🔄 Refetching page tree data`,
       "background: #2196F3; color: white; padding: 3px; border-radius: 3px;"
     );
@@ -615,7 +627,7 @@ export const useMCPEvents = () => {
 
     // For created spaces, use a special approach
     if (event.type === MCPEventType.CREATED) {
-      console.log(
+      debugLog(
         `%c[MCP-HANDLER] 🚨 NEW SPACE CREATED - forcing immediate refresh of all space-related queries`,
         "background: #F44336; color: white; padding: 3px; border-radius: 3px; font-weight: bold;"
       );
@@ -634,7 +646,7 @@ export const useMCPEvents = () => {
 
       // If we have the new space data in the event, add it directly to the cache
       if (event.data && spacesData?.items) {
-        console.log(
+        debugLog(
           `%c[MCP-HANDLER] 📝 Directly updating spaces cache with new space`,
           "background: #9C27B0; color: white; padding: 3px; border-radius: 3px;"
         );
@@ -662,15 +674,15 @@ export const useMCPEvents = () => {
 
   // Function to handle comment events
   const handleCommentEvent = (event: MCPEvent) => {
-    console.log(`%c[MCP-HANDLER] Handling COMMENT event`, "color: #4CAF50;");
-    console.log(
+    debugLog(`%c[MCP-HANDLER] Handling COMMENT event`, "color: #4CAF50;");
+    debugLog(
       `%c[MCP-HANDLER] Invalidating comment queries`,
       "color: #4CAF50;"
     );
 
     // Comments are usually associated with a page
     if (event.data?.pageId) {
-      console.log(
+      debugLog(
         `%c[MCP-HANDLER] Invalidating comments for page ${event.data.pageId}`,
         "color: #4CAF50;"
       );
@@ -681,7 +693,7 @@ export const useMCPEvents = () => {
 
     // Also invalidate by comment ID
     if (event.resourceId) {
-      console.log(
+      debugLog(
         `%c[MCP-HANDLER] Invalidating comment ${event.resourceId}`,
         "color: #4CAF50;"
       );
@@ -696,8 +708,8 @@ export const useMCPEvents = () => {
 
   // Function to handle attachment events
   const handleAttachmentEvent = (event: MCPEvent) => {
-    console.log(`%c[MCP-HANDLER] Handling ATTACHMENT event`, "color: #4CAF50;");
-    console.log(
+    debugLog(`%c[MCP-HANDLER] Handling ATTACHMENT event`, "color: #4CAF50;");
+    debugLog(
       `%c[MCP-HANDLER] Invalidating attachment queries`,
       "color: #4CAF50;"
     );
@@ -707,7 +719,7 @@ export const useMCPEvents = () => {
 
     // Invalidate by ID if available
     if (event.resourceId) {
-      console.log(
+      debugLog(
         `%c[MCP-HANDLER] Invalidating attachment ${event.resourceId}`,
         "color: #4CAF50;"
       );
@@ -718,7 +730,7 @@ export const useMCPEvents = () => {
 
     // If attachment is associated with a space
     if (event.spaceId) {
-      console.log(
+      debugLog(
         `%c[MCP-HANDLER] Invalidating attachments for space ${event.spaceId}`,
         "color: #4CAF50;"
       );
@@ -729,7 +741,7 @@ export const useMCPEvents = () => {
 
     // If attachment is associated with a page
     if (event.data?.pageId) {
-      console.log(
+      debugLog(
         `%c[MCP-HANDLER] Invalidating attachments for page ${event.data.pageId}`,
         "color: #4CAF50;"
       );
@@ -741,8 +753,8 @@ export const useMCPEvents = () => {
 
   // Function to handle group events
   const handleGroupEvent = (event: MCPEvent) => {
-    console.log(`%c[MCP-HANDLER] Handling GROUP event`, "color: #4CAF50;");
-    console.log(
+    debugLog(`%c[MCP-HANDLER] Handling GROUP event`, "color: #4CAF50;");
+    debugLog(
       `%c[MCP-HANDLER] Invalidating group queries`,
       "color: #4CAF50;"
     );
@@ -751,7 +763,7 @@ export const useMCPEvents = () => {
     queryClient.invalidateQueries({ queryKey: ["groups"] });
 
     if (event.resourceId) {
-      console.log(
+      debugLog(
         `%c[MCP-HANDLER] Invalidating group ${event.resourceId}`,
         "color: #4CAF50;"
       );
@@ -771,14 +783,14 @@ export const useMCPEvents = () => {
 
   // Function to handle user events
   const handleUserEvent = (event: MCPEvent) => {
-    console.log(`%c[MCP-HANDLER] Handling USER event`, "color: #4CAF50;");
-    console.log(`%c[MCP-HANDLER] Invalidating user queries`, "color: #4CAF50;");
+    debugLog(`%c[MCP-HANDLER] Handling USER event`, "color: #4CAF50;");
+    debugLog(`%c[MCP-HANDLER] Invalidating user queries`, "color: #4CAF50;");
 
     // Invalidate all users
     queryClient.invalidateQueries({ queryKey: ["users"] });
 
     if (event.resourceId) {
-      console.log(
+      debugLog(
         `%c[MCP-HANDLER] Invalidating user ${event.resourceId}`,
         "color: #4CAF50;"
       );
@@ -798,8 +810,8 @@ export const useMCPEvents = () => {
 
   // Function to handle workspace events
   const handleWorkspaceEvent = (event: MCPEvent) => {
-    console.log(`%c[MCP-HANDLER] Handling WORKSPACE event`, "color: #4CAF50;");
-    console.log(
+    debugLog(`%c[MCP-HANDLER] Handling WORKSPACE event`, "color: #4CAF50;");
+    debugLog(
       `%c[MCP-HANDLER] Invalidating workspace queries`,
       "color: #4CAF50;"
     );
@@ -809,7 +821,7 @@ export const useMCPEvents = () => {
 
     // Invalidate the specific workspace
     if (event.resourceId) {
-      console.log(
+      debugLog(
         `%c[MCP-HANDLER] Invalidating workspace ${event.resourceId}`,
         "color: #4CAF50;"
       );
@@ -830,7 +842,7 @@ export const useMCPEvents = () => {
     queryClient.invalidateQueries({ queryKey: ["permissions"] });
 
     // Force UI update by refetching all active workspace queries
-    console.log(
+    debugLog(
       `%c[MCP-HANDLER] Force refetching active workspace queries`,
       "color: #4CAF50;"
     );
@@ -848,19 +860,19 @@ export const useMCPEvents = () => {
 
   // Function to handle navigation events
   const handleNavigationEvent = (event: MCPEvent) => {
-    console.log(`%c[MCP-HANDLER] Handling NAVIGATION event`, "color: #4CAF50;");
-    console.log("Event details:", event);
+    debugLog(`%c[MCP-HANDLER] Handling NAVIGATION event`, "color: #4CAF50;");
+    debugLog("Event details:", event);
 
     const data = event.data as NavigationEventData;
     if (data) {
       switch (data.destination) {
         case "home":
-          console.log(`%c[MCP-HANDLER] Navigating to home`, "color: #4CAF50;");
+          debugLog(`%c[MCP-HANDLER] Navigating to home`, "color: #4CAF50;");
           navigate("/");
           break;
 
         case "dashboard":
-          console.log(
+          debugLog(
             `%c[MCP-HANDLER] Navigating to dashboard`,
             "color: #4CAF50;"
           );
@@ -868,12 +880,12 @@ export const useMCPEvents = () => {
           break;
 
         case "space":
-          console.log(`%c[MCP-HANDLER] Navigating to space`, "color: #4CAF50;");
+          debugLog(`%c[MCP-HANDLER] Navigating to space`, "color: #4CAF50;");
           if (data.spaceSlug) {
             navigate(getSpaceUrl(data.spaceSlug));
           } else if (data.spaceId) {
             // Use the correct URL format based on getSpaceUrl function
-            console.log(
+            debugLog(
               `%c[MCP-HANDLER] Navigating to space by ID: ${data.spaceId}`,
               "color: #4CAF50;"
             );
@@ -883,10 +895,10 @@ export const useMCPEvents = () => {
           break;
 
         case "page":
-          console.log(`%c[MCP-HANDLER] Navigating to page`, "color: #4CAF50;");
+          debugLog(`%c[MCP-HANDLER] Navigating to page`, "color: #4CAF50;");
           if (data.pageId) {
             // Navigate based on what information we have available
-            console.log(
+            debugLog(
               `%c[MCP-HANDLER] Navigating to page by ID: ${data.pageId}`,
               "color: #4CAF50;"
             );

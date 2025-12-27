@@ -192,9 +192,29 @@ export interface Label {
   id: string;
   name: string;
   color: LabelColor;
-  projectId: string;
-  spaceId: string;
   workspaceId: string;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface CreateLabelParams {
+  name: string;
+  color: LabelColor;
+  workspaceId: string;
+}
+
+export interface UpdateLabelParams {
+  labelId: string;
+  name?: string;
+  color?: LabelColor;
+}
+
+export interface AssignLabelToTaskParams {
+  taskId: string;
+  labelId: string;
+}
+
+export interface RemoveLabelFromTaskParams {
+  taskId: string;
+  labelId: string;
 }

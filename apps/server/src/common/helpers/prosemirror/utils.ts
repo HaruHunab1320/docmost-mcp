@@ -56,3 +56,44 @@ export function extractPageMentions(mentionList: MentionNode[]): MentionNode[] {
   }
   return pageMentionList as MentionNode[];
 }
+
+export interface TaskItemNode {
+  text: string;
+  checked: boolean;
+}
+
+export function extractTaskItems(content: any): TaskItemNode[] {
+  if (!content) return [];
+  let json = content;
+  if (typeof content === 'string') {
+    try {
+      json = JSON.parse(content);
+    } catch {
+      return [];
+    }
+  }
+
+  try {
+    const doc = jsonToNode(json);
+    const items: TaskItemNode[] = [];
+    const seen = new Set<string>();
+
+    doc.descendants((node: Node) => {
+      if (node.type.name === 'taskItem') {
+        const text = node.textContent.trim();
+        if (!text) return;
+        const key = text.toLowerCase();
+        if (seen.has(key)) return;
+        seen.add(key);
+        items.push({
+          text,
+          checked: Boolean(node.attrs?.checked),
+        });
+      }
+    });
+
+    return items;
+  } catch {
+    return [];
+  }
+}

@@ -1,4 +1,7 @@
-# Master Control API: JSON-RPC 2.0 Server
+# Master Control API: JSON-RPC 2.0 Server (Internal)
+
+This document describes the internal JSON-RPC API used by MCP Standard. External
+tools should use MCP Standard (`docs/MCP.md`) instead.
 
 ## Overview
 

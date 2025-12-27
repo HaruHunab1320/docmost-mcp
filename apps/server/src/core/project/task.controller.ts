@@ -20,6 +20,14 @@ import {
   MoveTaskToProjectDto,
   TaskTriageSummaryDto,
 } from './dto/task.dto';
+import {
+  ListTaskLabelsDto,
+  CreateTaskLabelDto,
+  UpdateTaskLabelDto,
+  DeleteTaskLabelDto,
+  AssignTaskLabelDto,
+  RemoveTaskLabelDto,
+} from './dto/task-label.dto';
 import { AuthUser } from '../../common/decorators/auth-user.decorator';
 import { AuthWorkspace } from '../../common/decorators/auth-workspace.decorator';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
@@ -352,6 +360,72 @@ export class TaskController {
       });
       throw error;
     }
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Post('/labels/list')
+  async listLabels(
+    @Body() dto: ListTaskLabelsDto,
+    @AuthWorkspace() workspace: Workspace,
+  ) {
+    if (dto.workspaceId !== workspace.id) {
+      throw new ForbiddenException();
+    }
+    return this.taskService.listLabels(workspace.id);
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Post('/labels/create')
+  async createLabel(
+    @Body() dto: CreateTaskLabelDto,
+    @AuthWorkspace() workspace: Workspace,
+  ) {
+    if (dto.workspaceId !== workspace.id) {
+      throw new ForbiddenException();
+    }
+    return this.taskService.createLabel(workspace.id, {
+      name: dto.name,
+      color: dto.color,
+    });
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Post('/labels/update')
+  async updateLabel(
+    @Body() dto: UpdateTaskLabelDto,
+    @AuthWorkspace() workspace: Workspace,
+  ) {
+    return this.taskService.updateLabel(workspace.id, dto.labelId, {
+      name: dto.name,
+      color: dto.color,
+    });
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Post('/labels/delete')
+  async deleteLabel(
+    @Body() dto: DeleteTaskLabelDto,
+    @AuthWorkspace() workspace: Workspace,
+  ) {
+    return this.taskService.deleteLabel(workspace.id, dto.labelId);
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Post('/labels/assign')
+  async assignLabel(
+    @Body() dto: AssignTaskLabelDto,
+    @AuthWorkspace() workspace: Workspace,
+  ) {
+    return this.taskService.assignLabel(workspace.id, dto.taskId, dto.labelId);
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Post('/labels/remove')
+  async removeLabel(
+    @Body() dto: RemoveTaskLabelDto,
+    @AuthWorkspace() workspace: Workspace,
+  ) {
+    return this.taskService.removeLabel(workspace.id, dto.taskId, dto.labelId);
   }
 
   @HttpCode(HttpStatus.OK)

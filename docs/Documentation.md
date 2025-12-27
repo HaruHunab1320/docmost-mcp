@@ -12,6 +12,42 @@ These extensions enable AI assistants to interact directly with Raven Docs, allo
 
 System map, module breakdown, data flows, and MCP integration summary.
 
+### 0.1 [System Status Audit](./SystemStatus.md)
+
+System-by-system inventory and current implementation status.
+
+### 0.2 [MCP (Canonical)](./MCP.md)
+
+Authoritative MCP reference (standard endpoints, approvals, policy).
+
+### 0.3 [Engineering Standards](./EngineeringStandards.md)
+
+Code consistency rules, audit findings, and cleanup targets.
+
+### 0.4 [Workflows + Use Cases](./Workflows.md)
+
+Primary user flows (capture, triage, plan, review) and agent/approval lifecycles.
+
+### 0.5 [Autonomy Quickstart](./AutonomyQuickstart.md)
+
+Enable the agent, run loops, and handle approvals.
+
+### 0.6 [System Risks + Remediation](./SystemRisks.md)
+
+Stability gaps and recommended remediation order.
+
+### 0.7 [UI Audit Route Checks](./UIAudit_RouteChecks.md)
+
+Pass/fail tracker with per-route expectations.
+
+### 0.8 [Testing Matrix](./TestingMatrix.md)
+
+Workflow map of REST endpoints and MCP tools.
+
+### 0.9 [Manual Test Runbook](./ManualTest_Runbook.md)
+
+Production readiness checklist with pass/fail steps.
+
 ### 1. [Codebase Review](../CodebaseReview.md)
 
 A high-level overview of the entire codebase, focusing on:
@@ -37,14 +73,9 @@ Comprehensive documentation of the JSON-RPC 2.0 server implementation:
 - Authentication and authorization
 - Complete API reference
 
-### 4. [Model Context Protocol Integration](./MCPIntegration.md)
+### 4. [Model Context Protocol Integration (Deprecated)](./MCPIntegration.md)
 
-In-depth documentation of the MCP integration:
-- Architecture and components
-- Bridge implementation
-- Parameter handling
-- Tool categories and capabilities
-- Extension guide
+Legacy document retained for backward links. Use `docs/MCP.md` instead.
 
 ### 5. [WebSocket Events System](./MCPEvents.md)
 
@@ -118,3 +149,19 @@ The Raven Docs MCP extensions are licensed under the same license as the core Do
 ### 6. [UI Audit Matrix](./UIAudit.md)
 
 Current UI surface status (complete/partial/unverified) with follow-up checklist.
+
+### 7. [GTD + Second Brain UI](./GTD_SecondBrain_UI.md)
+
+Current GTD surfaces and remaining gaps.
+
+### 8. [GTD Agent Automations](./GTD_Agent_Automations.md)
+
+Daily/weekly agent flows, inputs/outputs, and MCP dependencies.
+
+### 9. [Project Management](./ProjectManagement.md)
+
+Current project/task system status and remaining work.
+
+### 10. [Product Vision + Methodology](./ProductVision.md)
+
+Intended use cases, GTD principles, and autonomy boundaries.

@@ -4,6 +4,7 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { TaskRepo } from '../../../database/repos/task/task.repo';
+import { TaskLabelRepo } from '../../../database/repos/task/task-label.repo';
 import { ProjectRepo } from '../../../database/repos/project/project.repo';
 import { SpaceRepo } from '../../../database/repos/space/space.repo';
 import { PageRepo } from '../../../database/repos/page/page.repo';
@@ -19,11 +20,13 @@ import { PaginationOptions } from '../../../lib/pagination/pagination-options';
 import { Paginated } from '../../../lib/pagination/paginated';
 import { TaskBucket, TaskPriority, TaskStatus } from '../constants/task-enums';
 import { AgentMemoryService } from '../../agent-memory/agent-memory.service';
+import { extractTaskItems } from '../../../common/helpers/prosemirror/utils';
 
 @Injectable()
 export class TaskService {
   constructor(
     private readonly taskRepo: TaskRepo,
+    private readonly taskLabelRepo: TaskLabelRepo,
     private readonly projectRepo: ProjectRepo,
     private readonly spaceRepo: SpaceRepo,
     private readonly pageRepo: PageRepo,
@@ -153,6 +156,77 @@ export class TaskService {
     },
   ): Promise<Paginated<Task>> {
     return this.taskRepo.findByAssigneeId(assigneeId, pagination, options);
+  }
+
+  async listLabels(workspaceId: string) {
+    return this.taskLabelRepo.listByWorkspace(workspaceId);
+  }
+
+  async createLabel(workspaceId: string, data: { name: string; color: string }) {
+    return this.taskLabelRepo.createLabel({
+      name: data.name,
+      color: data.color,
+      workspaceId,
+    });
+  }
+
+  async updateLabel(
+    workspaceId: string,
+    labelId: string,
+    data: { name?: string; color?: string },
+  ) {
+    const label = await this.taskLabelRepo.findById(labelId);
+    if (!label || label.workspaceId !== workspaceId) {
+      throw new NotFoundException('Label not found');
+    }
+    return this.taskLabelRepo.updateLabel(labelId, data);
+  }
+
+  async deleteLabel(workspaceId: string, labelId: string) {
+    const label = await this.taskLabelRepo.findById(labelId);
+    if (!label || label.workspaceId !== workspaceId) {
+      throw new NotFoundException('Label not found');
+    }
+    await this.taskLabelRepo.deleteLabel(labelId);
+    return { success: true };
+  }
+
+  async assignLabel(
+    workspaceId: string,
+    taskId: string,
+    labelId: string,
+  ) {
+    const task = await this.taskRepo.findById(taskId);
+    if (!task || task.workspaceId !== workspaceId) {
+      throw new NotFoundException('Task not found');
+    }
+    const label = await this.taskLabelRepo.findById(labelId);
+    if (!label || label.workspaceId !== workspaceId) {
+      throw new NotFoundException('Label not found');
+    }
+    await this.taskLabelRepo.assignLabel({
+      taskId,
+      labelId,
+      createdAt: new Date(),
+    });
+    return { success: true };
+  }
+
+  async removeLabel(
+    workspaceId: string,
+    taskId: string,
+    labelId: string,
+  ) {
+    const task = await this.taskRepo.findById(taskId);
+    if (!task || task.workspaceId !== workspaceId) {
+      throw new NotFoundException('Task not found');
+    }
+    const label = await this.taskLabelRepo.findById(labelId);
+    if (!label || label.workspaceId !== workspaceId) {
+      throw new NotFoundException('Label not found');
+    }
+    await this.taskLabelRepo.removeLabel(taskId, labelId);
+    return { success: true };
   }
 
   async getDailyTriageSummary(
@@ -343,6 +417,50 @@ export class TaskService {
     }
 
     return task;
+  }
+
+  async syncTasksFromPageContent(params: {
+    workspaceId: string;
+    spaceId: string;
+    pageId: string;
+    userId: string;
+    content?: any;
+  }) {
+    if (!params.content) {
+      return { created: 0, skipped: 0 };
+    }
+
+    const items = extractTaskItems(params.content);
+    if (!items.length) {
+      return { created: 0, skipped: 0 };
+    }
+
+    const existing = await this.taskRepo.findByPageId(params.pageId);
+    const existingTitles = new Set(
+      existing.map((task) => task.title.toLowerCase()),
+    );
+
+    let created = 0;
+    let skipped = 0;
+
+    for (const item of items) {
+      const key = item.text.toLowerCase();
+      if (existingTitles.has(key)) {
+        skipped += 1;
+        continue;
+      }
+
+      await this.create(params.userId, params.workspaceId, {
+        title: item.text,
+        status: item.checked ? TaskStatus.DONE : TaskStatus.TODO,
+        bucket: TaskBucket.NONE,
+        spaceId: params.spaceId,
+        pageId: params.pageId,
+      });
+      created += 1;
+    }
+
+    return { created, skipped };
   }
 
   async update(

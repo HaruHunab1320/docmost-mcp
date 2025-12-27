@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { ProjectController } from './project.controller';
 import { ProjectService } from './services/project.service';
 import { TaskService } from './services/task.service';
@@ -10,7 +10,13 @@ import { GoalModule } from '../goal/goal.module';
 import { AgentMemoryModule } from '../agent-memory/agent-memory.module';
 
 @Module({
-  imports: [DatabaseModule, CaslModule, PageModule, GoalModule, AgentMemoryModule],
+  imports: [
+    DatabaseModule,
+    CaslModule,
+    forwardRef(() => PageModule),
+    GoalModule,
+    AgentMemoryModule,
+  ],
   controllers: [ProjectController, TaskController],
   providers: [ProjectService, TaskService],
   exports: [ProjectService, TaskService],

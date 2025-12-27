@@ -28,7 +28,7 @@ import {
   FileInput,
   MultiSelect,
 } from "@mantine/core";
-import { Task, TaskPriority, TaskStatus } from "../types";
+import { Label, LabelColor, Task, TaskPriority, TaskStatus } from "../types";
 import { getTaskBucket } from "@/features/gtd/utils/task-buckets";
 import { TaskBucket } from "@/features/project/types";
 import { useTranslation } from "react-i18next";
@@ -68,6 +68,7 @@ import {
   IconCopy,
   IconCopyPlus,
   IconArrowRight,
+  IconSettings,
   IconTrash,
   IconFileImport,
   IconFileExport,
@@ -79,6 +80,14 @@ import {
   useCompleteTaskMutation,
   useTask,
 } from "../hooks/use-tasks";
+import {
+  useAssignTaskLabel,
+  useCreateTaskLabel,
+  useDeleteTaskLabel,
+  useRemoveTaskLabel,
+  useTaskLabels,
+  useUpdateTaskLabel,
+} from "../hooks/use-task-labels";
 import { UserSelect } from "@/features/user/components/user-select";
 import { useNavigate, useParams } from "react-router-dom";
 import { useForm } from "@mantine/form";
@@ -193,10 +202,36 @@ export function TaskDrawer({
     { open: openEmojiPicker, close: closeEmojiPicker },
   ] = useDisclosure(false);
   const [isHoveringEmoji, setIsHoveringEmoji] = useState(false);
+  const [labelManagerOpen, setLabelManagerOpen] = useState(false);
+  const [labelDrafts, setLabelDrafts] = useState<
+    Array<{ id: string; name: string; color: LabelColor }>
+  >([]);
+  const [newLabelName, setNewLabelName] = useState("");
+  const [newLabelColor, setNewLabelColor] = useState<LabelColor>("blue");
 
   // Use the useTask hook to fetch task data
   const { data: task, isLoading, refetch } = useTask(taskId);
   const bucketValue = task ? getTaskBucket(task) : "none";
+  const selectedLabelIds = task?.labels?.map((label) => label.id) || [];
+  const labelOptions = taskLabels.map((label: Label) => ({
+    value: label.id,
+    label: label.name,
+  }));
+  const labelColorOptions: { value: LabelColor; label: string }[] = [
+    { value: "red", label: "Red" },
+    { value: "pink", label: "Pink" },
+    { value: "grape", label: "Grape" },
+    { value: "violet", label: "Violet" },
+    { value: "indigo", label: "Indigo" },
+    { value: "blue", label: "Blue" },
+    { value: "cyan", label: "Cyan" },
+    { value: "teal", label: "Teal" },
+    { value: "green", label: "Green" },
+    { value: "lime", label: "Lime" },
+    { value: "yellow", label: "Yellow" },
+    { value: "orange", label: "Orange" },
+    { value: "gray", label: "Gray" },
+  ];
   const taskGoalsQuery = useQuery({
     queryKey: ["task-goals", taskId, workspaceId],
     queryFn: () =>
@@ -207,6 +242,13 @@ export function TaskDrawer({
     enabled: !!taskId && !!workspaceId,
   });
   const taskGoals = taskGoalsQuery.data || [];
+  const { data: taskLabelsData = [] } = useTaskLabels();
+  const taskLabels = Array.isArray(taskLabelsData) ? taskLabelsData : [];
+  const createLabelMutation = useCreateTaskLabel();
+  const updateLabelMutation = useUpdateTaskLabel();
+  const deleteLabelMutation = useDeleteTaskLabel();
+  const assignLabelMutation = useAssignTaskLabel();
+  const removeLabelMutation = useRemoveTaskLabel();
   const entityLinksQuery = useQuery({
     queryKey: ["entity-links", taskId, workspaceId, spaceId],
     queryFn: () =>
@@ -253,6 +295,16 @@ export function TaskDrawer({
   useEffect(() => {
     setAssignedGoalIds(taskGoals.map((goal) => goal.id));
   }, [taskGoals]);
+
+  useEffect(() => {
+    setLabelDrafts(
+      taskLabels.map((label: Label) => ({
+        id: label.id,
+        name: label.name,
+        color: label.color,
+      })),
+    );
+  }, [taskLabels]);
 
   // Set initial cover image if task has one
   useEffect(() => {
@@ -1600,6 +1652,56 @@ export function TaskDrawer({
                 />
               </Group>
 
+              <Group justify="apart" mb="xs" align="flex-start">
+                <Text fw={500} size="sm" style={{ width: "100px" }}>
+                  {t("Labels")}
+                </Text>
+                <Group gap="xs" align="flex-start" style={{ flex: 1 }}>
+                  <MultiSelect
+                    data={labelOptions}
+                    value={selectedLabelIds}
+                    onChange={(values) => {
+                      if (!taskId) return;
+                      const next = values as string[];
+                      const added = next.filter(
+                        (labelId) => !selectedLabelIds.includes(labelId),
+                      );
+                      const removed = selectedLabelIds.filter(
+                        (labelId) => !next.includes(labelId),
+                      );
+
+                      added.forEach((labelId) =>
+                        assignLabelMutation.mutate({ taskId, labelId }),
+                      );
+                      removed.forEach((labelId) =>
+                        removeLabelMutation.mutate({ taskId, labelId }),
+                      );
+                    }}
+                    placeholder={t("Assign labels...")}
+                    searchable
+                    clearable
+                    size="sm"
+                    styles={{
+                      input: {
+                        border: "none",
+                        backgroundColor: "transparent",
+                      },
+                    }}
+                    style={{ flex: 1 }}
+                  />
+                  <Tooltip label={t("Manage labels")}>
+                    <ActionIcon
+                      variant="subtle"
+                      color="gray"
+                      onClick={() => setLabelManagerOpen(true)}
+                      aria-label={t("Manage labels")}
+                    >
+                      <IconSettings size={16} />
+                    </ActionIcon>
+                  </Tooltip>
+                </Group>
+              </Group>
+
               <Group justify="apart" mb="xs">
                 <Text fw={500} size="sm" style={{ width: "100px" }}>
                   {t("Bucket")}
@@ -1642,6 +1744,135 @@ export function TaskDrawer({
                 {t("Add a property")}
               </Button>
             </Stack>
+
+            <Modal
+              opened={labelManagerOpen}
+              onClose={() => setLabelManagerOpen(false)}
+              title={t("Manage labels")}
+              size="md"
+            >
+              <Stack gap="sm">
+                {labelDrafts.length ? (
+                  labelDrafts.map((label) => {
+                    const original = taskLabels.find(
+                      (item: Label) => item.id === label.id,
+                    );
+                    const hasChanges =
+                      original?.name !== label.name ||
+                      original?.color !== label.color;
+
+                    return (
+                      <Group key={label.id} align="flex-end">
+                        <TextInput
+                          label={t("Name")}
+                          value={label.name}
+                          onChange={(event) => {
+                            const value = event.currentTarget.value;
+                            setLabelDrafts((current) =>
+                              current.map((item) =>
+                                item.id === label.id
+                                  ? { ...item, name: value }
+                                  : item,
+                              ),
+                            );
+                          }}
+                          style={{ flex: 1 }}
+                        />
+                        <Select
+                          label={t("Color")}
+                          data={labelColorOptions}
+                          value={label.color}
+                          onChange={(value) => {
+                            const color = (value ||
+                              label.color) as LabelColor;
+                            setLabelDrafts((current) =>
+                              current.map((item) =>
+                                item.id === label.id
+                                  ? { ...item, color }
+                                  : item,
+                              ),
+                            );
+                          }}
+                          style={{ width: 140 }}
+                        />
+                        <Button
+                          size="xs"
+                          variant="light"
+                          disabled={!hasChanges}
+                          onClick={() =>
+                            updateLabelMutation.mutate({
+                              labelId: label.id,
+                              name: label.name,
+                              color: label.color,
+                            })
+                          }
+                        >
+                          {t("Save")}
+                        </Button>
+                        <ActionIcon
+                          color="red"
+                          variant="subtle"
+                          onClick={() => deleteLabelMutation.mutate(label.id)}
+                          aria-label={t("Delete label")}
+                        >
+                          <IconTrash size={16} />
+                        </ActionIcon>
+                      </Group>
+                    );
+                  })
+                ) : (
+                  <Text size="sm" c="dimmed">
+                    {t("No labels yet")}
+                  </Text>
+                )}
+
+                <Divider />
+
+                <Group align="flex-end">
+                  <TextInput
+                    label={t("New label")}
+                    value={newLabelName}
+                    onChange={(event) =>
+                      setNewLabelName(event.currentTarget.value)
+                    }
+                    placeholder={t("Label name")}
+                    style={{ flex: 1 }}
+                  />
+                  <Select
+                    label={t("Color")}
+                    data={labelColorOptions}
+                    value={newLabelColor}
+                    onChange={(value) =>
+                      setNewLabelColor(
+                        (value as LabelColor) || newLabelColor,
+                      )
+                    }
+                    style={{ width: 140 }}
+                  />
+                  <Button
+                    size="sm"
+                    onClick={() => {
+                      if (!newLabelName.trim() || !workspaceId) return;
+                      createLabelMutation.mutate(
+                        {
+                          name: newLabelName.trim(),
+                          color: newLabelColor,
+                          workspaceId,
+                        },
+                        {
+                          onSuccess: () => {
+                            setNewLabelName("");
+                            setNewLabelColor("blue");
+                          },
+                        },
+                      );
+                    }}
+                  >
+                    {t("Create")}
+                  </Button>
+                </Group>
+              </Stack>
+            </Modal>
 
             {/* Comments Section */}
             <Box mt="md">

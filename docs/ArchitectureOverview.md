@@ -1,6 +1,6 @@
 # Architecture Overview
 
-This document describes the current Raven Docs architecture and system boundaries, with emphasis on the integrated MCP capabilities and real-time collaboration.
+This document describes the current Raven Docs architecture and system boundaries, with emphasis on MCP, agent workflows, and real-time collaboration.
 
 ## System Overview
 
@@ -22,23 +22,28 @@ flowchart LR
   subgraph Server["Server (NestJS)"]
     API["HTTP API\n(core + MCP Standard)"]
     RT["WebSockets\n(Collaboration + MCP events)"]
-    CORE["Core Modules\n(auth, users, spaces, pages, comments, projects)"]
-    INTEG["Integrations\n(storage, mail, queue, import/export, telemetry)"]
+    CORE["Core Modules\n(auth, users, spaces, pages, comments, projects, tasks, goals)"]
+    AGENT["Agent + Memory\n(loop, planner, approvals, memgraph)"]
+    INTEG["Integrations\n(storage, mail, queue, import/export, telemetry, MCP)"]
   end
 
   subgraph Data["Data"]
     DB["Postgres"]
     REDIS["Redis"]
+    MEM["Memgraph"]
     FS["Local/S3 Storage"]
   end
 
   UI --> API
   WS <---> RT
   API --> CORE
+  API --> AGENT
   API --> INTEG
   CORE --> DB
   INTEG --> DB
   INTEG --> REDIS
+  AGENT --> DB
+  AGENT --> MEM
   INTEG --> FS
 ```
 
@@ -63,7 +68,7 @@ docs/                Project and MCP documentation
 ### Core Modules
 Located under `apps/server/src/core`:
 - `auth`, `user`, `workspace`, `space`, `page`, `comment`, `group`
-- `search`, `attachment`, `project`
+- `search`, `attachment`, `project`, `task`, `goal`
 - Each module exposes controller(s), service(s), and repository layer.
 
 ### Integrations
@@ -75,6 +80,8 @@ Located under `apps/server/src/integrations`:
 - MCP:
   - Standard MCP protocol: `apps/server/src/integrations/mcp-standard`
   - Internal JSON-RPC Master Control API: `apps/server/src/integrations/mcp`
+- Memgraph integration: `apps/server/src/integrations/memgraph`
+- AI integration: `apps/server/src/integrations/ai`
 
 ### Real-time Systems
 - Collaboration via Hocuspocus/Yjs: `apps/server/src/collaboration`
@@ -102,7 +109,13 @@ Two paths exist:
 
 1) MCP Standard Integration (`apps/server/src/integrations/mcp-standard`)
    - Built-in server endpoints at `/api/mcp-standard/*`.
-   - Uses existing MCP API key auth and internal MCP services.
+   - Uses MCP API key auth and internal MCP services.
+   - Approval policy enforced by the MCP approval service + agent policy rules.
+
+2) Agent Systems (`apps/server/src/core/agent`, `apps/server/src/core/agent-memory`)
+   - Autonomous loop and daily planner (Gemini).
+   - Agent memory stored in Postgres + Memgraph.
+   - Approval workflow with UI surfaces in Today/Insights.
 
 ## Data Flow Summary
 
@@ -126,11 +139,20 @@ sequenceDiagram
 
 - Core systems are in place and wired.
 - MCP Standard integration appears complete and is preferred over the legacy bridge.
-- Project management system is implemented at API + UI, but several TODOs suggest partial UX completion.
-- Documentation is partially inconsistent; several MCP docs overlap with different guidance.
+- Project management system is implemented at API + UI; task-to-page list sync remains a gap.
+- Agent memory + autonomy are live; approvals are required for sensitive actions.
+- Documentation overlaps and needs consolidation.
 
 ## Known Gaps (from code scan)
 
 - Permission TODOs in comments, search, and page scoping.
 - Project/task UI has placeholders and TODOs (create/open editor, file operations, delete).
 - Some docs refer to files that exist at repo root, not under `docs/`.
+
+## Workflow Notes
+
+- Primary GTD flow: capture → triage → plan → execute → review.
+- Daily Focus and Weekly Review are the main planning surfaces.
+- Agent loop suggests actions that are gated by policy and approvals.
+
+See `docs/Workflows.md` for the full workflow map and use cases.

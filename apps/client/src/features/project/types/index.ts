@@ -29,8 +29,6 @@ export interface Label {
   id: string;
   name: string;
   color: LabelColor;
-  projectId: string;
-  spaceId: string;
   workspaceId: string;
   createdAt: string;
   updatedAt: string;
@@ -183,8 +181,7 @@ export interface TaskTriageSummary {
 export interface CreateLabelParams {
   name: string;
   color: LabelColor;
-  projectId: string;
-  spaceId: string;
+  workspaceId: string;
 }
 
 export interface UpdateLabelParams {

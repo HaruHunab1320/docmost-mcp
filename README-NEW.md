@@ -110,10 +110,20 @@ docmost/
 
 ## 📚 Documentation
 
-- [Installation Guide](docs/installation.md)
-- [Configuration](docs/configuration.md)
-- [API Documentation](docs/api.md)
-- [Contributing](CONTRIBUTING.md)
+- [Architecture Overview](docs/ArchitectureOverview.md)
+- [System Status Audit](docs/SystemStatus.md)
+- [MCP (Canonical)](docs/MCP.md)
+- [Engineering Standards](docs/EngineeringStandards.md)
+- [Workflows + Use Cases](docs/Workflows.md)
+- [Autonomy Quickstart](docs/AutonomyQuickstart.md)
+- [System Risks + Remediation](docs/SystemRisks.md)
+- [UI Audit Route Checks](docs/UIAudit_RouteChecks.md)
+- [Testing Matrix](docs/TestingMatrix.md)
+- [Manual Test Runbook](docs/ManualTest_Runbook.md)
+- [GTD + Second Brain UI](docs/GTD_SecondBrain_UI.md)
+- [GTD Agent Automations](docs/GTD_Agent_Automations.md)
+- [Project Management](docs/ProjectManagement.md)
+- [Product Vision + Methodology](docs/ProductVision.md)
 
 ## 🔧 Configuration
 
@@ -155,9 +165,7 @@ We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guid
 
 ## 🆘 Support
 
-- **Documentation**: https://docmost.com/docs
-- **Issues**: https://github.com/docmost/docmost/issues
-- **Discussions**: https://github.com/docmost/docmost/discussions
+- **Documentation**: See `docs/Documentation.md` for a full index.
 
 ## 🚦 Status
 

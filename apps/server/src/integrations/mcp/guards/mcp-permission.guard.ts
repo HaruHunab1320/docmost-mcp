@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 import { MCPRequest } from '../interfaces/mcp.interface';
 import { User } from '@docmost/db/types/entity.types';
+import { UserRole } from '../../../common/helpers/types/permission';
 
 /**
  * Permission levels for MCP operations
@@ -129,13 +130,20 @@ export class MCPPermissionGuard implements CanActivate {
     const requiredLevel =
       this.permissionMap[method] || this.permissionMap.default;
 
-    // TODO: Implement more sophisticated permission checking based on user roles
-    // For now, we'll just allow all operations, but log for debugging
+    const role = (user.role || '').toLowerCase();
+    const isAdmin = role === UserRole.ADMIN || role === UserRole.OWNER;
+
+    const allowed =
+      requiredLevel === MCPPermissionLevel.READ
+        ? true
+        : requiredLevel === MCPPermissionLevel.WRITE
+          ? role === UserRole.MEMBER || isAdmin
+          : isAdmin;
+
     this.logger.debug(
       `Checking permission for method ${method}, required level: ${requiredLevel}`,
     );
 
-    // In a real implementation, check the user's role/permissions against the required level
-    return true;
+    return allowed;
   }
 }

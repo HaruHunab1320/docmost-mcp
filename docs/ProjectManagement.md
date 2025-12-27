@@ -1,148 +1,59 @@
-# Project Management Features Implementation
+# Project Management System
+
+This document describes the current Raven Docs project and task system,
+including what is implemented, how it maps to UI, and what remains.
 
 ## Current State
 
-Raven Docs currently supports basic task management through the editor with the following features.
+### Projects (Core)
+- Projects are persisted in Postgres (`projects` table) and scoped to spaces.
+- Project CRUD is exposed via REST and MCP Standard.
+- Project home pages can be created via `project.createPage`.
 
-### Basic Task Management
-- **Task Lists (To-Do Lists)**: 
-  - The editor includes a built-in TaskList extension from TipTap
-  - Users can create task lists with checkable items
-  - Tasks support nesting for subtasks
-  - Tasks can be marked as complete/incomplete with checkboxes
+### Tasks (Core)
+- Tasks are persisted in Postgres (`tasks` table).
+- Tasks support status, priority, bucket, due dates, assignees, and project
+  association.
+- Task CRUD + assignment + completion are exposed via REST and MCP Standard.
 
-- **Task Creation Methods**:
-  - Through the slash menu command: "/to-do list"
-  - Via the bubble menu node selector
-  - Tasks are stored as part of the page content in JSON format
+### UI Surfaces
+- Project dashboard + metrics
+- Kanban board and list views
+- Task drawer with assignment, status, due dates, and bucket controls
+- Task cards and quick create modals
 
-### Current Limitations
+## Feature Coverage
 
-- **No Dedicated Task Database**:
-  - Tasks are stored as content within pages, not as separate database entities
-  - No specific database tables for tasks, projects, or task assignments
-  - No way to track tasks across pages or assign them to team members
+### Implemented
+- Project CRUD + archive
+- Task CRUD + assignment + completion
+- Task board views (columns, swimlanes, timeline)
+- Project dashboards + metrics
+- MCP exposure for projects/tasks + triage summary
 
-- **No Advanced Project Management**:
-  - No dedicated project templates or project spaces
-  - No task dependencies, deadlines, or priority settings
-  - No Kanban boards, Gantt charts, or sprint planning features
-  - No task assignment or team member allocation
+### In Progress / Gaps
+- Task label CRUD UI is limited (labels exist, but creation/edit flows are sparse)
+- Document task list extraction / sync with task DB is not fully wired
+- Task mentions inside pages are not yet first-class
 
-- **No Task Aggregation**:
-  - No way to view all tasks across workspaces/spaces
-  - No dashboards specifically for task tracking
-  - No reminders or notifications for task deadlines
+## Data Model Notes
 
-## Implementation Plan
+- Projects and tasks are stored as first-class entities.
+- Goal matching uses keyword-based rules and can be used in triage summaries.
+- Task buckets map to GTD flows (Inbox/Waiting/Someday).
 
-### Phase 1: Database Schema (✅ Completed)
-- [x] Create `projects` table
-- [x] Create `tasks` table with relationships to pages/users
-- [x] Create `task_assignments` table (implemented as columns in tasks table)
-- [x] Create `task_labels` table
-- [x] Design database indices for efficient queries
-- [x] Create repositories for project and task entities
-- [x] Register repositories in the appropriate modules
+## Roadmap (Near-Term)
 
-### Phase 2: Core API (✅ Completed)
-- [x] Create Project service with CRUD operations
-- [x] Create Task service with CRUD operations
-- [x] Implement task assignment functionality
-- [x] Implement complex task queries and filtering
-- [x] Create Project and Task controllers
-- [x] Create DTO files for request validation
-- [x] Create endpoints for task aggregation across spaces
-- [x] Add due date and reminder functionality
-- [x] Implement task conversion from document content
+1) Task list extraction from page content → tasks DB sync
+2) Label CRUD UI and task label management
+3) Project recap pages + weekly review integrations
+4) Task mentions and backlinks in pages
 
-### Phase 3: UI Components (✅ Completed)
-- [x] Project management page component
-- [x] Create project list view with filtering options
-- [x] Implement project creation and editing modals
-- [x] Create project board view (Kanban style)
-- [x] Create task detail modal
-- [x] Implement task assignment UI
-- [x] Add date pickers for deadlines
-- [x] Implement drag and drop for tasks
-- [x] Create project overview dashboard
+## MCP Integration
 
-### Phase 4: Integration (⏳ Not Started)
-- [ ] Connect task lists in documents with task database
-- [ ] Add task extraction from document content
-- [ ] Implement task synchronization between views
-- [ ] Create task mentions in documents
-- [ ] Add notifications for task assignments and deadlines
+Projects and tasks are exposed via MCP Standard:
+- Projects: `project_list`, `project_get`, `project_create`, `project_update`, `project_archive`, `project_delete`
+- Tasks: `task_list`, `task_get`, `task_create`, `task_update`, `task_delete`,
+  `task_complete`, `task_assign`, `task_move_to_project`, `task_triage_summary`
 
-### Phase 5: Advanced Features (⏳ Not Started)
-- [ ] Add project templates
-- [ ] Implement time tracking
-- [ ] Add task dependencies
-- [ ] Create reporting views
-- [ ] Implement task automation rules
-- [ ] Add calendar integration
-
-## Progress Log
-
-*[This section will be updated as we make progress on implementation]*
-
-**2024-04-21**: Initial assessment of project management capabilities completed.
-
-**2024-04-21**: Created database schema for project management system including:
-- Created comprehensive tables for projects, tasks, task labels, watchers, and dependencies
-- Added task statuses and priorities as enum types
-- Implemented relationships between tasks and pages for document integration
-- Created repositories for project and task CRUD operations
-- Added specialized query methods for task filtering and aggregation
-
-**2024-04-21**: Implemented core service layer for project management:
-- Created ProjectService with methods for creating, updating, archiving projects
-- Created TaskService with comprehensive task management capabilities
-- Implemented features for task assignment, status management, and project association
-- Added validation logic to ensure data integrity across workspaces and spaces
-- Integrated with existing page and space repositories for seamless document connection
-
-**2024-04-21**: Created API controllers and DTOs for project management features:
-- Built ProjectController with endpoints for creating, listing, updating, and archiving projects
-- Built TaskController with comprehensive endpoints for task management
-- Created validation DTOs for all API requests
-- Implemented permission checks using existing CASL abilities
-- Registered ProjectModule in the core application for seamless integration
-- Set up proper error handling and response formatting
-
-**2024-04-22**: Implemented UI components for project management:
-- Created React hooks using TanStack Query for data fetching (useProjects, useTasks)
-- Implemented UserSelect component with search functionality for task assignment
-- Built ProjectList component with filtering and sorting options
-- Created ProjectBoard component with Kanban-style columns for visualizing task workflow
-- Implemented task detail modals with assignment, priority, and status options
-- Added project creation and editing forms with validation
-- Integrated project management into the space sidebar navigation
-- Created user service with getWorkspaceUsers functionality for member listing
-- Set up proper routing for project management views in the application
-
-**2024-04-22**: Implemented drag-and-drop functionality for tasks:
-- Added @dnd-kit libraries for accessible drag and drop capabilities
-- Created SortableTask component for draggable task cards
-- Implemented column-to-column task movement via drag and drop
-- Added visual feedback during dragging with task preview overlay
-- Maintained task card functionality while making them draggable
-- Integrated drag-and-drop actions with the existing task update mutation
-- Ensured the UI provides clear visual cues for drag source and drop targets
-- Maintained accessibility by supporting both pointer and keyboard interactions
-
-**2024-04-22**: Created project dashboard with statistics and analytics:
-- Designed an intuitive overview dashboard as the entry point to project management
-- Implemented task distribution charts by status and priority using RingProgress components
-- Added key metrics including completion rates, total projects, and task counts
-- Created an upcoming deadlines section showing tasks due in the next 7 days
-- Added project highlight section featuring the most active project
-- Integrated the dashboard with the existing project management navigation
-- Ensured responsive design for all screen sizes
-- Used memoization for efficient data processing and rendering
-
-**Next Steps**: 
-1. Implement task synchronization between document task lists and the task database
-2. Add notifications for task assignments and deadline reminders
-3. Enhance Kanban board with additional filtering and sorting options
-4. Create task mentions in documents 
+Approvals are required for sensitive methods based on policy rules.

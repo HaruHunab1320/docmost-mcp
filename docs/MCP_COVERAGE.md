@@ -1,5 +1,8 @@
 # MCP Coverage Audit
 
+See `docs/MCP.md` for the canonical MCP overview. This document lists method
+coverage only.
+
 This document shows current coverage between the internal JSON-RPC MCP API
 (`apps/server/src/integrations/mcp`) and the MCP Standard tools
 (`apps/server/src/integrations/mcp-standard`).

@@ -1,5 +1,7 @@
 # MCP WebSocket Events System
 
+For MCP overview and tooling, see `docs/MCP.md`.
+
 ## Overview
 
 The MCP WebSocket Events System is a real-time notification system that allows clients to receive updates about changes made through the Model Context Protocol (MCP) API. This enables seamless integration between AI assistant actions and the user interface.

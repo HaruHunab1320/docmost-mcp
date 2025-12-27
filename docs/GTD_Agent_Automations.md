@@ -1,6 +1,7 @@
 # Raven Docs GTD Automations
 
-This document defines the daily and weekly automation flows for the Raven Docs agent and the minimum MCP/API support required to ship them.
+This document defines the current daily/weekly agent flows and the MCP/API
+support required to ship them safely.
 
 ## Daily Digest (Morning)
 
@@ -11,32 +12,29 @@ This document defines the daily and weekly automation flows for the Raven Docs a
 - Overdue tasks
 - Waiting/Someday lists
 - Recently captured Inbox items
-- Daily note entries from yesterday
+- Goal focus (keyword-based matches)
 
 **Outputs**
 - A “Today” summary card (overdue + due today)
-- Suggested next actions by project
+- Suggested focus by goal
 - Inbox triage queue size and urgency
 
 **MCP Required**
-- `task_list` by due date (today, overdue)
-- `task_list` by bucket (waiting, someday)
-- `task_list` for Inbox (no projectId)
-- `page_list` or `search` for yesterday’s daily note
+- `task_triage_summary`
+- `task_list` (optional for extended views)
+- `memory_daily` (journal recap)
 
 **Agent Steps**
-1) Fetch overdue + due today tasks.
-2) Fetch Inbox items and count.
-3) Fetch Waiting/Someday items.
-4) Summarize into a “Today” digest.
-5) Optionally append summary to today’s daily note page.
+1) Pull triage summary + goal focus.
+2) Generate a daily summary.
+3) Store summary in memory + render on Today.
 
 ## Daily Triage (During the Day)
 
 **Goal:** Turn raw inbox items into next actions or defer decisions.
 
 **Inputs**
-- Inbox tasks (unassigned)
+- Inbox tasks (bucket = inbox/none)
 - Project list
 
 **Outputs**
@@ -49,49 +47,34 @@ This document defines the daily and weekly automation flows for the Raven Docs a
 - `project_list`
 - `task_update`
 - `task_move_to_project`
-- `task_bucket_set`
-
-**Agent Steps**
-1) Load inbox items.
-2) Suggest project matches based on content (optional).
-3) Apply updates and log changes to daily note.
 
 ## Weekly Review (Scheduled)
 
-**Goal:** Comprehensive review of the system and intentional planning.
+**Goal:** Comprehensive review and intentional planning.
 
 **Inputs**
 - Inbox backlog
-- Stale projects (no updates in X days)
-- Projects with no active tasks
+- Stale projects
 - Waiting/Someday lists
-- Upcoming deadlines (next 14 days)
+- Upcoming deadlines
 
 **Outputs**
 - Weekly review page (checklist + findings)
 - Suggested next actions by project
-- Flags for stale projects
 
 **MCP Required**
-- `task_list` (all tasks by space)
+- `task_list`
 - `project_list`
-- `task_list` by bucket
-- `page_create` / `page_update` for weekly review
+- `page_create` / `page_update`
 
-**Agent Steps**
-1) Create/open weekly review page.
-2) Compute stale projects and no-next-action lists.
-3) Append findings and suggested next actions.
-4) Optionally propose new goals.
+## Current Automation Status
 
-## Data/Tool Gaps
+- Daily summary + proactive questions are live.
+- Autonomy loop can propose up to 3 actions.
+- Approval workflow enforced by policy rules + approval tokens.
 
-- Tasks and Projects are not exposed via MCP Standard yet.
-- Task buckets are localStorage only.
+## Remaining Gaps
 
-## Implementation Checklist
-
-1) Add task/project MCP tools.
-2) Persist bucket state server-side.
-3) Add endpoints for “due today” and “overdue” queries (or filter client-side).
-4) Add a weekly review page generator tool (optional).
+- Project recap generator still depends on agent suggestions.
+- Task extraction from page checklists is not yet wired.
+- Agent policy rules need UX education (what is safe vs destructive).

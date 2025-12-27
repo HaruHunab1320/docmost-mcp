@@ -323,6 +323,22 @@ export class TaskRepo {
     return paginate(query, pagination);
   }
 
+  async findByPageId(
+    pageId: string,
+    trx?: Transaction<DB>,
+  ): Promise<Task[]> {
+    if (!this.isValidUuid(pageId)) {
+      return [];
+    }
+
+    return dbOrTx(this.db, trx)
+      .selectFrom('tasks')
+      .selectAll()
+      .where('tasks.pageId', '=', pageId)
+      .where('tasks.deletedAt', 'is', null)
+      .execute();
+  }
+
   async findBySpaceId(
     spaceId: string,
     pagination: PaginationOptions,

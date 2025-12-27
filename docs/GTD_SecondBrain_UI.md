@@ -1,54 +1,61 @@
-# GTD + Second Brain UI Additions (Proposal)
+# GTD + Second Brain UI (Current State)
 
-## Goals
-- Capture fast with minimal friction.
+This document summarizes the GTD/Second Brain experience as implemented in
+Raven Docs today.
+
+## Core Goals
+
+- Fast capture with minimal friction.
 - Daily triage and automatic prioritization.
 - Projects and pages feel unified (everything is a page).
-- Default workflows, minimal customization.
+- Default workflows with minimal customization overhead.
 
-## Core Surfaces
-### 1) Universal Inbox
-- One-click global capture input (header + keyboard shortcut).
-- Accepts quick text, optional tags, optional due date.
-- Saves to a single Inbox list (default space).
+## Implemented Surfaces
 
-### 2) Daily Triage View
-- Dedicated view: Inbox items, auto-suggested next actions, quick assign.
-- Buttons: Next, Schedule, Delegate, Someday, Archive.
-- Inline convert to project task or page.
+### Inbox
+- Global capture entry point (Journal + quick capture).
+- Inbox task list with bucket controls.
 
-### 3) Today + Timeline
-- Today view: tasks with due today + highest priority.
-- Timeline view: calendar list and upcoming reminders.
-- Optional autosort: urgency + project activity + last touched.
+### Today
+- Daily Pulse (Inbox/Waiting/Someday counts).
+- Overdue + Due Today lists.
+- Suggested Focus (goal-aware triage summary).
+- Agent panels: daily summary, proactive questions, approvals, memory insights.
 
-### 4) Projects as Pages
-- Project has a home page.
-- Project pages show linked documents and tasks.
-- Sidebar shows project tree with pages (in progress).
+### Triage
+- Triage queue with bulk actions and assignment flows.
+- Quick moves to Waiting/Someday.
 
-### 5) Journal / Daily Notes
-- Auto-create daily journal page.
-- Input stream for notes, tasks, ideas.
-- “Capture to Inbox” inline action per bullet.
+### Waiting / Someday
+- Bucket lists with move-back flows.
 
-### 6) Reviews
-- Weekly review checklist view.
-- Stale project review prompts.
-- Auto-suggest: “Next action missing”.
+### Review
+- Weekly review view and checklist patterns.
 
-## Mapping to Current Models
-- Inbox items: tasks with status = Inbox (new enum state).
-- Project tasks: existing tasks.
-- Project pages: linked via tasks -> pageId or direct project page mapping.
-- Journal: pages in a dedicated space or tagged pages.
+### Daily Notes / Journal
+- Daily note page creation.
+- Journal capture that feeds the inbox and memory.
 
-## Minimal First Iteration
-- Global capture input + Inbox list page.
-- Daily triage view with quick actions.
-- Today view that aggregates due/priority.
-- Project home page (page created at project creation).
+## Project ↔ Page Unification
 
-## Open Questions
-- Should Inbox live per workspace or per space?
-- Do we allow “Areas” (PARA) as a top-level nav?
+- Projects are first-class, but pages can be linked to projects and tasks.
+- The sidebar shows project-linked pages under project nodes.
+
+## AI + Agent UX
+
+- Memory drawer + insights page.
+- Daily summary and proactive questions on Today.
+- Approval workflow with explicit confirmation.
+- Agent chat drawer available across pages.
+
+## Remaining UI Gaps
+
+- Task label CRUD UI is limited.
+- Task extraction from document checklists is not fully wired.
+- Some advanced review surfaces (project recap, time tracking) remain in roadmap.
+
+## Design Principles (Applied)
+
+- Minimal, consistent layout.
+- Low friction from thought → capture.
+- Default workflows over heavy customization.

@@ -1,7 +1,9 @@
 import {
   BadRequestException,
+  Inject,
   Injectable,
   NotFoundException,
+  forwardRef,
 } from '@nestjs/common';
 import { CreatePageDto } from '../dto/create-page.dto';
 import { UpdatePageDto } from '../dto/update-page.dto';
@@ -22,6 +24,7 @@ import { generateSlugId } from '../../../common/helpers';
 import { dbOrTx, executeTx } from '@docmost/db/utils';
 import { AttachmentRepo } from '../../../database/repos/attachment/attachment.repo';
 import { AgentMemoryService } from '../../agent-memory/agent-memory.service';
+import { TaskService } from '../../project/services/task.service';
 
 @Injectable()
 export class PageService {
@@ -30,6 +33,8 @@ export class PageService {
     private attachmentRepo: AttachmentRepo,
     @InjectKysely() private readonly db: KyselyDB,
     private readonly agentMemoryService: AgentMemoryService,
+    @Inject(forwardRef(() => TaskService))
+    private readonly taskService: TaskService,
   ) {}
 
   async findById(
@@ -106,6 +111,16 @@ export class PageService {
       // Memory ingestion should not block page creation.
     }
 
+    if (createPageDto.content) {
+      await this.taskService.syncTasksFromPageContent({
+        workspaceId,
+        spaceId: createdPage.spaceId,
+        pageId: createdPage.id,
+        userId,
+        content: createPageDto.content,
+      });
+    }
+
     return createdPage;
   }
 
@@ -163,16 +178,18 @@ export class PageService {
     contributors.add(userId);
     const contributorIds = Array.from(contributors);
 
-    await this.pageRepo.updatePage(
-      {
-        title: updatePageDto.title,
-        icon: updatePageDto.icon,
-        lastUpdatedById: userId,
-        updatedAt: new Date(),
-        contributorIds: contributorIds,
-      },
-      page.id,
-    );
+    const updatePayload: any = {
+      title: updatePageDto.title,
+      icon: updatePageDto.icon,
+      lastUpdatedById: userId,
+      updatedAt: new Date(),
+      contributorIds: contributorIds,
+    };
+    if (updatePageDto.content !== undefined) {
+      updatePayload.content = updatePageDto.content;
+    }
+
+    await this.pageRepo.updatePage(updatePayload, page.id);
 
     const updatedPage = await this.pageRepo.findById(page.id, {
       includeSpace: true,
@@ -199,6 +216,16 @@ export class PageService {
       });
     } catch {
       // Memory ingestion should not block page updates.
+    }
+
+    if (updatePageDto.content !== undefined) {
+      await this.taskService.syncTasksFromPageContent({
+        workspaceId: updatedPage.workspaceId,
+        spaceId: updatedPage.spaceId,
+        pageId: updatedPage.id,
+        userId,
+        content: updatePageDto.content,
+      });
     }
 
     return updatedPage;

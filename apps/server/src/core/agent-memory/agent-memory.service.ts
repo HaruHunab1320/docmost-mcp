@@ -57,6 +57,26 @@ export class AgentMemoryService {
       : contentText;
   }
 
+  private normalizeJsonValue(value: any) {
+    if (value === undefined) return null;
+    if (typeof value === 'string') {
+      try {
+        return JSON.parse(value);
+      } catch {
+        return { text: value };
+      }
+    }
+    return value;
+  }
+
+  private safeJsonStringify(value: any) {
+    try {
+      return JSON.stringify(value);
+    } catch {
+      return JSON.stringify({ text: String(value) });
+    }
+  }
+
   private cosineSimilarity(a: number[], b: number[]): number {
     let dot = 0;
     let normA = 0;
@@ -96,11 +116,13 @@ export class AgentMemoryService {
     const tags = input.tags || [];
     const memoryId = uuid7();
     const content = input.content ?? null;
+    const normalizedContent = this.normalizeJsonValue(content);
     const contentJson =
-      content === null || content === undefined
+      normalizedContent === null
         ? null
-        : (sql`${JSON.stringify(content)}::jsonb` as unknown as any);
-    const tagsJson = sql`${JSON.stringify(tags)}::jsonb` as unknown as any;
+        : (sql`${this.safeJsonStringify(normalizedContent)}::jsonb` as unknown as any);
+    const normalizedTags = tags.map((tag) => String(tag));
+    const tagsJson = sql`${this.safeJsonStringify(normalizedTags)}::jsonb` as unknown as any;
 
     await this.db
       .insertInto('agentMemories')
@@ -143,7 +165,7 @@ export class AgentMemoryService {
           spaceId: input.spaceId || null,
           source: input.source || null,
           summary,
-          tags,
+          tags: normalizedTags,
           timestamp: timestamp.toISOString(),
           timestampMs: timestamp.getTime(),
           embedding,
@@ -183,7 +205,7 @@ export class AgentMemoryService {
       source: input.source || null,
       summary,
       content,
-      tags,
+      tags: normalizedTags,
       timestamp,
     };
   }

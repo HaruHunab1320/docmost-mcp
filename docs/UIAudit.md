@@ -17,6 +17,30 @@ This matrix catalogs current UI surfaces and indicates if they appear complete, 
 | Workspace/space switching | Unverified | UI exists under `features/workspace` and `features/space`. |
 | Page tree navigation | Unverified | Part of `features/page`; verify drag/drop, move, and permissions. |
 
+## Per-Route Verification Map
+
+Use this list to drive runtime verification and capture pass/fail.
+
+| Route | Expected Checks |
+| --- | --- |
+| `/auth/setup` | Setup flow creates workspace, sets admin, redirects. |
+| `/login` | Login success, error states render, logout returns here. |
+| `/spaces/:spaceId` | Space loads, header + sidebar render, navigation works. |
+| `/spaces/:spaceId/inbox` | Capture task, bucket filters, open triage. |
+| `/spaces/:spaceId/today` | Daily pulse buttons, approvals list, daily note. |
+| `/spaces/:spaceId/triage` | Bulk actions, assign project, do today. |
+| `/spaces/:spaceId/review` | Weekly checklist, review page link. |
+| `/spaces/:spaceId/waiting` | Waiting list, return to inbox. |
+| `/spaces/:spaceId/someday` | Someday list, return to inbox. |
+| `/spaces/:spaceId/projects` | Project dashboard, open project. |
+| `/spaces/:spaceId/projects?projectId=...` | Board loads, task drawer edits. |
+| `/spaces/:spaceId/pages/:pageId` | Editor load, formatting, comments. |
+| `/spaces/:spaceId/attachments` | Upload/download/delete. |
+| `/spaces/:spaceId/search` | Search results + open. |
+| `/settings/account` | Profile updates persist. |
+| `/settings/workspace` | Workspace settings save, agent toggle works. |
+| `/settings/api-keys` | API key create/delete. |
+
 ## Editor and Content
 
 | Area | Status | Notes |
@@ -59,6 +83,15 @@ This matrix catalogs current UI surfaces and indicates if they appear complete, 
 | API keys UI | Unverified | Exists under `features/api-keys`. |
 | User management | Unverified | Exists under `features/user`. |
 | Group management | Unverified | Exists under `features/group`. |
+| Agent settings | Unverified | Autonomy toggle + policy editor UI; needs runtime validation. |
+
+## Agent + Autonomy
+
+| Area | Status | Notes |
+| --- | --- | --- |
+| Approvals panel | Unverified | Approvals list + confirm/deny UI needs runtime validation. |
+| Memory insights | Unverified | Graph and history views need runtime validation. |
+| Autonomy run | Unverified | Run-now workflow + schedule settings need validation. |
 
 ## UX / Design Quality
 
@@ -79,6 +112,7 @@ This matrix catalogs current UI surfaces and indicates if they appear complete, 
 2) Validate the newly wired flows (attachments delete, task-to-page creation, labels).
 3) Align server permissions and UI affordances to prevent broken or hidden actions.
 4) Add regression checks for the highest-use flows: auth, page creation, edits, search, tasks.
+5) Use `docs/UIAudit_Checklist.md` during runtime validation to record pass/fail.
 
 ## Raven Docs UI Audit Checklist (Manual)
 
@@ -99,6 +133,7 @@ This matrix catalogs current UI surfaces and indicates if they appear complete, 
 | Attachments | Upload, view, download, delete; filter by space. |  |  |
 | Search | Global search, space-scoped search, open result. |  |  |
 | Settings | Account preferences, theme switching, API keys UI. |  |  |
+| Agent | Toggle autonomy, edit policy, run autonomy now, approvals list. |  |  |
 | Themes | Light/dark and all themes switch cleanly, backgrounds match surfaces. |  |  |
 | Responsiveness | Sidebar toggles, header, layout on mobile/tablet. |  |  |
 | MCP UI | MCP test pages load, navigation tool works. |  |  |

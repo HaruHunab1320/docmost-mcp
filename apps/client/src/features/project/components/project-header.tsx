@@ -66,6 +66,7 @@ import {
   useSilentUpdateProjectMutation,
 } from "../hooks/use-projects";
 import { useWorkspaceUsers } from "@/features/user/hooks/use-workspace-users";
+import { useTaskLabels } from "@/features/project/hooks/use-task-labels";
 import { CustomAvatar } from "@/components/ui/custom-avatar.tsx";
 import { useAtom } from "jotai";
 import { currentUserAtom } from "@/features/user/atoms/current-user-atom.ts";
@@ -264,6 +265,8 @@ export function ProjectHeader({ project, onBack }: ProjectHeaderProps) {
     workspaceId: project.workspaceId,
   });
 
+  const { data: taskLabels = [] } = useTaskLabels();
+
   // Ensure workspaceUsers is an array by checking for pagination structure
   const users = Array.isArray(workspaceUsers)
     ? workspaceUsers
@@ -281,49 +284,7 @@ export function ProjectHeader({ project, onBack }: ProjectHeaderProps) {
     avatarUrl?: string;
   }>;
 
-  // Mock data for demo
-  const labels: Label[] = [
-    {
-      id: "1",
-      name: "Frontend",
-      color: "blue",
-      projectId: project.id,
-      spaceId: project.spaceId,
-      workspaceId: project.workspaceId,
-      createdAt: "",
-      updatedAt: "",
-    },
-    {
-      id: "2",
-      name: "Backend",
-      color: "green",
-      projectId: project.id,
-      spaceId: project.spaceId,
-      workspaceId: project.workspaceId,
-      createdAt: "",
-      updatedAt: "",
-    },
-    {
-      id: "3",
-      name: "Bug",
-      color: "red",
-      projectId: project.id,
-      spaceId: project.spaceId,
-      workspaceId: project.workspaceId,
-      createdAt: "",
-      updatedAt: "",
-    },
-    {
-      id: "4",
-      name: "Feature",
-      color: "violet",
-      projectId: project.id,
-      spaceId: project.spaceId,
-      workspaceId: project.workspaceId,
-      createdAt: "",
-      updatedAt: "",
-    },
-  ];
+  const labels: Label[] = Array.isArray(taskLabels) ? taskLabels : [];
 
   // Helper to update project (with notifications)
   const updateProject = (data: any) => {

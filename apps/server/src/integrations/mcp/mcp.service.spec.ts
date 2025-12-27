@@ -13,6 +13,18 @@ import { SystemHandler } from './handlers/system.handler';
 import { ContextHandler } from './handlers/context.handler';
 import { UIHandler } from './handlers/ui.handler';
 import { MCPContextService } from './services/mcp-context.service';
+import { ProjectHandler } from './handlers/project.handler';
+import { TaskHandler } from './handlers/task.handler';
+import { ApprovalHandler } from './handlers/approval.handler';
+import { MCPApprovalService } from './services/mcp-approval.service';
+import { AgentPolicyService } from '../../core/agent/agent-policy.service';
+import { WorkspaceRepo } from '@docmost/db/repos/workspace/workspace.repo';
+import { SearchHandler } from './handlers/search.handler';
+import { ImportHandler } from './handlers/import.handler';
+import { ExportHandler } from './handlers/export.handler';
+import { AIHandler } from './handlers/ai.handler';
+import { MemoryHandler } from './handlers/memory.handler';
+import { MCPErrorCode } from './utils/error.utils';
 
 describe('MCPService', () => {
   let service: MCPService;
@@ -41,6 +53,21 @@ describe('MCPService', () => {
     ping: jest.fn(),
     listMethods: jest.fn(),
     getMethodSchema: jest.fn(),
+  };
+
+  const mockApprovalService = {
+    requiresApproval: jest.fn(() => false),
+    createApproval: jest.fn(),
+    consumeApproval: jest.fn(),
+  };
+
+  const mockPolicyService = {
+    isSupportedMethod: jest.fn(() => true),
+    evaluate: jest.fn(() => ({ decision: 'allow' })),
+  };
+
+  const mockWorkspaceRepo = {
+    findById: jest.fn(() => ({ settings: {} })),
   };
 
   const mockContextService = {
@@ -94,6 +121,50 @@ describe('MCPService', () => {
           useValue: {},
         },
         {
+          provide: ProjectHandler,
+          useValue: {},
+        },
+        {
+          provide: TaskHandler,
+          useValue: {},
+        },
+        {
+          provide: ApprovalHandler,
+          useValue: {},
+        },
+        {
+          provide: MCPApprovalService,
+          useValue: mockApprovalService,
+        },
+        {
+          provide: AgentPolicyService,
+          useValue: mockPolicyService,
+        },
+        {
+          provide: WorkspaceRepo,
+          useValue: mockWorkspaceRepo,
+        },
+        {
+          provide: SearchHandler,
+          useValue: {},
+        },
+        {
+          provide: ImportHandler,
+          useValue: {},
+        },
+        {
+          provide: ExportHandler,
+          useValue: {},
+        },
+        {
+          provide: AIHandler,
+          useValue: {},
+        },
+        {
+          provide: MemoryHandler,
+          useValue: {},
+        },
+        {
           provide: MCPContextService,
           useValue: mockContextService,
         },
@@ -135,6 +206,75 @@ describe('MCPService', () => {
         id: 'req-123',
       });
       expect(mockPageHandler.list).toHaveBeenCalledWith(request.params, mockUser);
+    });
+
+    it('should deny a request when policy blocks the method', async () => {
+      mockPolicyService.evaluate.mockReturnValue({
+        decision: 'deny',
+        reason: 'blocked',
+      });
+
+      const request: MCPRequest = {
+        jsonrpc: '2.0',
+        method: 'page.list',
+        params: { spaceId: 'space-123' },
+        id: 'req-123',
+      };
+
+      const response = await service.processRequest(request, mockUser);
+
+      expect(response.error?.code).toBe(MCPErrorCode.PERMISSION_DENIED);
+      expect(response.error?.data).toMatchObject({
+        method: 'page.list',
+        reason: 'blocked',
+      });
+    });
+
+    it('should require approval when policy requests it', async () => {
+      mockPolicyService.evaluate.mockReturnValue({
+        decision: 'approval',
+        reason: 'needs approval',
+      });
+      mockApprovalService.createApproval.mockResolvedValue({
+        token: 'approval-token',
+        expiresAt: new Date().toISOString(),
+      });
+
+      const request: MCPRequest = {
+        jsonrpc: '2.0',
+        method: 'page.create',
+        params: { spaceId: 'space-123', title: 'New Page' },
+        id: 'req-123',
+      };
+
+      const response = await service.processRequest(request, mockUser);
+
+      expect(response.error?.code).toBe(MCPErrorCode.APPROVAL_REQUIRED);
+      expect(response.error?.data).toMatchObject({
+        approvalToken: 'approval-token',
+        method: 'page.create',
+      });
+    });
+
+    it('should reject invalid approval tokens', async () => {
+      mockApprovalService.consumeApproval.mockResolvedValue(false);
+
+      const request: MCPRequest = {
+        jsonrpc: '2.0',
+        method: 'page.update',
+        params: {
+          pageId: 'page-123',
+          approvalToken: 'bad-token',
+        },
+        id: 'req-123',
+      };
+
+      const response = await service.processRequest(request, mockUser);
+
+      expect(response.error?.code).toBe(MCPErrorCode.APPROVAL_REQUIRED);
+      expect(response.error?.data).toMatchObject({
+        method: 'page.update',
+      });
     });
 
     it('should validate JSON-RPC version', async () => {
