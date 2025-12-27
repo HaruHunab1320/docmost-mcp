@@ -28,18 +28,48 @@ import { RESET } from "jotai/utils";
 import { useTranslation } from "react-i18next";
 import { isCloud } from "@/lib/config.ts";
 import { exchangeTokenRedirectUrl, getHostnameUrl } from "@/ee/utils.ts";
+import { getMyInfo } from "@/features/user/services/user-service";
+import { useQueryClient } from "@tanstack/react-query";
+import axios from "axios";
+import api from "@/lib/api-client";
 
 export default function useAuth() {
   const { t } = useTranslation();
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const [, setCurrentUser] = useAtom(currentUserAtom);
+  const queryClient = useQueryClient();
+
+  const bootstrapUserSession = async () => {
+    const client = axios.create({
+      baseURL: api.defaults.baseURL,
+      withCredentials: true,
+    });
+
+    for (let attempt = 0; attempt < 5; attempt += 1) {
+      try {
+        const response = await client.post("/users/me");
+        return response.data;
+      } catch (error) {
+        const status = error?.response?.status;
+        if (status !== 401 || attempt === 4) {
+          throw error;
+        }
+        await new Promise((resolve) => setTimeout(resolve, 200));
+      }
+    }
+
+    throw new Error("Failed to bootstrap user session");
+  };
 
   const handleSignIn = async (data: ILogin) => {
     setIsLoading(true);
 
     try {
       await login(data);
+      const me = await bootstrapUserSession();
+      setCurrentUser(me);
+      queryClient.setQueryData(["user-info"], me);
       setIsLoading(false);
       navigate(APP_ROUTE.HOME);
     } catch (err) {
@@ -118,6 +148,7 @@ export default function useAuth() {
   const handleLogout = async () => {
     setCurrentUser(RESET);
     await logout();
+    queryClient.removeQueries({ queryKey: ["user-info"] });
     window.location.replace(APP_ROUTE.AUTH.LOGIN);
   };
 

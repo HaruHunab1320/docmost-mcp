@@ -1,6 +1,8 @@
 import { useAtom } from "jotai";
 import { currentUserAtom } from "@/features/user/atoms/current-user-atom";
 import React, { useEffect } from "react";
+import { Center, Loader } from "@mantine/core";
+import { useNavigate } from "react-router-dom";
 import useCurrentUser from "@/features/user/hooks/use-current-user";
 import { useTranslation } from "react-i18next";
 import { socketAtom } from "@/features/websocket/atoms/socket-atom.ts";
@@ -18,6 +20,7 @@ export function UserProvider({ children }: React.PropsWithChildren) {
   const { data, isLoading, error, isError } = useCurrentUser();
   const { i18n } = useTranslation();
   const [, setSocket] = useAtom(socketAtom);
+  const navigate = useNavigate();
   // fetch collab token on load
   const { data: collab } = useCollabToken();
 
@@ -44,6 +47,18 @@ export function UserProvider({ children }: React.PropsWithChildren) {
     };
   }, [isError, isLoading]);
 
+  useEffect(() => {
+    if (!isError) {
+      return;
+    }
+
+    const status = error?.["response"]?.status;
+    if (status === 401) {
+      setCurrentUser(null);
+      navigate("/login");
+    }
+  }, [error, isError, navigate, setCurrentUser]);
+
   useQuerySubscription();
   useTreeSocket();
 
@@ -61,14 +76,24 @@ export function UserProvider({ children }: React.PropsWithChildren) {
     }
   }, [data, isLoading]);
 
-  if (isLoading) return <></>;
+  if (isLoading) {
+    return (
+      <Center h="100vh">
+        <Loader size="md" />
+      </Center>
+    );
+  }
 
   if (isError && error?.["response"]?.status === 404) {
     return <Error404 />;
   }
 
   if (error) {
-    return <></>;
+    return (
+      <Center h="100vh">
+        <Loader size="md" />
+      </Center>
+    );
   }
 
   // Wrap the children with the DocmostThemeProvider and MCPSocketProvider
