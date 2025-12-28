@@ -134,7 +134,9 @@ export default function GlobalAppShell({
       )}
       <AppShell.Main className={classes.main}>
         {isSettingsRoute ? (
-          <Container size={800}>{children}</Container>
+          <Container size={800} key={location.pathname}>
+            {children}
+          </Container>
         ) : (
           children
         )}

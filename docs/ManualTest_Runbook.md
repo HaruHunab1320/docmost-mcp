@@ -4,44 +4,44 @@ Use this checklist to validate Raven Docs end‑to‑end before a production pus
 
 ## Setup
 
-- [ ] Start backend + frontend.
-- [ ] Create a clean workspace and sign in as owner.
-- [ ] Create a space named “QA Space”.
-- [ ] Create projects: “Alpha”, “Beta”.
-- [ ] Create tasks: one unassigned, one assigned to Alpha, one to Beta.
-- [ ] Create pages: one space page + one page linked to each project.
+- [X] Start backend + frontend.
+- [X] Create a clean workspace and sign in as owner.
+- [X] Create a space named “QA Space”.
+- [X] Create projects: “Alpha”, “Beta”.
+- [X] Create tasks: one unassigned, one assigned to Alpha, one to Beta.
+- [X] Create pages: one space page + one page linked to each project.
 
 ## Auth + Workspace
 
-- [ ] `/auth/setup` completes and redirects to app shell.
-- [ ] `/login` succeeds with valid credentials.
-- [ ] Invalid login shows error states.
-- [ ] Logout returns to `/login`.
+- [X] `/auth/setup` completes and redirects to app shell.
+- [X] `/login` succeeds with valid credentials.
+- [X] Invalid login shows error states.
+- [X] Logout returns to `/login`.
 
 ## Navigation + Sidebar
 
-- [ ] Space switcher changes space context.
-- [ ] Project list expands/collapses per project.
-- [ ] Project pages appear nested under projects.
-- [ ] Page tree supports create/rename/move.
+- [X] Space switcher changes space context.
+- [X] Project list expands/collapses per project.
+- [X] Project pages appear nested under projects.
+- [X] Page tree supports create/rename/move.
 
 ## Inbox + Triage
 
-- [ ] Quick capture creates task in Inbox.
-- [ ] Waiting/Someday filters show bucketed tasks.
-- [ ] “Start triage” opens triage queue.
-- [ ] Bulk assign + “Do today” updates tasks.
+- [X] Quick capture creates task in Inbox.
+- [X] Waiting/Someday filters show bucketed tasks.
+- [X] “Start triage” opens triage queue.
+- [X] Bulk assign + “Do today” updates tasks.
 
 ## Today
 
-- [ ] Daily pulse buttons open correct bucket pages.
-- [ ] Daily note button creates/opens note.
-- [ ] Approvals list loads and actions can be confirmed/denied.
+- [X] Daily pulse buttons open correct bucket pages.
+- [X] Daily note button creates/opens note.
+- [X] Approvals list loads and actions can be confirmed/denied.
 
 ## Review
 
-- [ ] Weekly checklist toggles persist on reload.
-- [ ] Weekly review page opens/creates.
+- [X] Weekly checklist toggles persist on reload.
+- [X] Weekly review page opens/creates.
 
 ## Projects + Tasks
 

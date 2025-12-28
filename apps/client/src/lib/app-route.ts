@@ -6,6 +6,7 @@ const APP_ROUTE = {
     PROJECTS: (spaceId: string) => `/s/${spaceId}/projects`,
     PAGE: (spaceSlug: string, pageSlug: string) =>
       `/s/${spaceSlug}/p/${pageSlug}`,
+    TASKS: (spaceId: string) => `/spaces/${spaceId}/tasks`,
     INBOX: (spaceId: string) => `/spaces/${spaceId}/inbox`,
     TODAY: (spaceId: string) => `/spaces/${spaceId}/today`,
     TRIAGE: (spaceId: string) => `/spaces/${spaceId}/triage`,

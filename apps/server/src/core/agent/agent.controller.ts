@@ -22,6 +22,7 @@ import { AgentHandoffService } from './agent-handoff.service';
 import { AgentLoopSchedulerService } from './agent-loop-scheduler.service';
 import { AgentReviewPromptsService } from './agent-review-prompts.service';
 import { AgentReviewPromptsDto } from './agent-review-prompts.dto';
+import { AgentSuggestionsDto } from './agent-suggestions.dto';
 import SpaceAbilityFactory from '../casl/abilities/space-ability.factory';
 import {
   SpaceCaslAction,
@@ -123,6 +124,16 @@ export class AgentController {
       spaceId: dto.spaceId,
       weekKey,
     });
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Post('suggestions')
+  async getSuggestions(
+    @Body() dto: AgentSuggestionsDto,
+    @AuthUser() user: User,
+    @AuthWorkspace() workspace: Workspace,
+  ) {
+    return this.agentService.suggestNextActions(dto, user, workspace);
   }
 
   @HttpCode(HttpStatus.OK)

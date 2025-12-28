@@ -49,11 +49,17 @@ export class SpaceController {
   @HttpCode(HttpStatus.OK)
   @Post('/')
   async getWorkspaceSpaces(
-    @Body()
-    pagination: PaginationOptions,
+    @Body() pagination: Partial<PaginationOptions>,
     @AuthUser() user: User,
   ) {
-    return this.spaceMemberService.getUserSpaces(user.id, pagination);
+    const page = Number(pagination?.page ?? 1);
+    const limit = Number(pagination?.limit ?? 20);
+    const query = typeof pagination?.query === 'string' ? pagination.query : '';
+    return this.spaceMemberService.getUserSpaces(user.id, {
+      page: Number.isFinite(page) && page > 0 ? page : 1,
+      limit: Number.isFinite(limit) && limit > 0 ? limit : 20,
+      query,
+    });
   }
 
   @HttpCode(HttpStatus.OK)

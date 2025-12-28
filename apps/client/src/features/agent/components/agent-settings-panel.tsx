@@ -155,19 +155,23 @@ export function AgentSettingsPanel() {
   );
 
   useEffect(() => {
-    if (settingsQuery.data && currentUser?.workspace) {
-      setCurrentUser({
-        ...currentUser,
+    if (!settingsQuery.data) return;
+    setCurrentUser((prev) => {
+      if (!prev?.workspace) return prev;
+      const existing = prev.workspace.settings?.agent;
+      if (existing === settingsQuery.data) return prev;
+      return {
+        ...prev,
         workspace: {
-          ...currentUser.workspace,
+          ...prev.workspace,
           settings: {
-            ...currentUser.workspace.settings,
+            ...prev.workspace.settings,
             agent: settingsQuery.data,
           },
         },
-      });
-    }
-  }, [settingsQuery.data, currentUser, setCurrentUser]);
+      };
+    });
+  }, [settingsQuery.data, setCurrentUser]);
 
   useEffect(() => {
     setPolicyDraft({

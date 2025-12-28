@@ -68,6 +68,20 @@ export function QuickCapture() {
   );
 
   useEffect(() => {
+    if (typeof window === "undefined") return;
+    const stored = window.localStorage.getItem("ravenDocs.lastSpaceId");
+    if (stored && !selectedSpaceId) {
+      setSelectedSpaceId(stored);
+    }
+  }, [selectedSpaceId]);
+
+  useEffect(() => {
+    if (!activeSpace?.id || typeof window === "undefined") return;
+    window.localStorage.setItem("ravenDocs.lastSpaceId", activeSpace.id);
+    setSelectedSpaceId(activeSpace.id);
+  }, [activeSpace?.id]);
+
+  useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.defaultPrevented) return;
       if (isEditableTarget(event.target)) return;

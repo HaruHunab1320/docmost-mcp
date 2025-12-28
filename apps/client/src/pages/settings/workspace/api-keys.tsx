@@ -94,7 +94,11 @@ export default function ApiKeysSettings() {
               <Text size="sm">
                 {t("You can use API keys to authenticate MCP requests:")}
               </Text>
-              <Paper withBorder p="sm" bg="gray.0">
+              <Paper
+                withBorder
+                p="sm"
+                bg="var(--docmost-surface-bg, var(--mantine-color-body))"
+              >
                 <code style={{ fontSize: "0.875rem" }}>
                   Authorization: Bearer mcp_your_api_key_here
                 </code>

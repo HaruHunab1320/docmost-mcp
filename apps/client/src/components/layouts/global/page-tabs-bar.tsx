@@ -21,11 +21,18 @@ export function PageTabsBar() {
         {tabs.map((tab) => {
           const isActive = activePath === tab.url;
           return (
-            <button
+            <div
               key={tab.id}
               className={`${classes.tabItem} ${isActive ? classes.tabItemActive : ""}`}
               onClick={() => navigate(tab.url)}
-              type="button"
+              onKeyDown={(event) => {
+                if (event.key === "Enter" || event.key === " ") {
+                  event.preventDefault();
+                  navigate(tab.url);
+                }
+              }}
+              role="button"
+              tabIndex={0}
             >
               {tab.icon ? <span>{tab.icon}</span> : null}
               <Text size="xs" className={classes.tabTitle}>
@@ -43,7 +50,7 @@ export function PageTabsBar() {
               >
                 <IconX size={12} />
               </ActionIcon>
-            </button>
+            </div>
           );
         })}
       </div>

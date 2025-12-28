@@ -41,6 +41,21 @@ export async function runAgentSchedule(): Promise<{ ran: number }> {
   return req.data;
 }
 
+export async function getAgentSuggestions(params: {
+  spaceId: string;
+  limit?: number;
+}): Promise<{
+  items: Array<{
+    taskId: string;
+    title?: string;
+    projectName?: string;
+    reason?: string;
+  }>;
+}> {
+  const req = await api.post("/agent/suggestions", params);
+  return req.data;
+}
+
 export async function createAgentHandoff(params: {
   name?: string;
 }): Promise<{ apiKey: string; name: string }> {

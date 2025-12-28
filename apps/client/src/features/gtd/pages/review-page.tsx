@@ -11,6 +11,7 @@ import {
 } from "@mantine/core";
 import { Link, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { useQuery } from "@tanstack/react-query";
 import { usePagedSpaceTasks } from "@/features/gtd/hooks/use-paged-space-tasks";
 import { useProjects } from "@/features/project/hooks/use-projects";
 import { projectService } from "@/features/project/services/project-service";
@@ -20,6 +21,7 @@ import { filterTasksByBucket } from "@/features/gtd/utils/task-buckets";
 import { useSpaceQuery } from "@/features/space/queries/space-query";
 import { getOrCreateWeeklyReviewPage } from "@/features/gtd/utils/weekly-review";
 import { buildPageUrl } from "@/features/page/page.utils";
+import { getAgentSuggestions } from "@/features/agent/services/agent-service";
 import {
   getReviewDueDate,
   getWeekKey,
@@ -33,6 +35,7 @@ import {
 import APP_ROUTE from "@/lib/app-route";
 
 const STALE_DAYS = 14;
+const CHECKLIST_ACTION_WIDTH = 220;
 const REVIEW_ITEMS = [
   {
     label: "Clear Inbox",
@@ -89,6 +92,11 @@ export function ReviewPage() {
   } = usePagedSpaceTasks(spaceId || "", { autoLoadAll: true, limit: 200 });
   const { data: projectsData, isLoading: projectsLoading } = useProjects({
     spaceId: spaceId || "",
+  });
+  const agentSuggestionsQuery = useQuery({
+    queryKey: ["agent-suggestions", spaceId],
+    queryFn: () => getAgentSuggestions({ spaceId: spaceId || "", limit: 8 }),
+    enabled: !!spaceId,
   });
 
   const projects = Array.isArray(projectsData?.items)
@@ -171,9 +179,11 @@ export function ReviewPage() {
       };
     });
 
-    const staleProjects = projectStats.filter((stat) => {
-      if (!stat.latestUpdated) return stat.totalTasks === 0;
-      const diffMs = new Date().getTime() - stat.latestUpdated.getTime();
+    const staleTasks = tasks.filter((task) => {
+      if (task.isCompleted) return false;
+      const updated = new Date(task.updatedAt);
+      if (Number.isNaN(updated.getTime())) return false;
+      const diffMs = new Date().getTime() - updated.getTime();
       const diffDays = diffMs / (1000 * 60 * 60 * 24);
       return diffDays > STALE_DAYS;
     });
@@ -204,7 +214,7 @@ export function ReviewPage() {
     return {
       inbox,
       overdue,
-      staleProjects,
+      staleTasks,
       noNextAction,
       suggestions,
       waiting,
@@ -348,6 +358,15 @@ export function ReviewPage() {
                   to={item.getHref(spaceId)}
                   variant="subtle"
                   size="xs"
+                  style={{ width: CHECKLIST_ACTION_WIDTH }}
+                  styles={{
+                    label: {
+                      whiteSpace: "nowrap",
+                      width: "100%",
+                      display: "flex",
+                      justifyContent: "center",
+                    },
+                  }}
                 >
                   {t(item.actionLabel)}
                 </Button>
@@ -359,14 +378,6 @@ export function ReviewPage() {
         <Stack gap="xs">
           <Group justify="space-between">
             <Title order={4}>{t("Inbox backlog")}</Title>
-            <Button
-              component={Link}
-              to={APP_ROUTE.SPACE.INBOX(spaceId)}
-              variant="subtle"
-              size="xs"
-            >
-              {t("Open Inbox")}
-            </Button>
           </Group>
           <Text size="sm" c="dimmed">
             {t("Items waiting for triage: {{count}}", {
@@ -383,34 +394,73 @@ export function ReviewPage() {
             </Text>
           ) : (
             summary.overdue.slice(0, 10).map((task) => (
-              <Text key={task.id} size="sm">
-                {task.title}
-              </Text>
+              <Button
+                key={task.id}
+                variant="subtle"
+                size="xs"
+                justify="space-between"
+                onClick={() => {
+                  setSelectedTaskId(task.id);
+                  setDrawerOpened(true);
+                }}
+              >
+                <Group justify="space-between" w="100%" wrap="nowrap">
+                  <Text size="sm" lineClamp={1} style={{ flex: 1 }}>
+                    {task.title}
+                  </Text>
+                  <Text size="xs" c="dimmed" style={{ whiteSpace: "nowrap" }}>
+                    {task.dueDate
+                      ? new Date(task.dueDate).toLocaleDateString()
+                      : t("No due date")}
+                  </Text>
+                </Group>
+              </Button>
             ))
           )}
         </Stack>
 
         <Stack gap="xs">
-          <Title order={4}>{t("Stale projects")}</Title>
-          {summary.staleProjects.length === 0 ? (
+          <Group justify="space-between">
+            <Title order={4}>{t("Stale tasks")}</Title>
+            <Button
+              component={Link}
+              to={APP_ROUTE.SPACE.TASKS(spaceId)}
+              variant="subtle"
+              size="xs"
+            >
+              {t("Open tasks")}
+            </Button>
+          </Group>
+          {summary.staleTasks.length === 0 ? (
             <Text size="sm" c="dimmed">
-              {t("All projects active")}
+              {t("No stale tasks")}
             </Text>
           ) : (
-            summary.staleProjects.map((stat) => (
-              <Group key={stat.project.id} justify="space-between">
-                <Text size="sm">{stat.project.name}</Text>
-                <Button
-                  component={Link}
-                  to={`/spaces/${spaceId}/projects?projectId=${stat.project.id}`}
-                  variant="subtle"
-                  size="xs"
-                >
-                  {t("Open")}
-                </Button>
-              </Group>
+            summary.staleTasks.slice(0, 10).map((task) => (
+              <Button
+                key={task.id}
+                variant="subtle"
+                size="xs"
+                justify="space-between"
+                onClick={() => {
+                  setSelectedTaskId(task.id);
+                  setDrawerOpened(true);
+                }}
+              >
+                <Group justify="space-between" w="100%" wrap="nowrap">
+                  <Text size="sm" lineClamp={1} style={{ flex: 1 }}>
+                    {task.title}
+                  </Text>
+                  <Text size="xs" c="dimmed" style={{ whiteSpace: "nowrap" }}>
+                    {new Date(task.updatedAt).toLocaleDateString()}
+                  </Text>
+                </Group>
+              </Button>
             ))
           )}
+          <Text size="xs" c="dimmed">
+            {t("No activity in {{days}}+ days", { days: STALE_DAYS })}
+          </Text>
         </Stack>
 
         <Stack gap="xs">
@@ -458,30 +508,55 @@ export function ReviewPage() {
 
         <Stack gap="xs">
           <Title order={4}>{t("Suggested next actions")}</Title>
-          {summary.suggestions.length === 0 ? (
+          {agentSuggestionsQuery.data?.items?.length ? (
+            agentSuggestionsQuery.data.items.slice(0, 10).map((suggestion) => {
+              const task = tasks.find((entry) => entry.id === suggestion.taskId);
+              const title = suggestion.title || task?.title || t("Task");
+              const projectName =
+                suggestion.projectName ||
+                (task as any)?.project_name ||
+                "";
+              return (
+                <Button
+                  key={suggestion.taskId}
+                  variant="subtle"
+                  size="xs"
+                  justify="space-between"
+                  onClick={() => {
+                    setSelectedTaskId(suggestion.taskId);
+                    setDrawerOpened(true);
+                  }}
+                >
+                  <Group justify="space-between" w="100%" wrap="nowrap">
+                    <Text size="sm" lineClamp={1} style={{ flex: 1 }}>
+                      {projectName ? `${title} — ${projectName}` : title}
+                    </Text>
+                  </Group>
+                </Button>
+              );
+            })
+          ) : summary.suggestions.length === 0 ? (
             <Text size="sm" c="dimmed">
               {t("No suggestions yet")}
             </Text>
           ) : (
             summary.suggestions.slice(0, 10).map((suggestion) => (
-              <Group key={suggestion.task.id} justify="space-between">
-                <Stack gap={2}>
-                  <Text size="sm">{suggestion.task.title}</Text>
-                  <Text size="xs" c="dimmed">
-                    {suggestion.project.name}
+              <Button
+                key={suggestion.task.id}
+                variant="subtle"
+                size="xs"
+                justify="space-between"
+                onClick={() => {
+                  setSelectedTaskId(suggestion.task.id);
+                  setDrawerOpened(true);
+                }}
+              >
+                <Group justify="space-between" w="100%" wrap="nowrap">
+                  <Text size="sm" lineClamp={1} style={{ flex: 1 }}>
+                    {suggestion.task.title} — {suggestion.project.name}
                   </Text>
-                </Stack>
-                <Button
-                  variant="subtle"
-                  size="xs"
-                  onClick={() => {
-                    setSelectedTaskId(suggestion.task.id);
-                    setDrawerOpened(true);
-                  }}
-                >
-                  {t("Open")}
-                </Button>
-              </Group>
+                </Group>
+              </Button>
             ))
           )}
         </Stack>
