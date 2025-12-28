@@ -130,7 +130,9 @@ export const mainExtensions = [
   }),
   Typography,
   TrailingNode,
-  GlobalDragHandle,
+  GlobalDragHandle.configure({
+    dragHandleWidth: 20,
+  }),
   TextStyle,
   Color,
   SlashCommand,

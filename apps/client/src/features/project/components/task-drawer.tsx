@@ -46,7 +46,6 @@ import {
   IconTag,
   IconListDetails,
   IconEdit,
-  IconExternalLink,
   IconPhoto,
   IconPlus,
   IconBrandGithub,
@@ -94,13 +93,18 @@ import { useForm } from "@mantine/form";
 import { DateInput } from "@mantine/dates";
 import { CustomAvatar } from "@/components/ui/custom-avatar";
 import { useAtom } from "jotai";
-import { workspaceAtom } from "@/features/user/atoms/current-user-atom";
+import { userAtom, workspaceAtom } from "@/features/user/atoms/current-user-atom";
 import { formatDistanceToNow } from "date-fns";
 import { useDisclosure } from "@mantine/hooks";
 import EmojiPicker from "@/components/ui/emoji-picker";
 import { api } from "@/lib/api";
 import { notifications } from "@mantine/notifications";
-import { useCreatePageMutation } from "@/features/page/queries/page-query";
+import {
+  useCreatePageMutation,
+  usePageQuery,
+} from "@/features/page/queries/page-query";
+import { useSpaceQuery } from "@/features/space/queries/space-query";
+import { buildPageUrl } from "@/features/page/page.utils";
 import {
   assignGoal,
   listGoals,
@@ -108,6 +112,7 @@ import {
   unassignGoal,
 } from "@/features/goal/services/goal-service";
 import { agentMemoryService } from "@/features/agent-memory/services/agent-memory-service";
+import PageEditor from "@/features/editor/page-editor";
 // Lazy load Picker from emoji-mart to avoid SSR issues
 const Picker = lazy(() => import("@emoji-mart/react"));
 
@@ -182,19 +187,50 @@ export function TaskDrawer({
   const [lastEditedAt, setLastEditedAt] = useState<Date | null>(null);
   const [newComment, setNewComment] = useState("");
   const [comments, setComments] = useState([]);
-  const [currentUser, setCurrentUser] = useState<{
-    name: string;
-    avatar: string | null;
-  }>({
-    name: "Current User",
-    avatar: null,
-  });
+  const [currentUser] = useAtom(userAtom);
   const [coverImageUrl, setCoverImageUrl] = useState<string | null>(null);
   const [coverImageFile, setCoverImageFile] = useState<File | null>(null);
   const [objectUrl, setObjectUrl] = useState<string | null>(null);
   const [isUploadingCover, setIsUploadingCover] = useState(false);
   const [workspace] = useAtom(workspaceAtom);
   const workspaceId = workspace?.id;
+  // Use the useTask hook to fetch task data
+  const { data: task, isLoading, refetch } = useTask(taskId);
+  const { data: space } = useSpaceQuery(spaceId || "");
+  const pageQuery = usePageQuery({ pageId: task?.pageId || "" });
+  const propertyLabelWidth = 110;
+  const propertyRowStyle = {
+    display: "flex",
+    alignItems: "center",
+    gap: theme.spacing.sm,
+  } as const;
+  const propertyRowTopAlignStyle = {
+    ...propertyRowStyle,
+    alignItems: "flex-start",
+  } as const;
+  const propertyControlStyle = {
+    flex: 1,
+    maxWidth: 360,
+  } as const;
+  const surfaceColor =
+    colorScheme === "dark" ? theme.colors.dark[7] : theme.white;
+  const panelBorder = `1px solid ${
+    colorScheme === "dark" ? theme.colors.dark[4] : theme.colors.gray[3]
+  }`;
+  const panelMuted =
+    colorScheme === "dark" ? theme.colors.dark[6] : theme.colors.gray[0];
+  const propertyInputStyles = {
+    input: {
+      backgroundColor:
+        colorScheme === "dark" ? theme.colors.dark[6] : theme.white,
+      border: `1px solid ${
+        colorScheme === "dark" ? theme.colors.dark[4] : theme.colors.gray[3]
+      }`,
+      borderRadius: theme.radius.sm,
+      minHeight: 32,
+      paddingInline: theme.spacing.xs,
+    },
+  };
   const [coverModalOpened, { open: openCoverModal, close: closeCoverModal }] =
     useDisclosure(false);
   const [
@@ -209,8 +245,6 @@ export function TaskDrawer({
   const [newLabelName, setNewLabelName] = useState("");
   const [newLabelColor, setNewLabelColor] = useState<LabelColor>("blue");
 
-  // Use the useTask hook to fetch task data
-  const { data: task, isLoading, refetch } = useTask(taskId);
   const bucketValue = task ? getTaskBucket(task) : "none";
   const selectedLabelIds = task?.labels?.map((label) => label.id) || [];
   const labelColorOptions: { value: LabelColor; label: string }[] = [
@@ -510,21 +544,6 @@ export function TaskDrawer({
     );
   };
 
-  // Open task as full page
-  const openAsFullPage = () => {
-    if (!task || !task.pageId) return;
-
-    // If we have a page link in the description, extract it
-    const pageUrlMatch = task.description?.match(
-      /\[View page details\]\(([^)]+)\)/
-    );
-    if (pageUrlMatch && pageUrlMatch[1]) {
-      // Close the drawer before navigating
-      onClose();
-      navigate(pageUrlMatch[1]);
-    }
-  };
-
   const handleCreatePageForTask = async () => {
     if (!task || createPageMutation.isPending) return;
 
@@ -557,7 +576,10 @@ export function TaskDrawer({
 
       if (newPage?.slugId) {
         onClose();
-        navigate(`/s/${task.spaceId}/p/${newPage.slugId}`);
+        const url = space?.slug
+          ? buildPageUrl(space.slug, newPage.slugId, newPage.title)
+          : `/p/${newPage.slugId}`;
+        navigate(url);
       }
     } catch (error) {
       notifications.show({
@@ -1156,6 +1178,8 @@ export function TaskDrawer({
           margin: 0,
           padding: "1rem",
           borderBottom: `1px solid ${colorScheme === "dark" ? theme.colors.dark[4] : theme.colors.gray[3]}`,
+          backgroundColor:
+            colorScheme === "dark" ? theme.colors.dark[7] : theme.white,
         },
         title: {
           display: "contents",
@@ -1165,9 +1189,11 @@ export function TaskDrawer({
         },
         body: {
           padding: 0,
+          backgroundColor:
+            colorScheme === "dark" ? theme.colors.dark[8] : theme.colors.gray[0],
         },
         root: {
-          ".add-cover-button": {
+          "& .add-cover-button": {
             border: "none !important",
             outline: "none !important",
             boxShadow: "none !important",
@@ -1181,7 +1207,7 @@ export function TaskDrawer({
       className="task-drawer-component"
     >
       {task && (
-        <Box p="md">
+        <Box p="md" pb={lastEditedBy || lastEditedAt ? 120 : 24}>
           <Stack gap="lg">
             {/* Top actions bar - empty when not needed */}
             <Group justify="apart">
@@ -1468,10 +1494,10 @@ export function TaskDrawer({
             </div>
 
             {/* Task properties - Header styled like the project header */}
-            <Stack gap="md">
+            <Stack gap="sm">
               {/* Properties section with similar styling to project header */}
-              <Group justify="apart" mb="xs">
-                <Text fw={500} size="sm" style={{ width: "100px" }}>
+              <Box style={propertyRowStyle}>
+                <Text fw={500} size="sm" style={{ width: propertyLabelWidth }}>
                   {t("Status")}
                 </Text>
                 <Select
@@ -1479,18 +1505,13 @@ export function TaskDrawer({
                   value={task.status}
                   onChange={handleStatusChange}
                   size="sm"
-                  styles={{
-                    input: {
-                      border: "none",
-                      padding: 0,
-                      backgroundColor: "transparent",
-                    },
-                  }}
+                  styles={propertyInputStyles}
+                  style={propertyControlStyle}
                 />
-              </Group>
+              </Box>
 
-              <Group justify="apart" mb="xs">
-                <Text fw={500} size="sm" style={{ width: "100px" }}>
+              <Box style={propertyRowStyle}>
+                <Text fw={500} size="sm" style={{ width: propertyLabelWidth }}>
                   {t("Priority")}
                 </Text>
                 <Select
@@ -1498,18 +1519,13 @@ export function TaskDrawer({
                   value={task.priority}
                   onChange={handlePriorityChange}
                   size="sm"
-                  styles={{
-                    input: {
-                      border: "none",
-                      padding: 0,
-                      backgroundColor: "transparent",
-                    },
-                  }}
+                  styles={propertyInputStyles}
+                  style={propertyControlStyle}
                 />
-              </Group>
+              </Box>
 
-              <Group justify="apart" mb="xs">
-                <Text fw={500} size="sm" style={{ width: "100px" }}>
+              <Box style={propertyRowStyle}>
+                <Text fw={500} size="sm" style={{ width: propertyLabelWidth }}>
                   {t("Due Date")}
                 </Text>
                 <DateInput
@@ -1531,30 +1547,24 @@ export function TaskDrawer({
                   clearable
                   valueFormat="MMM DD, YYYY"
                   size="sm"
-                  styles={{
-                    input: {
-                      border: "none",
-                      backgroundColor: "transparent",
-                    },
-                  }}
+                  styles={propertyInputStyles}
+                  style={propertyControlStyle}
                 />
-              </Group>
+              </Box>
 
-              <Group justify="apart" mb="xs">
-                <Text fw={500} size="sm" style={{ width: "100px" }}>
+              <Box style={propertyRowStyle}>
+                <Text fw={500} size="sm" style={{ width: propertyLabelWidth }}>
                   {t("Assignee")}
                 </Text>
-                <Flex style={{ flex: 1 }}>
+                <Flex style={propertyControlStyle} align="center" gap="xs">
                   <UserSelect
                     value={assigneeId}
                     onChange={handleAssigneeChange}
                     placeholder={t("Assign to...")}
                     styles={{
-                      input: {
-                        border: "none",
-                        backgroundColor: "transparent",
-                      },
+                      ...propertyInputStyles,
                     }}
+                    style={{ flex: 1 }}
                   />
                   {assigneeId && (
                     <ActionIcon
@@ -1567,17 +1577,19 @@ export function TaskDrawer({
                     </ActionIcon>
                   )}
                 </Flex>
-              </Group>
+              </Box>
 
-              <Group justify="apart" mb="xs" align="flex-start">
-                <Text fw={500} size="sm" style={{ width: "100px" }}>
+              <Box style={propertyRowTopAlignStyle}>
+                <Text fw={500} size="sm" style={{ width: propertyLabelWidth }}>
                   {t("Goals")}
                 </Text>
-                <Group
-                  gap="xs"
-                  wrap="wrap"
-                  justify="flex-end"
-                  style={{ flex: 1 }}
+                <Box
+                  style={{
+                    ...propertyControlStyle,
+                    display: "flex",
+                    flexWrap: "wrap",
+                    gap: theme.spacing.xs,
+                  }}
                 >
                   {taskGoalsQuery.isLoading ? (
                     <Text size="xs" c="dimmed">
@@ -1600,18 +1612,20 @@ export function TaskDrawer({
                       {t("None")}
                     </Text>
                   )}
-                </Group>
-              </Group>
+                </Box>
+              </Box>
 
-              <Group justify="apart" mb="xs" align="flex-start">
-                <Text fw={500} size="sm" style={{ width: "100px" }}>
+              <Box style={propertyRowTopAlignStyle}>
+                <Text fw={500} size="sm" style={{ width: propertyLabelWidth }}>
                   {t("Entities")}
                 </Text>
-                <Group
-                  gap="xs"
-                  wrap="wrap"
-                  justify="flex-end"
-                  style={{ flex: 1 }}
+                <Box
+                  style={{
+                    ...propertyControlStyle,
+                    display: "flex",
+                    flexWrap: "wrap",
+                    gap: theme.spacing.xs,
+                  }}
                 >
                   {entityLinksQuery.isLoading ? (
                     <Text size="xs" c="dimmed">
@@ -1634,11 +1648,11 @@ export function TaskDrawer({
                       {t("None")}
                     </Text>
                   )}
-                </Group>
-              </Group>
+                </Box>
+              </Box>
 
-              <Group justify="apart" mb="xs" align="flex-start">
-                <Text fw={500} size="sm" style={{ width: "100px" }}>
+              <Box style={propertyRowTopAlignStyle}>
+                <Text fw={500} size="sm" style={{ width: propertyLabelWidth }}>
                   {t("Assign")}
                 </Text>
                 <MultiSelect
@@ -1670,21 +1684,16 @@ export function TaskDrawer({
                   searchable
                   clearable
                   size="sm"
-                  styles={{
-                    input: {
-                      border: "none",
-                      backgroundColor: "transparent",
-                    },
-                  }}
-                  style={{ flex: 1 }}
+                  styles={propertyInputStyles}
+                  style={propertyControlStyle}
                 />
-              </Group>
+              </Box>
 
-              <Group justify="apart" mb="xs" align="flex-start">
-                <Text fw={500} size="sm" style={{ width: "100px" }}>
+              <Box style={propertyRowTopAlignStyle}>
+                <Text fw={500} size="sm" style={{ width: propertyLabelWidth }}>
                   {t("Labels")}
                 </Text>
-                <Group gap="xs" align="flex-start" style={{ flex: 1 }}>
+                <Group gap="xs" align="flex-start" style={propertyControlStyle}>
                   <MultiSelect
                     data={labelOptions}
                     value={selectedLabelIds}
@@ -1709,12 +1718,7 @@ export function TaskDrawer({
                     searchable
                     clearable
                     size="sm"
-                    styles={{
-                      input: {
-                        border: "none",
-                        backgroundColor: "transparent",
-                      },
-                    }}
+                    styles={propertyInputStyles}
                     style={{ flex: 1 }}
                   />
                   <Tooltip label={t("Manage labels")}>
@@ -1728,10 +1732,10 @@ export function TaskDrawer({
                     </ActionIcon>
                   </Tooltip>
                 </Group>
-              </Group>
+              </Box>
 
-              <Group justify="apart" mb="xs">
-                <Text fw={500} size="sm" style={{ width: "100px" }}>
+              <Box style={propertyRowStyle}>
+                <Text fw={500} size="sm" style={{ width: propertyLabelWidth }}>
                   {t("Bucket")}
                 </Text>
                 <Select
@@ -1749,28 +1753,26 @@ export function TaskDrawer({
                     });
                   }}
                   size="sm"
-                  styles={{
-                    input: {
-                      border: "none",
-                      padding: 0,
-                      backgroundColor: "transparent",
-                    },
-                  }}
+                  styles={propertyInputStyles}
+                  style={propertyControlStyle}
                 />
-              </Group>
+              </Box>
 
-              <Button
-                variant="subtle"
-                leftSection={<IconPlus size={14} />}
-                size="xs"
+              <UnstyledButton
                 style={{
-                  alignSelf: "flex-start",
-                  border: "none",
-                  padding: "0",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: theme.spacing.xs,
+                  color:
+                    colorScheme === "dark"
+                      ? theme.colors.dark[0]
+                      : theme.colors.gray[6],
+                  fontSize: theme.fontSizes.sm,
                 }}
               >
+                <IconPlus size={14} />
                 {t("Add a property")}
-              </Button>
+              </UnstyledButton>
             </Stack>
 
             <Modal
@@ -1902,155 +1904,155 @@ export function TaskDrawer({
               </Stack>
             </Modal>
 
-            {/* Comments Section */}
-            <Box mt="md">
-              <Text size="sm" fw={500} mb="xs">
-                {t("Comments")}
-              </Text>
+            <Stack gap="sm" mt="md">
+              {/* Comments Section */}
               <Box>
-                {comments.length > 0 &&
-                  comments.map((comment) => (
-                    <Box key={comment.id} mb="sm">
-                      <Group gap="xs" mb={4}>
-                        <Avatar
-                          src={comment.user?.avatar}
-                          alt={comment.user?.name || ""}
-                          size="sm"
-                          radius="xl"
-                        />
-                        <Text size="sm" fw={500}>
-                          {comment.user?.name}
+                <Text size="sm" fw={500} mb="xs">
+                  {t("Comments")}
+                </Text>
+                <Box>
+                  {comments.length > 0 &&
+                    comments.map((comment) => (
+                      <Box key={comment.id} mb="sm">
+                        <Group gap="xs" mb={4}>
+                          <Avatar
+                            src={comment.user?.avatar}
+                            alt={comment.user?.name || ""}
+                            size="sm"
+                            radius="xl"
+                          />
+                          <Text size="sm" fw={500}>
+                            {comment.user?.name}
+                          </Text>
+                        </Group>
+                        <Text size="sm" ml={36}>
+                          {comment.content}
                         </Text>
+                      </Box>
+                    ))}
+
+                  <Group gap="xs" align="center" mt="xs">
+                    <CustomAvatar
+                      size="sm"
+                      radius="xl"
+                      avatarUrl={currentUser?.avatarUrl || null}
+                      name={currentUser?.name || t("You")}
+                    />
+                    <TextInput
+                      placeholder={t("Add a comment...")}
+                      variant="filled"
+                      size="sm"
+                      style={{ flex: 1 }}
+                      value={newComment}
+                      onChange={(e) => setNewComment(e.currentTarget.value)}
+                      styles={{
+                        input: {
+                          backgroundColor: surfaceColor,
+                          border: panelBorder,
+                        },
+                      }}
+                    />
+
+                    {newComment.trim() && (
+                      <Group gap={4}>
+                        <ActionIcon variant="subtle" color="gray" size="sm">
+                          <IconAt size={16} />
+                        </ActionIcon>
+                        <ActionIcon variant="subtle" color="gray" size="sm">
+                          <IconPaperclip size={16} />
+                        </ActionIcon>
+                        <ActionIcon variant="subtle" color="blue" size="sm">
+                          <IconSend size={16} />
+                        </ActionIcon>
                       </Group>
-                      <Text size="sm" ml={36}>
-                        {comment.content}
-                      </Text>
-                    </Box>
-                  ))}
-
-                <Group gap="xs" align="center" mt="xs">
-                  <Avatar
-                    src={currentUser?.avatar}
-                    alt={currentUser?.name || t("You")}
-                    size="sm"
-                    radius="xl"
-                  />
-                  <TextInput
-                    placeholder={t("Add a comment...")}
-                    variant="unstyled"
-                    size="sm"
-                    style={{ flex: 1 }}
-                    value={newComment}
-                    onChange={(e) => setNewComment(e.currentTarget.value)}
-                  />
-
-                  {newComment.trim() && (
-                    <Group gap={4}>
-                      <ActionIcon variant="subtle" color="gray" size="sm">
-                        <IconAt size={16} />
-                      </ActionIcon>
-                      <ActionIcon variant="subtle" color="gray" size="sm">
-                        <IconPaperclip size={16} />
-                      </ActionIcon>
-                      <ActionIcon variant="subtle" color="blue" size="sm">
-                        <IconSend size={16} />
-                      </ActionIcon>
-                    </Group>
-                  )}
-                </Group>
+                    )}
+                  </Group>
+                </Box>
               </Box>
-            </Box>
 
-            {/* Main Content Editor Section */}
-            <Box
-              p="md"
-              style={{
-                backgroundColor:
-                  colorScheme === "dark" ? theme.colors.dark[7] : theme.white,
-                minHeight: "300px",
-                borderRadius: theme.radius.sm,
-                marginTop: theme.spacing.xl,
-              }}
-            >
-              {task.pageId ? (
-                <Box>
-                  <Text mb="md" size="sm" color="dimmed">
-                    {task.description || t("Type '/' for commands")}
-                  </Text>
-                  <Box
-                    style={{
-                      cursor: "text",
-                      padding: theme.spacing.sm,
-                      minHeight: "200px",
-                      borderRadius: theme.radius.sm,
-                      border: `1px solid ${colorScheme === "dark" ? theme.colors.dark[4] : theme.colors.gray[3]}`,
-                    }}
-                    onClick={openAsFullPage}
-                  >
-                    <Text size="sm">
-                      {t("Click to edit content (opens page editor)")}
+              <Divider />
+              {/* Main Content Editor Section */}
+              <Box pt="md">
+                {task.pageId ? (
+                  <Box>
+                    {pageQuery.isLoading ? (
+                      <Text size="sm" color="dimmed">
+                        {t("Loading content...")}
+                      </Text>
+                    ) : (
+                      <PageEditor
+                        pageId={task.pageId}
+                        editable
+                        content={pageQuery.data?.content}
+                      />
+                    )}
+                  </Box>
+                ) : (
+                  <Box>
+                    <Text mb="md" size="sm" color="dimmed">
+                      {t("Type '/' for commands")}
                     </Text>
+                    <Box
+                      style={{
+                        cursor: "text",
+                        padding: theme.spacing.sm,
+                        minHeight: "200px",
+                        borderRadius: theme.radius.sm,
+                        border: panelBorder,
+                        backgroundColor: panelMuted,
+                      }}
+                      onClick={handleCreatePageForTask}
+                    >
+                      <Text size="sm">{t("Click to add content")}</Text>
+                    </Box>
                   </Box>
-                </Box>
-              ) : (
-                <Box>
-                  <Text mb="md" size="sm" color="dimmed">
-                    {t("Type '/' for commands")}
-                  </Text>
-                  <Box
-                    style={{
-                      cursor: "text",
-                      padding: theme.spacing.sm,
-                      minHeight: "200px",
-                      borderRadius: theme.radius.sm,
-                      border: `1px solid ${colorScheme === "dark" ? theme.colors.dark[4] : theme.colors.gray[3]}`,
-                    }}
-                    onClick={handleCreatePageForTask}
-                  >
-                    <Text size="sm">{t("Click to add content")}</Text>
-                  </Box>
-                </Box>
-              )}
-            </Box>
+                )}
+              </Box>
+            </Stack>
           </Stack>
 
           {/* Footer with metadata */}
-          <Box
-            style={{
-              position: "fixed",
-              bottom: 0,
-              left: 0,
-              right: 0,
-              padding: theme.spacing.md,
-              backgroundColor:
-                colorScheme === "dark" ? theme.colors.dark[7] : theme.white,
-              borderTop: `1px solid ${colorScheme === "dark" ? theme.colors.dark[4] : theme.colors.gray[3]}`,
-            }}
-          >
-            <Group justify="flex-end">
-              <Group gap="xs">
-                {lastEditedBy && (
-                  <Group gap={4}>
-                    <CustomAvatar
-                      radius="xl"
-                      size="xs"
-                      avatarUrl={null}
-                      name={lastEditedBy}
-                    />
+          {(lastEditedBy || lastEditedAt) && (
+            <Box
+              style={{
+                position: "fixed",
+                bottom: 0,
+                left: 0,
+                right: 0,
+                padding: theme.spacing.md,
+                backgroundColor:
+                  colorScheme === "dark" ? theme.colors.dark[7] : theme.white,
+                boxShadow:
+                  colorScheme === "dark"
+                    ? "0 -6px 12px rgba(0, 0, 0, 0.35)"
+                    : "0 -6px 12px rgba(0, 0, 0, 0.08)",
+              }}
+            >
+              <Group justify="flex-end">
+                <Group gap="xs">
+                  {lastEditedBy && (
+                    <Group gap={4}>
+                      <CustomAvatar
+                        radius="xl"
+                        size="xs"
+                        avatarUrl={null}
+                        name={lastEditedBy}
+                      />
+                      <Text size="sm" color="dimmed">
+                        {lastEditedBy}
+                      </Text>
+                    </Group>
+                  )}
+                  {lastEditedAt && (
                     <Text size="sm" color="dimmed">
-                      {lastEditedBy}
+                      {t("edited")}{" "}
+                      {formatDistanceToNow(lastEditedAt, { addSuffix: true })}
                     </Text>
-                  </Group>
-                )}
-                {lastEditedAt && (
-                  <Text size="sm" color="dimmed">
-                    {t("edited")}{" "}
-                    {formatDistanceToNow(lastEditedAt, { addSuffix: true })}
-                  </Text>
-                )}
+                  )}
+                </Group>
               </Group>
-            </Group>
-          </Box>
+            </Box>
+          )}
         </Box>
       )}
     </Drawer>

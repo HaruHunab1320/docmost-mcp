@@ -7,6 +7,9 @@ export interface TrailingNodeExtensionOptions {
 }
 
 function nodeEqualsType({ types, node }: { types: any, node: any }) {
+  if (!node) {
+    return false;
+  }
   return (Array.isArray(types) && types.includes(node.type)) || node.type === types
 }
 
