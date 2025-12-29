@@ -1,5 +1,12 @@
 .spaceName {
-  width: 100%;
-  padding: var(--mantine-spacing-sm);
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+  margin-left: var(--mantine-spacing-xs);
   color: light-dark(var(--mantine-color-dark-4), var(--mantine-color-dark-0));
+}
+
+.spaceButton {
+  padding-inline: var(--mantine-spacing-xs);
+  min-height: 32px;
 }

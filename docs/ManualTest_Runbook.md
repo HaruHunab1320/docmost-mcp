@@ -45,15 +45,15 @@ Use this checklist to validate Raven Docs end‑to‑end before a production pus
 
 ## Projects + Tasks
 
-- [ ] Project board loads with columns.
-- [ ] Drag/drop task updates status.
-- [ ] Task drawer opens and edits persist.
-- [ ] Task label manager can create/update/delete labels.
-- [ ] Labels can be assigned/removed from tasks.
+- [X] Project board loads with columns.
+- [X] Drag/drop task updates status.
+- [X] Task drawer opens and edits persist.
+- [X] Task label manager can create/update/delete labels.
+- [X] Labels can be assigned/removed from tasks.
 
 ## Pages + Editor
 
-- [ ] Create page from sidebar.
+- [X] Create page from sidebar.
 - [ ] Editor formatting (bold/italic/heading) works.
 - [ ] Task list items in page create tasks (sync check).
 - [ ] Comments add/edit/delete.

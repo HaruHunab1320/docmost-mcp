@@ -1,5 +1,9 @@
-.header, .navbar, .aside {
+.header, .aside {
   background-color: var(--docmost-surface-bg, var(--mantine-color-body));
+}
+
+.navbar {
+  background-color: light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-7));
 }
 
 .navbar, .aside {

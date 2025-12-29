@@ -28,6 +28,7 @@ import { useDisclosure } from "@mantine/hooks";
 import ProjectFormModal from "../components/project-form-modal";
 import { QuickTaskModal } from "../components/quick-task-modal";
 import APP_ROUTE from "@/lib/app-route";
+import { usePageTabs } from "@/features/page/hooks/use-page-tabs";
 
 export function ProjectManagementPage() {
   const { t } = useTranslation();
@@ -42,6 +43,7 @@ export function ProjectManagementPage() {
   const [quickTaskProjectId, setQuickTaskProjectId] = useState<string | null>(
     null
   );
+  const { upsertTab } = usePageTabs();
 
   // Use useDisclosure with a stable reference
   const [createModalOpened, createModalHandlers] = useDisclosure(false);
@@ -83,6 +85,36 @@ export function ProjectManagementPage() {
     setSelectedProject(null);
     setShowDashboard(true);
   }, [location.search, projects]);
+
+  useEffect(() => {
+    if (!spaceId) return;
+    if (selectedProject) {
+      upsertTab({
+        id: `project:${selectedProject.id}`,
+        title: selectedProject.name || t("Project"),
+        url: `/spaces/${spaceId}/projects?projectId=${selectedProject.id}`,
+        icon: selectedProject.icon || "📁",
+      });
+      return;
+    }
+
+    if (showDashboard) {
+      upsertTab({
+        id: `projects:${spaceId}:dashboard`,
+        title: t("Projects"),
+        url: `/spaces/${spaceId}/projects`,
+        icon: "🗂️",
+      });
+      return;
+    }
+
+    upsertTab({
+      id: `projects:${spaceId}:list`,
+      title: t("Projects"),
+      url: `/spaces/${spaceId}/projects`,
+      icon: "🗂️",
+    });
+  }, [selectedProject, showDashboard, spaceId, t, upsertTab]);
 
   // Debug logging
   console.log("ProjectManagementPage - spaceId:", spaceId);

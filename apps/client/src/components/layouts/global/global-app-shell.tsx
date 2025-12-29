@@ -105,7 +105,7 @@ export default function GlobalAppShell({
       <AppShell.Header px="md" className={classes.header}>
         <AppHeader />
       </AppShell.Header>
-      <PageTabsBar />
+      {!isHomeRoute && <PageTabsBar />}
       {!isHomeRoute && (
         <AppShell.Navbar
           className={classes.navbar}

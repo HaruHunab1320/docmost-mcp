@@ -37,8 +37,6 @@ import {
   IconChevronLeft,
   IconChevronRight,
   IconCheck,
-  IconMaximize,
-  IconMinimize,
   IconUserCircle,
   IconX,
   IconArrowsExchange,
@@ -46,6 +44,7 @@ import {
   IconTag,
   IconListDetails,
   IconEdit,
+  IconExternalLink,
   IconPhoto,
   IconPlus,
   IconBrandGithub,
@@ -177,7 +176,6 @@ export function TaskDrawer({
   const theme = useMantineTheme();
   const { colorScheme } = useMantineColorScheme();
   const [assigneeId, setAssigneeId] = useState<string | null>(null);
-  const [isFullScreen, setIsFullScreen] = useState(false);
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [isEditingDescription, setIsEditingDescription] = useState(false);
   const [isFavorited, setIsFavorited] = useState(false);
@@ -589,9 +587,22 @@ export function TaskDrawer({
     }
   };
 
-  // Toggle fullscreen mode
-  const toggleFullScreen = () => {
-    setIsFullScreen(!isFullScreen);
+  const handleOpenPage = async () => {
+    if (!task) return;
+    if (!task.pageId) {
+      await handleCreatePageForTask();
+      return;
+    }
+
+    const page = pageQuery.data;
+    const pageSlugId = page?.slugId || task.pageId;
+    const pageTitle = page?.title || task.title;
+    const url = space?.slug
+      ? buildPageUrl(space.slug, pageSlugId, pageTitle)
+      : `/p/${pageSlugId}`;
+
+    onClose();
+    navigate(url);
   };
 
   // Clear assignee
@@ -957,7 +968,7 @@ export function TaskDrawer({
         opened={opened}
         onClose={onClose}
         position="right"
-        size={isFullScreen ? "100%" : "xl"}
+        size="xl"
         styles={{
           header: {
             margin: 0,
@@ -991,12 +1002,10 @@ export function TaskDrawer({
                   <ActionIcon
                     variant="subtle"
                     color="gray"
-                    onClick={toggleFullScreen}
-                    aria-label={
-                      isFullScreen ? "Exit fullscreen" : "Enter fullscreen"
-                    }
+                    aria-label="Open page"
+                    disabled
                   >
-                    <IconMaximize size={20} />
+                    <IconExternalLink size={20} />
                   </ActionIcon>
                 </Group>
                 <Group gap="xs">
@@ -1070,7 +1079,7 @@ export function TaskDrawer({
       opened={opened}
       onClose={onClose}
       position="right"
-      size={isFullScreen ? "100%" : "xl"}
+      size="xl"
       title={
         <Box
           style={{
@@ -1085,21 +1094,13 @@ export function TaskDrawer({
                 <IconChevronRight size={18} />
               </ActionIcon>
             </Tooltip>
-            <Tooltip
-              label={
-                isFullScreen ? t("Exit full screen") : t("Enter full screen")
-              }
-            >
+            <Tooltip label={t("Open page")}>
               <ActionIcon
                 variant="subtle"
-                onClick={toggleFullScreen}
-                aria-label="Toggle full screen"
+                onClick={handleOpenPage}
+                aria-label="Open page"
               >
-                {isFullScreen ? (
-                  <IconMinimize size={18} />
-                ) : (
-                  <IconMaximize size={18} />
-                )}
+                <IconExternalLink size={18} />
               </ActionIcon>
             </Tooltip>
           </Group>

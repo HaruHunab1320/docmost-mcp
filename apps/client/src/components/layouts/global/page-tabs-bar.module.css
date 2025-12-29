@@ -1,13 +1,14 @@
 .tabsBar {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   gap: 8px;
-  padding: 6px 12px;
+  padding: 4px 10px 0;
+  padding-left: calc(10px + var(--app-shell-navbar-offset, 0px));
   border-bottom: 1px solid light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-6));
   background: var(--docmost-surface-bg, var(--mantine-color-body));
   position: sticky;
-  top: 0;
-  z-index: 3;
+  top: 45px;
+  z-index: 2;
 }
 
 .tabsList {
@@ -15,30 +16,40 @@
   gap: 6px;
   flex: 1;
   overflow-x: auto;
-  padding-bottom: 2px;
+  padding-bottom: 0;
+  padding-left: 0;
 }
 
 .tabItem {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 4px 10px;
-  border-radius: 6px;
-  border: 1px solid transparent;
+  padding: 3px 10px;
+  border-radius: 8px 8px 0 0;
+  margin-bottom: -1px;
+  border: 1px solid light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-6));
   color: inherit;
-  background: transparent;
+  background: light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-8));
+  color: light-dark(var(--mantine-color-dark-6), var(--mantine-color-dark-2));
+  opacity: 1;
   cursor: pointer;
   white-space: nowrap;
 }
 
 .tabItem:hover {
-  border-color: light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-5));
-  background: light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-7));
+  background: light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-6));
 }
 
 .tabItemActive {
-  border-color: light-dark(var(--mantine-color-gray-4), var(--mantine-color-dark-4));
-  background: light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-6));
+  border-color: light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-5));
+  border-bottom-color: transparent;
+  background: light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-7));
+  box-shadow: none;
+  color: light-dark(var(--mantine-color-dark-9), var(--mantine-color-gray-0));
+  font-weight: 600;
+  position: relative;
+  z-index: 3;
+  margin-bottom: -2px;
 }
 
 .tabTitle {

@@ -1,11 +1,13 @@
 .header {
     height: 45px;
-    background-color: var(--docmost-surface-bg, var(--mantine-color-body));
+    background-color: light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-7));
     padding-left: var(--mantine-spacing-md);
     padding-right: var(--mantine-spacing-md);
+    margin-left: 0;
+    margin-right: 0;
     position: fixed;
     z-index: 99;
-    top: var(--app-shell-header-offset, 0rem);
+    top: calc(var(--app-shell-header-offset, 0rem) + var(--page-tabs-height, 0px));
     inset-inline-start: var(--app-shell-navbar-offset, 0rem);
     inset-inline-end: var(--app-shell-aside-offset, 0rem);
 
