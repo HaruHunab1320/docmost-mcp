@@ -54,9 +54,9 @@ Use this checklist to validate Raven Docs end‑to‑end before a production pus
 ## Pages + Editor
 
 - [X] Create page from sidebar.
-- [ ] Editor formatting (bold/italic/heading) works.
-- [ ] Task list items in page create tasks (sync check).
-- [ ] Comments add/edit/delete.
+- [X] Editor formatting (bold/italic/heading) works.
+- [X] Task list items in page create tasks (sync check).
+- [X] Comments add/edit/delete.
 - [ ] Page history loads.
 
 ## Attachments

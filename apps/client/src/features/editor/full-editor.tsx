@@ -5,6 +5,7 @@ import PageEditor from "@/features/editor/page-editor";
 import { Container } from "@mantine/core";
 import { useAtom } from "jotai";
 import { userAtom } from "@/features/user/atoms/current-user-atom.ts";
+import { TaskPagePanel } from "@/features/project/components/task-page-panel";
 
 const MemoizedTitleEditor = React.memo(TitleEditor);
 const MemoizedPageEditor = React.memo(PageEditor);
@@ -42,6 +43,7 @@ export function FullEditor({
         spaceSlug={spaceSlug}
         editable={editable}
       />
+      <TaskPagePanel pageId={pageId} />
       <MemoizedPageEditor pageId={pageId} editable={editable} content={content} />
     </Container>
   );

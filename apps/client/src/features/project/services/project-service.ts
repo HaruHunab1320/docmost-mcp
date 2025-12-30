@@ -182,6 +182,20 @@ export const projectService = {
     return data;
   },
 
+  async getTaskByPageId(pageId: string): Promise<Task | null> {
+    if (!pageId) {
+      return null;
+    }
+
+    try {
+      const { data } = await api.post(`${TASKS_ENDPOINT}/byPage`, { pageId });
+      return data ?? null;
+    } catch (error) {
+      console.error("Error fetching task by page:", error);
+      return null;
+    }
+  },
+
   async listTasksByProject(params: TaskListParams): Promise<IPagination<Task>> {
     // Validate that projectId is not empty
     if (!params.projectId) {

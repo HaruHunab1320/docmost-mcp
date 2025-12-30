@@ -102,6 +102,12 @@ import {
   useCreatePageMutation,
   usePageQuery,
 } from "@/features/page/queries/page-query";
+import {
+  useCommentsQuery,
+  useCreateCommentMutation,
+  useDeleteCommentMutation,
+  useUpdateCommentMutation,
+} from "@/features/comment/queries/comment-query";
 import { useSpaceQuery } from "@/features/space/queries/space-query";
 import { buildPageUrl } from "@/features/page/page.utils";
 import {
@@ -184,7 +190,8 @@ export function TaskDrawer({
   const [lastEditedBy, setLastEditedBy] = useState<string | null>(null);
   const [lastEditedAt, setLastEditedAt] = useState<Date | null>(null);
   const [newComment, setNewComment] = useState("");
-  const [comments, setComments] = useState([]);
+  const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
+  const [editingCommentValue, setEditingCommentValue] = useState("");
   const [currentUser] = useAtom(userAtom);
   const [coverImageUrl, setCoverImageUrl] = useState<string | null>(null);
   const [coverImageFile, setCoverImageFile] = useState<File | null>(null);
@@ -225,9 +232,83 @@ export function TaskDrawer({
         colorScheme === "dark" ? theme.colors.dark[4] : theme.colors.gray[3]
       }`,
       borderRadius: theme.radius.sm,
-      minHeight: 32,
       paddingInline: theme.spacing.xs,
     },
+  };
+  const textareaStyles = {
+    input: {
+      backgroundColor:
+        colorScheme === "dark" ? theme.colors.dark[6] : theme.white,
+      border: `1px solid ${
+        colorScheme === "dark" ? theme.colors.dark[4] : theme.colors.gray[3]
+      }`,
+      borderRadius: theme.radius.sm,
+      paddingInline: theme.spacing.xs,
+    },
+  };
+
+  const commentsQuery = useCommentsQuery({
+    pageId: task?.pageId || "",
+    limit: 100,
+  });
+  const comments = commentsQuery.data?.items || [];
+  const createCommentMutation = useCreateCommentMutation();
+  const updateCommentMutation = useUpdateCommentMutation();
+  const deleteCommentMutation = useDeleteCommentMutation(task?.pageId);
+
+  const serializeCommentContent = (value: string) =>
+    JSON.stringify({ text: value.trim() });
+
+  const getCommentText = (content: string) => {
+    if (!content) return "";
+    if (typeof content !== "string") {
+      if (content && typeof content === "object" && "text" in content) {
+        return String((content as { text?: string }).text ?? "");
+      }
+      return String(content);
+    }
+    try {
+      const parsed = JSON.parse(content);
+      if (typeof parsed === "string") {
+        return parsed;
+      }
+      if (parsed && typeof parsed === "object" && "text" in parsed) {
+        return String(parsed.text ?? "");
+      }
+    } catch {
+      // Not JSON, fall back to raw content.
+    }
+    return content;
+  };
+
+  const handleCreateComment = async () => {
+    if (!task?.pageId || !newComment.trim()) return;
+    await createCommentMutation.mutateAsync({
+      pageId: task.pageId,
+      content: serializeCommentContent(newComment),
+    });
+    setNewComment("");
+  };
+
+  const handleStartEditComment = (commentId: string, content: string) => {
+    setEditingCommentId(commentId);
+    setEditingCommentValue(getCommentText(content));
+  };
+
+  const handleCancelEditComment = () => {
+    setEditingCommentId(null);
+    setEditingCommentValue("");
+  };
+
+  const handleSaveEditComment = async (commentId: string) => {
+    if (!editingCommentValue.trim()) return;
+    await updateCommentMutation.mutateAsync({
+      commentId,
+      content: serializeCommentContent(editingCommentValue),
+    });
+    setEditingCommentId(null);
+    setEditingCommentValue("");
+    commentsQuery.refetch();
   };
   const [coverModalOpened, { open: openCoverModal, close: closeCoverModal }] =
     useDisclosure(false);
@@ -1913,24 +1994,98 @@ export function TaskDrawer({
                 </Text>
                 <Box>
                   {comments.length > 0 &&
-                    comments.map((comment) => (
-                      <Box key={comment.id} mb="sm">
-                        <Group gap="xs" mb={4}>
-                          <Avatar
-                            src={comment.user?.avatar}
-                            alt={comment.user?.name || ""}
-                            size="sm"
-                            radius="xl"
-                          />
-                          <Text size="sm" fw={500}>
-                            {comment.user?.name}
-                          </Text>
-                        </Group>
-                        <Text size="sm" ml={36}>
-                          {comment.content}
-                        </Text>
-                      </Box>
-                    ))}
+                    comments.map((comment) => {
+                      const isOwnComment = currentUser?.id === comment.creatorId;
+                      return (
+                        <Box key={comment.id} mb="sm">
+                          <Group gap="xs" mb={4} wrap="nowrap">
+                            <CustomAvatar
+                              size="sm"
+                              radius="xl"
+                              avatarUrl={comment.creator?.avatarUrl}
+                              name={comment.creator?.name || ""}
+                            />
+                            <Group
+                              gap="xs"
+                              justify="space-between"
+                              style={{ flex: 1 }}
+                              wrap="nowrap"
+                            >
+                              <Text size="sm" fw={500}>
+                                {comment.creator?.name}
+                              </Text>
+                              {isOwnComment && (
+                                <Group gap={4}>
+                                  <ActionIcon
+                                    variant="subtle"
+                                    color="gray"
+                                    size="xs"
+                                    onClick={() =>
+                                      handleStartEditComment(
+                                        comment.id,
+                                        comment.content
+                                      )
+                                    }
+                                    aria-label={t("Edit comment")}
+                                  >
+                                    <IconEdit size={14} />
+                                  </ActionIcon>
+                                  <ActionIcon
+                                    variant="subtle"
+                                    color="red"
+                                    size="xs"
+                                    onClick={() =>
+                                      deleteCommentMutation.mutate(
+                                        comment.id
+                                      )
+                                    }
+                                    aria-label={t("Delete comment")}
+                                  >
+                                    <IconTrash size={14} />
+                                  </ActionIcon>
+                                </Group>
+                              )}
+                            </Group>
+                          </Group>
+                          {editingCommentId === comment.id ? (
+                            <Box ml={36}>
+                            <Textarea
+                              value={editingCommentValue}
+                              onChange={(event) =>
+                                setEditingCommentValue(
+                                  event.currentTarget.value
+                                )
+                              }
+                              minRows={2}
+                              autosize
+                              styles={textareaStyles}
+                            />
+                              <Group gap="xs" mt="xs">
+                                <Button
+                                  size="xs"
+                                  onClick={() =>
+                                    handleSaveEditComment(comment.id)
+                                  }
+                                >
+                                  {t("Save")}
+                                </Button>
+                                <Button
+                                  size="xs"
+                                  variant="subtle"
+                                  onClick={handleCancelEditComment}
+                                >
+                                  {t("Cancel")}
+                                </Button>
+                              </Group>
+                            </Box>
+                          ) : (
+                            <Text size="sm" ml={36}>
+                              {getCommentText(comment.content)}
+                            </Text>
+                          )}
+                        </Box>
+                      );
+                    })}
 
                   <Group gap="xs" align="center" mt="xs">
                     <CustomAvatar
@@ -1946,6 +2101,12 @@ export function TaskDrawer({
                       style={{ flex: 1 }}
                       value={newComment}
                       onChange={(e) => setNewComment(e.currentTarget.value)}
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter") {
+                          event.preventDefault();
+                          handleCreateComment();
+                        }
+                      }}
                       styles={{
                         input: {
                           backgroundColor: surfaceColor,
@@ -1954,7 +2115,7 @@ export function TaskDrawer({
                       }}
                     />
 
-                    {newComment.trim() && (
+                    {(newComment.trim() || comments.length > 0) && (
                       <Group gap={4}>
                         <ActionIcon variant="subtle" color="gray" size="sm">
                           <IconAt size={16} />
@@ -1962,7 +2123,13 @@ export function TaskDrawer({
                         <ActionIcon variant="subtle" color="gray" size="sm">
                           <IconPaperclip size={16} />
                         </ActionIcon>
-                        <ActionIcon variant="subtle" color="blue" size="sm">
+                        <ActionIcon
+                          variant="subtle"
+                          color="blue"
+                          size="sm"
+                          onClick={handleCreateComment}
+                          disabled={!newComment.trim()}
+                        >
                           <IconSend size={16} />
                         </ActionIcon>
                       </Group>

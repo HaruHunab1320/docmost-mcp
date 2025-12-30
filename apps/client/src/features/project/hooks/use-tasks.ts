@@ -13,6 +13,7 @@ import { useTranslation } from "react-i18next";
 import { migrateLegacyBuckets } from "@/features/gtd/utils/bucket-migration";
 
 const TASKS_QUERY_KEY = "tasks";
+const TASKS_BY_PAGE_QUERY_KEY = "tasks-by-page";
 const PROJECT_TASKS_QUERY_KEY = "project-tasks";
 const SPACE_TASKS_QUERY_KEY = "space-tasks";
 
@@ -65,6 +66,14 @@ export function useTask(taskId: string | undefined) {
     queryKey: [TASKS_QUERY_KEY, taskId],
     queryFn: () => projectService.getTaskById(taskId as string),
     enabled: !!taskId,
+  });
+}
+
+export function useTaskByPageId(pageId: string | undefined) {
+  return useQuery({
+    queryKey: [TASKS_BY_PAGE_QUERY_KEY, pageId],
+    queryFn: () => projectService.getTaskByPageId(pageId as string),
+    enabled: !!pageId,
   });
 }
 

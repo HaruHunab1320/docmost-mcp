@@ -54,7 +54,7 @@ function HistoryList({ pageId }: Props) {
       children: (
         <Text size="sm">
           {t(
-            "Are you sure you want to restore this version? Any changes not versioned will be lost.",
+            "Are you sure you want to restore this version? Any changes not versioned will be lost."
           )}
         </Text>
       ),
@@ -117,17 +117,17 @@ function HistoryList({ pageId }: Props) {
 
       {spaceAbility.cannot(
         SpaceCaslAction.Manage,
-        SpaceCaslSubject.Page,
+        SpaceCaslSubject.Page
       ) ? null : (
         <>
           <Divider />
-          <Group p="xs" wrap="nowrap">
-            <Button size="compact-md" onClick={confirmModal}>
+          <Group wrap="nowrap" gap="xs">
+            <Button size="xs" onClick={confirmModal}>
               {t("Restore")}
             </Button>
             <Button
               variant="default"
-              size="compact-md"
+              size="xs"
               onClick={() => setHistoryModalOpen(false)}
             >
               {t("Cancel")}

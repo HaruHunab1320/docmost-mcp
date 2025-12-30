@@ -463,6 +463,36 @@ export class TaskService {
     return { created, skipped };
   }
 
+  async findByPageId(
+    pageId: string,
+    options?: {
+      includeCreator?: boolean;
+      includeAssignee?: boolean;
+      includeProject?: boolean;
+      includeParentTask?: boolean;
+      includeLabels?: boolean;
+    },
+  ): Promise<Task | undefined> {
+    const tasks = await this.taskRepo.findByPageId(pageId);
+    if (!tasks.length) {
+      return undefined;
+    }
+
+    const [mostRecent] = tasks
+      .slice()
+      .sort((a, b) => {
+        const aTime = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        const bTime = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+        return bTime - aTime;
+      });
+
+    if (!mostRecent) {
+      return undefined;
+    }
+
+    return this.findById(mostRecent.id, options);
+  }
+
   async update(
     taskId: string,
     data: {

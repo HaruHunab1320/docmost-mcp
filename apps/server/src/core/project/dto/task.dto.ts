@@ -19,6 +19,11 @@ export class TaskIdDto {
   taskId: string;
 }
 
+export class TaskByPageDto {
+  @IsUUID()
+  pageId: string;
+}
+
 export class CreateTaskDto {
   @IsString()
   @MaxLength(255)

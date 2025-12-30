@@ -19,6 +19,7 @@ import {
   TaskCompletionDto,
   MoveTaskToProjectDto,
   TaskTriageSummaryDto,
+  TaskByPageDto,
 } from './dto/task.dto';
 import {
   ListTaskLabelsDto,
@@ -89,6 +90,29 @@ export class TaskController {
 
     if (!task) {
       throw new NotFoundException('Task not found');
+    }
+
+    const ability = await this.spaceAbility.createForUser(user, task.spaceId);
+    if (ability.cannot(SpaceCaslAction.Read, SpaceCaslSubject.Page)) {
+      throw new ForbiddenException();
+    }
+
+    return task;
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Post('/byPage')
+  async getTaskByPage(@Body() dto: TaskByPageDto, @AuthUser() user: User) {
+    const task = await this.taskService.findByPageId(dto.pageId, {
+      includeCreator: true,
+      includeAssignee: true,
+      includeProject: true,
+      includeParentTask: true,
+      includeLabels: true,
+    });
+
+    if (!task) {
+      return null;
     }
 
     const ability = await this.spaceAbility.createForUser(user, task.spaceId);
