@@ -85,15 +85,10 @@ export default function PageEditor({
   const [isCollabReady, setIsCollabReady] = useState(false);
   const { pageSlug } = useParams();
   const slugId = extractPageSlugId(pageSlug);
+  const isMountedRef = useRef(false);
 
   const localProvider = useMemo(() => {
-    const provider = new IndexeddbPersistence(documentName, ydoc);
-
-    provider.on("synced", () => {
-      setLocalSynced(true);
-    });
-
-    return provider;
+    return new IndexeddbPersistence(documentName, ydoc);
   }, [pageId, ydoc]);
 
   const remoteProvider = useMemo(() => {
@@ -105,6 +100,7 @@ export default function PageEditor({
       connect: false,
       preserveConnection: false,
       onAuthenticationFailed: (auth: onAuthenticationFailedParameters) => {
+        if (!collabQuery?.token) return;
         const payload = jwtDecode(collabQuery?.token);
         const now = Date.now().valueOf() / 1000;
         const isTokenExpired = now >= payload.exp;
@@ -113,22 +109,50 @@ export default function PageEditor({
         }
       },
       onStatus: (status) => {
+        if (!isMountedRef.current) return;
         if (status.status === "connected") {
           setYjsConnectionStatus(status.status);
         }
       },
     });
 
-    provider.on("synced", () => {
-      setRemoteSynced(true);
-    });
-
-    provider.on("disconnect", () => {
-      setYjsConnectionStatus(WebSocketStatus.Disconnected);
-    });
-
     return provider;
   }, [ydoc, pageId, collabQuery?.token]);
+
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    const handleSynced = () => {
+      if (!isMountedRef.current) return;
+      setLocalSynced(true);
+    };
+    localProvider.on("synced", handleSynced);
+    return () => {
+      localProvider.off("synced", handleSynced);
+    };
+  }, [localProvider]);
+
+  useEffect(() => {
+    const handleSynced = () => {
+      if (!isMountedRef.current) return;
+      setRemoteSynced(true);
+    };
+    const handleDisconnect = () => {
+      if (!isMountedRef.current) return;
+      setYjsConnectionStatus(WebSocketStatus.Disconnected);
+    };
+    remoteProvider.on("synced", handleSynced);
+    remoteProvider.on("disconnect", handleDisconnect);
+    return () => {
+      remoteProvider.off("synced", handleSynced);
+      remoteProvider.off("disconnect", handleDisconnect);
+    };
+  }, [remoteProvider]);
 
   useLayoutEffect(() => {
     remoteProvider.connect();
@@ -185,13 +209,6 @@ export default function PageEditor({
         handleDrop: (view, event, _slice, moved) =>
           handleFileDrop(view, event, moved, pageId),
       },
-      onCreate({ editor }) {
-        if (editor) {
-          // @ts-ignore
-          setEditor(editor);
-          editor.storage.pageId = pageId;
-        }
-      },
       onUpdate({ editor }) {
         if (editor.isEmpty) return;
         const editorJson = editor.getJSON();
@@ -201,6 +218,21 @@ export default function PageEditor({
     },
     [pageId, editable, remoteProvider?.status],
   );
+
+  useEffect(() => {
+    if (!editor) return;
+    if (!isMountedRef.current) return;
+    // @ts-ignore
+    const handle = window.setTimeout(() => {
+      if (!isMountedRef.current) return;
+      // @ts-ignore
+      setEditor(editor);
+      editor.storage.pageId = pageId;
+    }, 0);
+    return () => {
+      window.clearTimeout(handle);
+    };
+  }, [editor, pageId]);
 
   const debouncedUpdateContent = useDebouncedCallback((newContent: any) => {
     const pageData = queryClient.getQueryData<IPage>(["pages", slugId]);

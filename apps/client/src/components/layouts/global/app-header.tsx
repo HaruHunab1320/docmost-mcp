@@ -56,7 +56,20 @@ export function AppHeader() {
     items: `${captureShortcut} capture, ${triageShortcut} triage, ${chatShortcut} agent chat`,
   });
 
-  const items = links.map((link) => (
+  const pathSegments = location.pathname.split("/").filter(Boolean);
+  const spaceIdFromPath =
+    pathSegments[0] === "spaces" ? pathSegments[1] : undefined;
+  const spaceIdFromQuery = new URLSearchParams(location.search).get("spaceId");
+  const currentSpaceId = spaceIdFromPath || spaceIdFromQuery || undefined;
+  const filesLink = currentSpaceId
+    ? `${APP_ROUTE.FILES}?spaceId=${currentSpaceId}`
+    : APP_ROUTE.FILES;
+  const headerLinks = links.map((link) => ({
+    ...link,
+    link: link.link === APP_ROUTE.FILES ? filesLink : link.link,
+  }));
+
+  const items = headerLinks.map((link) => (
     <Link key={link.label} to={link.link} className={classes.link}>
       {t(link.label)}
     </Link>

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Card,
   Title,
@@ -24,10 +24,23 @@ export default function AttachmentsPage() {
   const spaceId = searchParams.get("spaceId") || undefined;
   const pageId = searchParams.get("pageId") || undefined;
   const queryParam = searchParams.get("query") || "";
+  const storedSpaceId =
+    typeof window !== "undefined"
+      ? window.localStorage.getItem("ravenDocs.lastSpaceId") || undefined
+      : undefined;
+  const resolvedSpaceId = spaceId || storedSpaceId;
   const [searchQuery, setSearchQuery] = useState(queryParam);
-  const [selectedSpaceId, setSelectedSpaceId] = useState(spaceId);
+  const [selectedSpaceId, setSelectedSpaceId] = useState(resolvedSpaceId);
   const { data: spacesData, isLoading: isSpacesLoading } =
     useGetSpacesQuery({ limit: 200 });
+
+  useEffect(() => {
+    if (!spaceId && storedSpaceId) {
+      const params = new URLSearchParams(location.search);
+      params.set("spaceId", storedSpaceId);
+      navigate({ search: params.toString() }, { replace: true });
+    }
+  }, [spaceId, storedSpaceId, location.search, navigate]);
 
   // Handle search
   const handleSearch = () => {
@@ -85,7 +98,11 @@ export default function AttachmentsPage() {
       </Card>
 
       <Card withBorder>
-        <AttachmentList spaceId={spaceId} pageId={pageId} query={queryParam} />
+        <AttachmentList
+          spaceId={selectedSpaceId || spaceId}
+          pageId={pageId}
+          query={queryParam}
+        />
       </Card>
     </Box>
   );

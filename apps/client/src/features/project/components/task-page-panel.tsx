@@ -9,7 +9,6 @@ import {
   Text,
   TextInput,
   Textarea,
-  useMantineColorScheme,
   useMantineTheme,
 } from "@mantine/core";
 import { DateInput } from "@mantine/dates";
@@ -26,6 +25,7 @@ import { CustomAvatar } from "@/components/ui/custom-avatar";
 import { UserSelect } from "@/features/user/components/user-select";
 import { getTaskBucket } from "@/features/gtd/utils/task-buckets";
 import { Label, TaskBucket, TaskPriority, TaskStatus } from "@/features/project/types";
+import classes from "./task-page-panel.module.css";
 
 const STATUS_OPTIONS = [
   { value: "todo", label: "To Do" },
@@ -49,7 +49,6 @@ interface TaskPagePanelProps {
 export function TaskPagePanel({ pageId }: TaskPagePanelProps) {
   const { t } = useTranslation();
   const theme = useMantineTheme();
-  const { colorScheme } = useMantineColorScheme();
   const [currentUser] = useAtom(userAtom);
   const taskQuery = useTaskByPageId(pageId);
   const task = taskQuery.data;
@@ -91,50 +90,11 @@ export function TaskPagePanel({ pageId }: TaskPagePanelProps) {
     maxWidth: 360,
   } as const;
 
-  const surfaceColor =
-    colorScheme === "dark" ? theme.colors.dark[6] : theme.colors.gray[0];
   const controlBorder = `1px solid ${
-    colorScheme === "dark" ? theme.colors.dark[4] : theme.colors.gray[3]
+    theme.colorScheme === "dark" ? theme.colors.dark[4] : theme.colors.gray[3]
   }`;
-  const controlHoverBorder =
-    colorScheme === "dark" ? theme.colors.dark[3] : theme.colors.gray[4];
-  const propertyInputStyles = {
-    input: {
-      backgroundColor: "transparent",
-      border: "1px solid transparent",
-      borderRadius: theme.radius.xs,
-      paddingInline: theme.spacing.xs,
-      transition: "border-color 120ms ease, background-color 120ms ease",
-      "&:focus, &:focus-within": {
-        borderColor: controlHoverBorder,
-        backgroundColor: surfaceColor,
-      },
-      "&:hover": {
-        borderColor: controlHoverBorder,
-        backgroundColor: surfaceColor,
-      },
-    },
-    dropdown: {
-      border: controlBorder,
-    },
-  };
-  const textareaStyles = {
-    input: {
-      backgroundColor: "transparent",
-      border: "1px solid transparent",
-      borderRadius: theme.radius.xs,
-      paddingInline: theme.spacing.xs,
-      transition: "border-color 120ms ease, background-color 120ms ease",
-      "&:focus, &:focus-within": {
-        borderColor: controlHoverBorder,
-        backgroundColor: surfaceColor,
-      },
-      "&:hover": {
-        borderColor: controlHoverBorder,
-        backgroundColor: surfaceColor,
-      },
-    },
-  };
+  const inputClassNames = { input: classes.inlineInput };
+  const dropdownStyles = { dropdown: { border: controlBorder } };
 
   const labelOptions = taskLabels.map((label: Label) => ({
     value: label.id,
@@ -209,7 +169,7 @@ export function TaskPagePanel({ pageId }: TaskPagePanelProps) {
             <Text fw={500} size="sm" c="dimmed" style={{ width: propertyLabelWidth }}>
               {t("Status")}
             </Text>
-            <Select
+              <Select
                 data={STATUS_OPTIONS}
                 value={task.status}
                 onChange={(value) =>
@@ -224,7 +184,8 @@ export function TaskPagePanel({ pageId }: TaskPagePanelProps) {
                   )
                 }
                 size="sm"
-                styles={propertyInputStyles}
+                classNames={inputClassNames}
+                styles={dropdownStyles}
                 style={propertyControlStyle}
               />
             </Box>
@@ -248,7 +209,8 @@ export function TaskPagePanel({ pageId }: TaskPagePanelProps) {
                   )
                 }
                 size="sm"
-                styles={propertyInputStyles}
+                classNames={inputClassNames}
+                styles={dropdownStyles}
                 style={propertyControlStyle}
               />
             </Box>
@@ -274,7 +236,7 @@ export function TaskPagePanel({ pageId }: TaskPagePanelProps) {
                 clearable
                 valueFormat="MMM DD, YYYY"
                 size="sm"
-                styles={propertyInputStyles}
+                classNames={inputClassNames}
                 style={propertyControlStyle}
               />
             </Box>
@@ -300,7 +262,7 @@ export function TaskPagePanel({ pageId }: TaskPagePanelProps) {
                     );
                   }}
                   placeholder={t("Assign to...")}
-                  styles={propertyInputStyles}
+                  classNames={inputClassNames}
                   style={{ flex: 1 }}
                 />
                 {assigneeId && (
@@ -350,7 +312,8 @@ export function TaskPagePanel({ pageId }: TaskPagePanelProps) {
                   )
                 }
                 size="sm"
-                styles={propertyInputStyles}
+                classNames={inputClassNames}
+                styles={dropdownStyles}
                 style={propertyControlStyle}
               />
             </Box>
@@ -392,7 +355,7 @@ export function TaskPagePanel({ pageId }: TaskPagePanelProps) {
                 searchable
                 clearable
                 size="sm"
-                styles={propertyInputStyles}
+                classNames={inputClassNames}
                 style={propertyControlStyle}
               />
             </Box>
@@ -465,8 +428,7 @@ export function TaskPagePanel({ pageId }: TaskPagePanelProps) {
                             setEditingCommentValue(event.currentTarget.value)
                           }
                           minRows={2}
-                          autosize
-                          styles={textareaStyles}
+                          classNames={inputClassNames}
                         />
                         <Group gap="xs" mt="xs">
                           <ActionIcon
@@ -516,21 +478,7 @@ export function TaskPagePanel({ pageId }: TaskPagePanelProps) {
                     handleCreateComment();
                   }
                 }}
-                styles={{
-                  input: {
-                    backgroundColor: "transparent",
-                    border: "1px solid transparent",
-                    borderRadius: theme.radius.xs,
-                    "&:focus, &:focus-within": {
-                      borderColor: controlHoverBorder,
-                      backgroundColor: surfaceColor,
-                    },
-                    "&:hover": {
-                      borderColor: controlHoverBorder,
-                      backgroundColor: surfaceColor,
-                    },
-                  },
-                }}
+                classNames={inputClassNames}
               />
 
               {(newComment.trim() || comments.length > 0) && (

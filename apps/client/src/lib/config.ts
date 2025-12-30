@@ -84,5 +84,8 @@ function getConfigValue(key: string, defaultValue: string = undefined): string {
   const rawValue = import.meta.env.DEV
     ? process?.env?.[key]
     : window?.CONFIG?.[key];
-  return rawValue ?? defaultValue;
+  if (rawValue === undefined || rawValue === null || rawValue === "") {
+    return defaultValue;
+  }
+  return rawValue;
 }

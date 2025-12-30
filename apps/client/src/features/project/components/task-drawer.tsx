@@ -2057,7 +2057,6 @@ export function TaskDrawer({
                                 )
                               }
                               minRows={2}
-                              autosize
                               styles={textareaStyles}
                             />
                               <Group gap="xs" mt="xs">

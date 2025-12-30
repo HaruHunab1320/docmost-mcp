@@ -143,6 +143,16 @@
     outline: 2px solid #70cff8;
   }
 
+  .react-renderer.node-attachment {
+    display: inline-flex;
+    width: fit-content;
+  }
+
+  .node-attachment.ProseMirror-selectednode,
+  .react-renderer.node-attachment.ProseMirror-selectednode {
+    outline: none;
+  }
+
   & > .react-renderer {
     margin-top:  var(--mantine-spacing-sm);
     margin-bottom: var(--mantine-spacing-sm);

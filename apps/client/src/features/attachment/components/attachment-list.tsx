@@ -33,12 +33,24 @@ export default function AttachmentList({
   const { t } = useTranslation();
   const [page, setPage] = useState(1);
   const deleteAttachmentMutation = useDeleteAttachmentMutation();
-  const { data, isLoading } = useAttachmentsQuery({
+  const {
+    data,
+    isLoading,
+    isError,
+    error,
+  } = useAttachmentsQuery({
     page,
     spaceId,
     pageId,
     query,
   });
+  const items = data?.items ?? [];
+  const meta = data?.meta;
+  const errorMessage =
+    (error as { response?: { data?: { message?: string } } })?.response?.data
+      ?.message ||
+    (error as Error | undefined)?.message ||
+    t("Failed to load attachments");
 
   // Function to determine icon based on file extension
   const getFileTypeIcon = (fileExt: string) => {
@@ -63,6 +75,12 @@ export default function AttachmentList({
     return iconMap[type] || "file";
   };
 
+  const isImageType = (fileExt: string, mimeType?: string) => {
+    const ext = fileExt.toLowerCase();
+    if (mimeType?.startsWith("image/")) return true;
+    return [".jpg", ".jpeg", ".png", ".gif", ".webp"].includes(ext);
+  };
+
   // Function to format the date
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -77,7 +95,15 @@ export default function AttachmentList({
     );
   }
 
-  if (!data || data.items.length === 0) {
+  if (isError) {
+    return (
+      <Center>
+        <Text>{errorMessage}</Text>
+      </Center>
+    );
+  }
+
+  if (items.length === 0) {
     return (
       <Center>
         <Text>{t("No attachments found")}</Text>
@@ -97,6 +123,28 @@ export default function AttachmentList({
     });
   };
 
+  const handleOpenAttachment = (attachment: (typeof items)[number]) => {
+    const fileUrl = getFileUrl(
+      `/files/${attachment.id}/${attachment.fileName}`
+    );
+    if (isImageType(attachment.fileExt, attachment.mimeType)) {
+      modals.open({
+        title: attachment.fileName,
+        size: "lg",
+        children: (
+          <Box
+            component="img"
+            src={fileUrl}
+            alt={attachment.fileName}
+            style={{ width: "100%", height: "auto", borderRadius: 8 }}
+          />
+        ),
+      });
+      return;
+    }
+    window.open(fileUrl, "_blank", "noopener,noreferrer");
+  };
+
   return (
     <>
       <Table.ScrollContainer minWidth={500}>
@@ -112,16 +160,41 @@ export default function AttachmentList({
           </Table.Thead>
 
           <Table.Tbody>
-            {data.items.map((attachment) => (
+            {items.map((attachment) => (
               <Table.Tr key={attachment.id}>
                 <Table.Td>
-                  <Group gap="sm" wrap="nowrap">
-                    <Box
-                      component="img"
-                      src={`/icons/filetypes/${getFileTypeIcon(attachment.fileExt)}.svg`}
-                      alt={attachment.fileExt}
-                      style={{ width: 20, height: 20 }}
-                    />
+                  <Group
+                    gap="sm"
+                    wrap="nowrap"
+                    style={{ cursor: "pointer" }}
+                    onClick={() => handleOpenAttachment(attachment)}
+                  >
+                    {isImageType(attachment.fileExt, attachment.mimeType) ? (
+                      <Box
+                        component="img"
+                        src={getFileUrl(
+                          `/files/${attachment.id}/${attachment.fileName}`
+                        )}
+                        alt={attachment.fileName}
+                        style={{
+                          width: 28,
+                          height: 28,
+                          objectFit: "cover",
+                          borderRadius: 4,
+                        }}
+                        onError={(event) => {
+                          event.currentTarget.src = `/icons/filetypes/${getFileTypeIcon(attachment.fileExt)}.svg`;
+                          event.currentTarget.style.objectFit = "contain";
+                        }}
+                      />
+                    ) : (
+                      <Box
+                        component="img"
+                        src={`/icons/filetypes/${getFileTypeIcon(attachment.fileExt)}.svg`}
+                        alt={attachment.fileExt}
+                        style={{ width: 20, height: 20 }}
+                      />
+                    )}
                     <Text size="sm" fw={500} lineClamp={1}>
                       {attachment.fileName}
                     </Text>
@@ -171,11 +244,11 @@ export default function AttachmentList({
         </Table>
       </Table.ScrollContainer>
 
-      {data.items.length > 0 && (
+      {items.length > 0 && meta && (
         <Paginate
           currentPage={page}
-          hasPrevPage={data.meta.hasPrevPage}
-          hasNextPage={data.meta.hasNextPage}
+          hasPrevPage={meta.hasPrevPage}
+          hasNextPage={meta.hasNextPage}
           onPageChange={setPage}
         />
       )}

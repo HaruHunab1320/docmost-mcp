@@ -73,9 +73,13 @@ export default function GlobalAppShell({
 
   const location = useLocation();
   const isSettingsRoute = location.pathname.startsWith("/settings");
+  const isFilesRoute = location.pathname.startsWith("/files");
+  const hasFilesSpaceId =
+    isFilesRoute && new URLSearchParams(location.search).has("spaceId");
   const isSpaceRoute =
     location.pathname.startsWith("/s/") ||
-    location.pathname.startsWith("/spaces/");
+    location.pathname.startsWith("/spaces/") ||
+    hasFilesSpaceId;
   const isProjectRoute = location.pathname.includes("/projects");
   const isHomeRoute = location.pathname.startsWith("/home");
   const isPageRoute = location.pathname.includes("/p/");

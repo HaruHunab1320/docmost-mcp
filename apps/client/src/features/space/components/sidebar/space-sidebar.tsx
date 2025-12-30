@@ -22,6 +22,7 @@ import {
   IconFileExport,
   IconFolder,
   IconHome,
+  IconPaperclip,
   IconPlus,
   IconSearch,
   IconSettings,
@@ -51,6 +52,7 @@ import {
 import PageImportModal from "@/features/page/components/page-import-modal.tsx";
 import { useTranslation } from "react-i18next";
 import { SwitchSpace } from "./switch-space";
+import { SpaceSelect } from "./space-select";
 import ExportModal from "@/components/common/export-modal";
 import APP_ROUTE from "@/lib/app-route";
 import { useProjects } from "@/features/project/hooks/use-projects";
@@ -67,8 +69,13 @@ export function SpaceSidebar() {
   const [opened, { open: openSettings, close: closeSettings }] =
     useDisclosure(false);
   const { spaceSlug, spaceId } = useParams();
+  const spaceIdFromQuery = React.useMemo(() => {
+    const params = new URLSearchParams(location.search);
+    return params.get("spaceId") || undefined;
+  }, [location.search]);
+  const effectiveSpaceId = spaceId || spaceIdFromQuery;
   const { data: spaceBySlug } = useGetSpaceBySlugQuery(spaceSlug || "");
-  const { data: spaceById } = useSpaceQuery(spaceId || "");
+  const { data: spaceById } = useSpaceQuery(effectiveSpaceId || "");
   const space = spaceBySlug || spaceById;
   const resolvedSpaceSlug = spaceSlug || space?.slug;
   const navigate = useNavigate();
@@ -117,7 +124,32 @@ export function SpaceSidebar() {
   }, [pinnedEntitiesQuery.data]);
 
   if (!space) {
-    return <></>;
+    return (
+      <div className={classes.navbar}>
+        <div
+          className={classes.section}
+          style={{
+            border: "none",
+            marginTop: 2,
+            marginBottom: 3,
+          }}
+        >
+          <Text size="sm" c="dimmed" mb="xs">
+            {t("Select a space")}
+          </Text>
+          <SpaceSelect
+            label={t("Select space")}
+            onChange={(selected) => {
+              if (!selected?.slug) return;
+              navigate(getSpaceUrl(selected.slug));
+            }}
+            width={300}
+            opened={true}
+            clearable
+          />
+        </div>
+      </div>
+    );
   }
 
   function handleCreatePage() {
@@ -199,6 +231,27 @@ export function SpaceSidebar() {
                   stroke={2}
                 />
                 <span>{t("Today")}</span>
+              </div>
+            </UnstyledButton>
+
+            <UnstyledButton
+              component={Link}
+              to={`/files?spaceId=${space.id}`}
+              className={clsx(
+                classes.menu,
+                location.pathname === "/files" &&
+                  location.search.includes(`spaceId=${space.id}`)
+                  ? classes.activeButton
+                  : ""
+              )}
+            >
+              <div className={classes.menuItemInner}>
+                <IconPaperclip
+                  size={18}
+                  className={classes.menuItemIcon}
+                  stroke={2}
+                />
+                <span>{t("Attachments")}</span>
               </div>
             </UnstyledButton>
 

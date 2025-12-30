@@ -57,12 +57,12 @@ Use this checklist to validate Raven Docs end‑to‑end before a production pus
 - [X] Editor formatting (bold/italic/heading) works.
 - [X] Task list items in page create tasks (sync check).
 - [X] Comments add/edit/delete.
-- [ ] Page history loads.
+- [X] Page history loads.
 
 ## Attachments
 
-- [ ] Upload attachment to a page.
-- [ ] Download and delete attachment.
+- [X] Upload attachment to a page.
+- [X] Download and delete attachment.
 - [ ] Attachments list filters by space.
 
 ## Search

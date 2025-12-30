@@ -1,48 +1,82 @@
 import { NodeViewProps, NodeViewWrapper } from "@tiptap/react";
-import { Group, Text, Paper, ActionIcon } from "@mantine/core";
+import { ActionIcon, Box, Modal, Text } from "@mantine/core";
 import { getFileUrl } from "@/lib/config.ts";
 import { IconDownload, IconPaperclip } from "@tabler/icons-react";
 import { useHover } from "@mantine/hooks";
 import { formatBytes } from "@/lib";
+import classes from "./attachment-view.module.css";
+import { useState } from "react";
 
 export default function AttachmentView(props: NodeViewProps) {
   const { node, selected } = props;
-  const { url, name, size } = node.attrs;
+  const { url, name, size, mime } = node.attrs;
   const { hovered, ref } = useHover();
+  const fileUrl = getFileUrl(url);
+  const isImage =
+    (typeof mime === "string" && mime.startsWith("image/")) ||
+    /\.(png|jpe?g|gif|webp|bmp|svg)$/i.test(String(name || "")) ||
+    /\.(png|jpe?g|gif|webp|bmp|svg)$/i.test(String(url || ""));
+  const [previewOpen, setPreviewOpen] = useState(false);
 
   return (
-    <NodeViewWrapper>
-      <Paper withBorder p="4px" ref={ref} data-drag-handle>
-        <Group
-          justify="space-between"
-          gap="xl"
-          style={{ cursor: "pointer" }}
-          wrap="nowrap"
-          h={25}
-        >
-          <Group justify="space-between" wrap="nowrap">
-            <IconPaperclip size={20} />
+    <NodeViewWrapper as="span" className={classes.wrapper}>
+      <Modal
+        opened={previewOpen}
+        onClose={() => setPreviewOpen(false)}
+        size="lg"
+        centered
+        title={name}
+      >
+        <img
+          src={fileUrl}
+          alt={name}
+          style={{ width: "100%", height: "auto", borderRadius: 8 }}
+        />
+      </Modal>
 
-            <Text component="span" size="md" truncate="end">
-              {name}
-            </Text>
+      <Box
+        ref={ref}
+        data-drag-handle
+        className={`${classes.chip} ${isImage ? classes.imageCard : ""} ${
+          hovered || selected ? classes.chipHovered : ""
+        }`}
+        onClick={() => {
+          if (isImage) {
+            setPreviewOpen(true);
+          } else {
+            window.open(fileUrl, "_blank");
+          }
+        }}
+        style={{ cursor: "pointer" }}
+      >
+        {isImage ? (
+          <img
+            src={fileUrl}
+            alt={name}
+            className={classes.thumbLarge}
+            loading="lazy"
+          />
+        ) : (
+          <IconPaperclip size={18} />
+        )}
 
-            <Text component="span" size="sm" c="dimmed" inline>
-              {formatBytes(size)}
-            </Text>
-          </Group>
+        <Box className={isImage ? classes.metaStack : classes.meta}>
+          <Text component="span" className={classes.name}>
+            {name}
+          </Text>
+          <Text component="span" className={classes.size}>
+            {formatBytes(size)}
+          </Text>
+        </Box>
 
-          {selected || hovered ? (
-            <a href={getFileUrl(url)} target="_blank">
-              <ActionIcon variant="default" aria-label="download file">
-                <IconDownload size={18} />
+        <Box className={classes.actions}>
+            <a href={fileUrl} target="_blank" onClick={(event) => event.stopPropagation()}>
+              <ActionIcon variant="subtle" aria-label="download file">
+                <IconDownload size={16} />
               </ActionIcon>
             </a>
-          ) : (
-            ""
-          )}
-        </Group>
-      </Paper>
+          </Box>
+      </Box>
     </NodeViewWrapper>
   );
 }

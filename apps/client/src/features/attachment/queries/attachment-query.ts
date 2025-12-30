@@ -29,7 +29,8 @@ export const fetchAttachments = async (
   if (query) queryParams.append("query", query);
 
   const response = await api.get(`/attachments?${queryParams.toString()}`);
-  return response as unknown as IPagination<IAttachment>;
+  return (response as { data?: IPagination<IAttachment> }).data ??
+    (response as unknown as IPagination<IAttachment>);
 };
 
 // Hook for using the attachments query

@@ -1,0 +1,21 @@
+.inlineInput {
+  background-color: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--mantine-radius-xs);
+  padding-inline: var(--mantine-spacing-xs);
+  transition: border-color 120ms ease, background-color 120ms ease;
+}
+
+.inlineInput:hover,
+.inlineInput:focus,
+.inlineInput:focus-within {
+  border-color: var(--mantine-color-gray-4);
+  background-color: var(--mantine-color-gray-0);
+}
+
+:global([data-mantine-color-scheme='dark']) .inlineInput:hover,
+:global([data-mantine-color-scheme='dark']) .inlineInput:focus,
+:global([data-mantine-color-scheme='dark']) .inlineInput:focus-within {
+  border-color: var(--mantine-color-dark-4);
+  background-color: var(--mantine-color-dark-6);
+}

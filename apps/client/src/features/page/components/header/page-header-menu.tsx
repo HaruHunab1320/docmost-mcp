@@ -7,13 +7,11 @@ import {
   IconHistory,
   IconLink,
   IconList,
-  IconMessage,
   IconPrinter,
   IconTrash,
   IconWifiOff,
 } from "@tabler/icons-react";
 import React, { useEffect } from "react";
-import useToggleAside from "@/hooks/use-toggle-aside.tsx";
 import { useAtom } from "jotai";
 import { historyAtoms } from "@/features/page-history/atoms/history-atoms.ts";
 import { useClipboard, useDisclosure } from "@mantine/hooks";
@@ -41,7 +39,6 @@ interface PageHeaderMenuProps {
 }
 export default function PageHeaderMenu({ readOnly }: PageHeaderMenuProps) {
   const { t } = useTranslation();
-  const toggleAside = useToggleAside();
   const [yjsConnectionStatus] = useAtom(yjsConnectionStatusAtom);
 
   return (
@@ -57,15 +54,6 @@ export default function PageHeaderMenu({ readOnly }: PageHeaderMenuProps) {
           </ActionIcon>
         </Tooltip>
       )}
-
-      <Tooltip label={t("Comments")} openDelay={250} withArrow>
-        <ActionIcon
-          variant="subtle"
-          onClick={() => toggleAside("comments")}
-        >
-          <IconMessage size={20} stroke={2} />
-        </ActionIcon>
-      </Tooltip>
 
       <Tooltip label={t("Table of contents")} openDelay={250} withArrow>
         <ActionIcon
