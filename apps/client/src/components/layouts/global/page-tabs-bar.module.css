@@ -6,9 +6,11 @@
   padding-left: calc(10px + var(--app-shell-navbar-offset, 0px));
   border-bottom: 1px solid light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-6));
   background: var(--docmost-surface-bg, var(--mantine-color-body));
-  position: sticky;
-  top: 45px;
-  z-index: 2;
+  position: fixed;
+  top: var(--app-shell-header-height, 45px);
+  left: 0;
+  right: 0;
+  z-index: 110;
 }
 
 .tabsList {

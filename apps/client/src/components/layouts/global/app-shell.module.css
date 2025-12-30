@@ -35,4 +35,5 @@
 .main {
   background-color: var(--docmost-body-bg, var(--mantine-color-body));
   min-height: calc(100vh - 45px);
+  padding-top: var(--page-tabs-height, 0px);
 }

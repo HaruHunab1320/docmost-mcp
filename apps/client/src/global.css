@@ -23,3 +23,16 @@ body {
 * {
   box-sizing: border-box;
 }
+
+.mantine-Spotlight-root {
+  background: var(--docmost-surface-bg, var(--mantine-color-body));
+  border: 1px solid light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-5));
+}
+
+.mantine-Spotlight-search {
+  background: var(--docmost-surface-bg, var(--mantine-color-body));
+}
+
+.mantine-Spotlight-actions {
+  background: var(--docmost-surface-bg, var(--mantine-color-body));
+}

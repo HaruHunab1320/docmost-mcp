@@ -1,11 +1,10 @@
 .editor {
     height: 100%;
-    padding: 8px 0;
-    margin: 48px auto;
+    padding: calc(8px + 45px + var(--page-tabs-height, 0px) + 16px) 0 8px;
+    margin: 0 auto;
 
     @media print {
         padding: 0;
         margin: 0;
     }
 }
-

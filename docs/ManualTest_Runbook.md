@@ -63,7 +63,7 @@ Use this checklist to validate Raven Docs end‑to‑end before a production pus
 
 - [X] Upload attachment to a page.
 - [X] Download and delete attachment.
-- [ ] Attachments list filters by space.
+- [X] Attachments list filters by space.
 
 ## Search
 
