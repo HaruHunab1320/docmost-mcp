@@ -11,7 +11,6 @@ import {
   MantineColorScheme,
   useMantineColorScheme,
   MantineThemeOverride,
-  useMantineTheme,
 } from "@mantine/core";
 import { useAtom } from "jotai";
 import { userAtom } from "../atoms/current-user-atom";
@@ -45,7 +44,6 @@ interface ThemeProviderProps {
 export function DocmostThemeProvider({ children }: ThemeProviderProps) {
   const [user] = useAtom(userAtom);
   const { colorScheme, setColorScheme } = useMantineColorScheme();
-  const mantineTheme = useMantineTheme();
   const themeInitializedRef = useRef(false);
 
   // Use state for active theme to ensure it updates properly
@@ -59,17 +57,14 @@ export function DocmostThemeProvider({ children }: ThemeProviderProps) {
   // Construct theme override based on current active theme
   const themeOverride = useMemo<MantineThemeOverride>(() => {
     return {
-      ...mantineTheme,
+      ...baseTheme,
       primaryColor: activeTheme.primaryColor,
-      colors: mantineTheme.colors,
     };
-  }, [activeTheme, mantineTheme]);
+  }, [activeTheme]);
 
   // Function to apply a theme to all parts of the system
   const applyThemeToSystem = (theme: DocmostTheme) => {
-    if (themeBeingApplied) {
-      return;
-    }
+    if (themeBeingApplied) return;
 
     try {
       themeBeingApplied = true;
@@ -209,116 +204,30 @@ export function DocmostThemeProvider({ children }: ThemeProviderProps) {
     }
   };
 
-  // This effect only runs once on mount to set the initial theme
-  useEffect(() => {
-    if (themeInitializedRef.current) return;
-
-    themeInitializedRef.current = true;
-
-    // Apply the initial theme
-    if (user?.settings?.preferences?.themeId) {
-      const themeId = user.settings.preferences.themeId;
-      const userTheme = getThemeById(themeId);
-
-      applyThemeToSystem(userTheme);
-    }
-  }, [user]);
-
-  // This effect handles user preference changes
-  useEffect(() => {
-    // Skip if no user or the initial theme setup hasn't happened yet
-    if (!user || !themeInitializedRef.current) return;
-
-    const userThemeId = user.settings?.preferences?.themeId;
-
-    // We only want to respond to user preference changes if:
-    // 1. A manual theme hasn't been applied (i.e., user didn't explicitly select a theme)
-    // 2. The theme ID from user preferences exists and is different from the current active theme
-    if (userThemeId && userThemeId !== activeTheme.id) {
-      // Only apply the theme from user preferences if a theme wasn't manually selected
-      const userTheme = getThemeById(userThemeId);
-      applyThemeToSystem(userTheme);
-    }
-  }, [user?.settings?.preferences?.themeId, activeTheme.id]);
-
   // This function is used by other components to change the theme
   const setThemeById = (themeId: string) => {
     try {
       const theme = getThemeById(themeId);
-      setActiveTheme(theme);
-      document.documentElement.setAttribute("data-theme", themeId);
-      document.documentElement.setAttribute("data-theme-id", themeId);
-      document.documentElement.setAttribute(
-        "data-theme-primary",
-        theme.primaryColor
-      );
-      document.documentElement.setAttribute(
-        "data-theme-secondary",
-        theme.secondaryColor || "red"
-      );
-      document.documentElement.style.setProperty(
-        "--docmost-body-bg",
-        theme.bodyBg || "var(--mantine-color-body)"
-      );
-      document.documentElement.style.setProperty(
-        "--docmost-surface-bg",
-        theme.surfaceBg || "var(--mantine-color-body)"
-      );
-      document.documentElement.style.setProperty(
-        "--docmost-muted-bg",
-        theme.mutedBg || "var(--mantine-color-gray-1)"
-      );
-      document.documentElement.style.setProperty(
-        "--docmost-text-color",
-        theme.textColor || "var(--mantine-color-text)"
-      );
-      document.documentElement.style.setProperty(
-        "--docmost-border-color",
-        theme.borderColor || "var(--mantine-color-default-border)"
-      );
-      const desiredScheme = theme.isDark ? "dark" : "light";
-      if (colorScheme !== desiredScheme) {
-        setColorScheme(desiredScheme);
-      }
+      setManualThemeApplied(true);
+      applyThemeToSystem(theme);
     } catch (error) {
       console.error("Error setting theme:", error);
     }
   };
 
-  // Initialize theme from user preferences or fallback to default
   useEffect(() => {
-    if (!themeInitializedRef.current && user) {
+    if (!user) return;
+    const fallbackTheme =
+      colorScheme === "dark" ? "default-dark" : "default-light";
+    const desiredThemeId = user.settings?.preferences?.themeId || fallbackTheme;
+    if (!themeInitializedRef.current) {
       themeInitializedRef.current = true;
-
-      // Get from user preferences
-      const userThemeId =
-        user.settings?.preferences?.themeId || "default-light";
-
-      try {
-        setThemeById(userThemeId);
-      } catch (error) {
-        console.error("Failed to set initial theme:", error);
-        // Fallback to default
-        setThemeById("default-light");
-      }
     }
-  }, [user]);
-
-  // Update theme when user preferences change
-  useEffect(() => {
-    if (themeInitializedRef.current && user && !themeBeingApplied) {
-      const userThemeId =
-        user.settings?.preferences?.themeId || "default-light";
-
-      if (userThemeId !== activeTheme.id) {
-        try {
-          setThemeById(userThemeId);
-        } catch (error) {
-          console.error("Failed to update theme from preferences:", error);
-        }
-      }
+    if (desiredThemeId !== activeTheme.id) {
+      const theme = getThemeById(desiredThemeId);
+      applyThemeToSystem(theme);
     }
-  }, [user, activeTheme.id]);
+  }, [user?.settings?.preferences?.themeId, colorScheme, activeTheme.id]);
 
   return (
     <ThemeContext.Provider value={{ activeTheme, setThemeById }}>
