@@ -53,6 +53,16 @@ export function TodayPage() {
   const [workspace] = useAtom(workspaceAtom);
   const [memoryOpened, memoryHandlers] = useDisclosure(false);
   const reviewDate = useMemo(() => new Date(), []);
+  const todayLabel = useMemo(
+    () =>
+      new Intl.DateTimeFormat("en-US", {
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      }).format(new Date()),
+    []
+  );
   const reviewDue = useMemo(() => isReviewDue(reviewDate), [reviewDate]);
   const reviewCompleted = useMemo(() => {
     if (!spaceId) return false;
@@ -107,8 +117,13 @@ export function TodayPage() {
   return (
     <Container size="md" py="xl">
       <Stack gap="xs" mb="md">
-        <Group justify="space-between">
-          <Title order={2}>{t("Today")}</Title>
+        <Group justify="space-between" align="flex-start">
+          <Stack gap={2}>
+            <Title order={2}>{t("Today")}</Title>
+            <Text size="sm" c="dimmed">
+              {todayLabel}
+            </Text>
+          </Stack>
           <Group>
             <Button variant="subtle" onClick={memoryHandlers.open}>
               {t("Memories")}
