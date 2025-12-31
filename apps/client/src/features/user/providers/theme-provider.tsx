@@ -20,7 +20,11 @@ import {
   mantineCssResolver,
   theme as baseTheme,
 } from "@/theme";
-import { setManualThemeApplied } from "../hooks/use-current-user";
+import {
+  clearManualThemeApplied,
+  isManualThemeApplied,
+  setManualThemeApplied,
+} from "../hooks/use-current-user";
 
 // Global flag to prevent multiple theme applications
 let themeBeingApplied = false;
@@ -45,6 +49,7 @@ export function RavenDocsThemeProvider({ children }: ThemeProviderProps) {
   const [user] = useAtom(userAtom);
   const { colorScheme, setColorScheme } = useMantineColorScheme();
   const themeInitializedRef = useRef(false);
+  const applyingThemeRef = useRef(false);
 
   // Use state for active theme to ensure it updates properly
   const [activeTheme, setActiveTheme] = useState<DocmostTheme>(() => {
@@ -68,6 +73,10 @@ export function RavenDocsThemeProvider({ children }: ThemeProviderProps) {
 
     try {
       themeBeingApplied = true;
+      applyingThemeRef.current = true;
+
+      // Update state immediately to avoid stale theme during color scheme changes.
+      setActiveTheme(theme);
 
       const desiredScheme = theme.isDark ? "dark" : "light";
       if (colorScheme !== desiredScheme) {
@@ -195,11 +204,10 @@ export function RavenDocsThemeProvider({ children }: ThemeProviderProps) {
         `var(--mantine-color-${theme.primaryColor}-2)`
       );
 
-      // Important: update state last to ensure UI updates
-      setActiveTheme(theme);
     } finally {
       setTimeout(() => {
         themeBeingApplied = false;
+        applyingThemeRef.current = false;
       }, 50); // Small delay to prevent rapid consecutive changes
     }
   };
@@ -217,12 +225,22 @@ export function RavenDocsThemeProvider({ children }: ThemeProviderProps) {
 
   useEffect(() => {
     if (!user) return;
+    if (themeBeingApplied || applyingThemeRef.current) return;
     const fallbackTheme =
       colorScheme === "dark" ? "default-dark" : "default-light";
     const desiredThemeId = user.settings?.preferences?.themeId || fallbackTheme;
     if (!themeInitializedRef.current) {
       themeInitializedRef.current = true;
     }
+
+    if (isManualThemeApplied() && desiredThemeId !== activeTheme.id) {
+      return;
+    }
+
+    if (isManualThemeApplied() && desiredThemeId === activeTheme.id) {
+      clearManualThemeApplied();
+    }
+
     if (desiredThemeId !== activeTheme.id) {
       const theme = getThemeById(desiredThemeId);
       applyThemeToSystem(theme);

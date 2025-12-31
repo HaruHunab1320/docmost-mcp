@@ -20,7 +20,7 @@ import {
 } from "@tabler/icons-react";
 import { useState } from "react";
 import { useAtom } from "jotai";
-import { userAtom } from "../atoms/current-user-atom";
+import { currentUserAtom } from "../atoms/current-user-atom";
 import { updateUser } from "../services/user-service";
 import { useRavenDocsTheme } from "../providers/theme-provider";
 import { DOCMOST_THEMES, getThemeById } from "@/theme";
@@ -32,22 +32,30 @@ export function ThemeSwitcher() {
   const { t } = useTranslation();
   const { colorScheme, setColorScheme } = useMantineColorScheme();
   const { activeTheme, setThemeById } = useRavenDocsTheme();
-  const [user, setUser] = useAtom(userAtom);
+  const [currentUser, setCurrentUser] = useAtom(currentUserAtom);
   const theme = useMantineTheme();
   const [opened, setOpened] = useState(false);
   const systemScheme = useColorScheme();
 
   const isDark = colorScheme === "dark";
+  const isDefaultLightTheme = activeTheme.id === "default-light";
+  const isDefaultDarkTheme = activeTheme.id === "default-dark";
 
   const lightThemes = DOCMOST_THEMES.filter((theme) => !theme.isDark);
   const darkThemes = DOCMOST_THEMES.filter((theme) => theme.isDark);
 
   const applyLightOrDarkTheme = async (scheme: "light" | "dark") => {
-    const baseParts = activeTheme.id.split("-");
-    const baseColor = baseParts[0];
-    const newThemeId = `${baseColor}-${scheme}`;
-    if (DOCMOST_THEMES.some((theme) => theme.id === newThemeId)) {
-      await applyTheme(newThemeId);
+    const activeId = activeTheme.id;
+    const isLightTheme = activeId.endsWith("-light");
+    const isDarkTheme = activeId.endsWith("-dark");
+    const baseId =
+      isLightTheme || isDarkTheme
+        ? activeId.replace(/-(light|dark)$/, "")
+        : "";
+    const candidateId = baseId ? `${baseId}-${scheme}` : "";
+
+    if (candidateId && DOCMOST_THEMES.some((theme) => theme.id === candidateId)) {
+      await applyTheme(candidateId);
       return;
     }
 
@@ -66,18 +74,36 @@ export function ThemeSwitcher() {
       // Set the color scheme based on theme's dark mode setting
       setColorScheme(selectedTheme.isDark ? "dark" : "light");
 
+      // Optimistically update user preferences to prevent theme bounce.
+      setCurrentUser((prev) =>
+        prev
+          ? {
+              ...prev,
+              user: {
+                ...prev.user,
+                settings: {
+                  ...prev.user.settings,
+                  preferences: {
+                    ...prev.user.settings?.preferences,
+                    themeId,
+                  },
+                },
+              },
+            }
+          : prev
+      );
+
       // Attempt to save the theme to the backend
       const updatedUser = await updateUser({ themeId });
-
-      // Validate the user object contains theme preferences
-      if (
-        updatedUser &&
-        updatedUser.settings &&
-        updatedUser.settings.preferences &&
-        updatedUser.settings.preferences.themeId === themeId
-      ) {
-        // Update user context with new preferences
-        setUser(updatedUser);
+      if (updatedUser) {
+        setCurrentUser((prev) =>
+          prev
+            ? {
+                ...prev,
+                user: updatedUser,
+              }
+            : prev
+        );
       }
 
       // Mark theme as manually applied
@@ -130,14 +156,14 @@ export function ThemeSwitcher() {
         <Menu.Item
           leftSection={<IconSun style={{ width: rem(16), height: rem(16) }} />}
           onClick={() => applyLightOrDarkTheme("light")}
-          color={colorScheme === "light" ? theme.primaryColor : undefined}
+          color={isDefaultLightTheme ? theme.primaryColor : undefined}
         >
           {t("Light")}
         </Menu.Item>
         <Menu.Item
           leftSection={<IconMoon style={{ width: rem(16), height: rem(16) }} />}
           onClick={() => applyLightOrDarkTheme("dark")}
-          color={colorScheme === "dark" ? theme.primaryColor : undefined}
+          color={isDefaultDarkTheme ? theme.primaryColor : undefined}
         >
           {t("Dark")}
         </Menu.Item>

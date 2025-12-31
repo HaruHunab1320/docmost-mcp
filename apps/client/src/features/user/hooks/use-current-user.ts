@@ -47,3 +47,11 @@ export default function useCurrentUser() {
 export function setManualThemeApplied(value = true) {
   manualThemeApplied = value;
 }
+
+export function isManualThemeApplied() {
+  return manualThemeApplied;
+}
+
+export function clearManualThemeApplied() {
+  manualThemeApplied = false;
+}

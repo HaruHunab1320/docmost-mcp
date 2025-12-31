@@ -17,7 +17,7 @@ import {
 import { useTranslation } from "react-i18next";
 import { DOCMOST_THEMES, DocmostTheme, getThemeById } from "@/theme";
 import { useAtom } from "jotai";
-import { userAtom } from "../atoms/current-user-atom";
+import { currentUserAtom } from "../atoms/current-user-atom";
 import { updateUser } from "../services/user-service";
 import { useState, useEffect } from "react";
 
@@ -41,9 +41,10 @@ export default function AccountTheme() {
 function ThemeSwitcher() {
   const { t } = useTranslation();
   const { colorScheme, setColorScheme } = useMantineColorScheme();
-  const [user, setUser] = useAtom(userAtom);
+  const [currentUser, setCurrentUser] = useAtom(currentUserAtom);
+  const user = currentUser?.user;
   const [selectedThemeId, setSelectedThemeId] = useState<string>(
-    user.settings?.preferences?.themeId || "default-light"
+    user?.settings?.preferences?.themeId || "default-light"
   );
   const theme = useMantineTheme();
 
@@ -66,7 +67,7 @@ function ThemeSwitcher() {
         setColorScheme("light");
       }
     }
-  }, [colorScheme, user.settings?.preferences?.themeId]);
+  }, [colorScheme, user?.settings?.preferences?.themeId]);
 
   const applyTheme = async (themeId: string) => {
     try {
@@ -75,9 +76,37 @@ function ThemeSwitcher() {
       // Update Mantine color scheme
       setColorScheme(selectedTheme.isDark ? "dark" : "light");
 
+      // Optimistically update user preferences to prevent theme bounce.
+      setCurrentUser((prev) =>
+        prev
+          ? {
+              ...prev,
+              user: {
+                ...prev.user,
+                settings: {
+                  ...prev.user.settings,
+                  preferences: {
+                    ...prev.user.settings?.preferences,
+                    themeId,
+                  },
+                },
+              },
+            }
+          : prev
+      );
+
       // Save to backend
       const updatedUser = await updateUser({ themeId });
-      setUser(updatedUser);
+      if (updatedUser) {
+        setCurrentUser((prev) =>
+          prev
+            ? {
+                ...prev,
+                user: updatedUser,
+              }
+            : prev
+        );
+      }
 
       // Update local state
       setSelectedThemeId(themeId);
