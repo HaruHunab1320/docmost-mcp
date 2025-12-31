@@ -61,10 +61,12 @@ import { ProjectLinkedPages } from "@/features/project/components/project-linked
 import { getProjectsArray } from "@/features/project/utils/project-data";
 import { useQuery } from "@tanstack/react-query";
 import { agentMemoryService } from "@/features/agent-memory/services/agent-memory-service";
+import { workspaceAtom } from "@/features/user/atoms/current-user-atom";
 
 export function SpaceSidebar() {
   const { t } = useTranslation();
   const [tree] = useAtom(treeApiAtom);
+  const [workspace] = useAtom(workspaceAtom);
   const location = useLocation();
   const [opened, { open: openSettings, close: closeSettings }] =
     useDisclosure(false);
@@ -80,17 +82,19 @@ export function SpaceSidebar() {
   const resolvedSpaceSlug = spaceSlug || space?.slug;
   const navigate = useNavigate();
   const { data: projectsData } = useProjects({ spaceId: space?.id });
-  const [expandedProjects, setExpandedProjects] = useState<Record<string, boolean>>({});
+  const [expandedProjects, setExpandedProjects] = useState<
+    Record<string, boolean>
+  >({});
   const pinnedEntitiesQuery = useQuery({
     queryKey: ["sidebar-entity-pins", space?.id],
     queryFn: () =>
       agentMemoryService.query({
-        workspaceId: space?.workspaceId || "",
+        workspaceId: workspace?.id || "",
         spaceId: space?.id || "",
         tags: ["entity-pin"],
         limit: 20,
       }),
-    enabled: !!space?.id && !!space?.workspaceId,
+    enabled: !!space?.id && !!workspace?.id,
   });
 
   const spaceRules = space?.membership?.permissions;
@@ -103,7 +107,10 @@ export function SpaceSidebar() {
 
   const pinnedEntities = React.useMemo(() => {
     const records = pinnedEntitiesQuery.data || [];
-    const latest = new Map<string, { action: string; name?: string; ts: number }>();
+    const latest = new Map<
+      string,
+      { action: string; name?: string; ts: number }
+    >();
     records.forEach((record) => {
       const content = record.content as Record<string, any> | undefined;
       if (!content?.entityId) return;
@@ -438,7 +445,13 @@ export function SpaceSidebar() {
           </div>
         </div>
 
-        <div className={clsx(classes.section, classes.sectionPages, classes.sectionProjects)}>
+        <div
+          className={clsx(
+            classes.section,
+            classes.sectionPages,
+            classes.sectionProjects
+          )}
+        >
           <Group className={classes.pagesHeader} justify="space-between">
             <Text size="xs" fw={500} c="dimmed">
               {t("Projects")}
@@ -467,7 +480,9 @@ export function SpaceSidebar() {
                           }));
                         }}
                         aria-label={
-                          isExpanded ? t("Collapse project") : t("Expand project")
+                          isExpanded
+                            ? t("Collapse project")
+                            : t("Expand project")
                         }
                       >
                         {isExpanded ? (
@@ -580,11 +595,7 @@ function SpaceMenu({ spaceId, onSpaceSettings }: SpaceMenuProps) {
             withArrow
             position="top"
           >
-            <ActionIcon
-              variant="subtle"
-              size={18}
-              aria-label={t("Space menu")}
-            >
+            <ActionIcon variant="subtle" size={18} aria-label={t("Space menu")}>
               <IconDots />
             </ActionIcon>
           </Tooltip>

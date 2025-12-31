@@ -12,6 +12,8 @@ import {
 } from "@mantine/core";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { BreadcrumbBar } from "@/features/page/components/breadcrumbs/breadcrumb-bar";
+import breadcrumbClasses from "@/features/page/components/breadcrumbs/breadcrumb.module.css";
 import { useCurrentSpace } from "@/features/space/hooks/use-current-space";
 import { useCurrentWorkspace } from "@/features/workspace/hooks/use-current-workspace";
 import { useProjects } from "../hooks/use-projects";
@@ -84,22 +86,24 @@ export function TasksPage() {
     items.push({ title: getPageTitle(), href: "#" });
 
     return (
-      <Breadcrumbs mb="md">
-        {items.map((item, index) => (
-          <Anchor
-            key={index}
-            href={item.href}
-            onClick={(e) => {
-              e.preventDefault();
-              if (item.href !== "#") {
-                navigate(item.href);
-              }
-            }}
-          >
-            {item.title}
-          </Anchor>
-        ))}
-      </Breadcrumbs>
+      <BreadcrumbBar>
+        <Breadcrumbs className={breadcrumbClasses.breadcrumbs}>
+          {items.map((item, index) => (
+            <Anchor
+              key={index}
+              href={item.href}
+              onClick={(e) => {
+                e.preventDefault();
+                if (item.href !== "#") {
+                  navigate(item.href);
+                }
+              }}
+            >
+              {item.title}
+            </Anchor>
+          ))}
+        </Breadcrumbs>
+      </BreadcrumbBar>
     );
   };
 

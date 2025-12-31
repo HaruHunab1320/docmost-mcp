@@ -25,6 +25,11 @@ body {
 }
 
 .mantine-Spotlight-root {
+  background: transparent;
+  border: 0;
+}
+
+.mantine-Spotlight-root:not(:empty) {
   background: var(--docmost-surface-bg, var(--mantine-color-body));
   border: 1px solid light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-5));
 }

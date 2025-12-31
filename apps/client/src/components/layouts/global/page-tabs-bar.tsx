@@ -1,5 +1,5 @@
 import { ActionIcon, Group, Text, Tooltip } from "@mantine/core";
-import { IconX, IconTrash } from "@tabler/icons-react";
+import { IconX } from "@tabler/icons-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { usePageTabs } from "@/features/page/hooks/use-page-tabs";
 import classes from "./page-tabs-bar.module.css";
@@ -76,7 +76,7 @@ export function PageTabsBar() {
             onClick={clearTabs}
             aria-label="Close all tabs"
           >
-            <IconTrash size={14} />
+            <IconX size={14} />
           </ActionIcon>
         </Tooltip>
       </Group>

@@ -67,8 +67,8 @@ Use this checklist to validate Raven Docs end‑to‑end before a production pus
 
 ## Search
 
-- [ ] Global search returns results.
-- [ ] Search results open page/task correctly.
+- [X] Global search returns results.
+- [X] Search results open page/task correctly.
 
 ## Settings
 

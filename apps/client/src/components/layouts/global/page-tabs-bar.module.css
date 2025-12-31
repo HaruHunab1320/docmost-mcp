@@ -3,13 +3,13 @@
   align-items: flex-end;
   gap: 8px;
   padding: 4px 10px 0;
-  padding-left: calc(10px + var(--app-shell-navbar-offset, 0px));
+  padding-left: 10px;
   border-bottom: 1px solid light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-6));
   background: var(--docmost-surface-bg, var(--mantine-color-body));
   position: fixed;
   top: var(--app-shell-header-height, 45px);
-  left: 0;
-  right: 0;
+  left: var(--app-shell-navbar-offset, 0px);
+  right: var(--app-shell-aside-offset, 0px);
   z-index: 110;
 }
 

@@ -29,6 +29,8 @@ import ProjectFormModal from "../components/project-form-modal";
 import { QuickTaskModal } from "../components/quick-task-modal";
 import APP_ROUTE from "@/lib/app-route";
 import { usePageTabs } from "@/features/page/hooks/use-page-tabs";
+import { BreadcrumbBar } from "@/features/page/components/breadcrumbs/breadcrumb-bar";
+import breadcrumbClasses from "@/features/page/components/breadcrumbs/breadcrumb.module.css";
 
 export function ProjectManagementPage() {
   const { t } = useTranslation();
@@ -178,28 +180,30 @@ export function ProjectManagementPage() {
     }
 
     return (
-      <Breadcrumbs mb="md">
-        {items.map((item, index) => (
-          <Anchor
-            key={index}
-            href={item.href}
-            component={item.onClick ? "button" : Link}
-            to={item.onClick ? undefined : item.href}
-            onClick={(e) => {
-              e.preventDefault();
-              if (item.onClick) {
-                item.onClick();
-                return;
-              }
-              if (item.href) {
-                navigate(item.href);
-              }
-            }}
-          >
-            {item.title}
-          </Anchor>
-        ))}
-      </Breadcrumbs>
+      <BreadcrumbBar>
+        <Breadcrumbs className={breadcrumbClasses.breadcrumbs}>
+          {items.map((item, index) => (
+            <Anchor
+              key={index}
+              href={item.href}
+              component={item.onClick ? "button" : Link}
+              to={item.onClick ? undefined : item.href}
+              onClick={(e) => {
+                e.preventDefault();
+                if (item.onClick) {
+                  item.onClick();
+                  return;
+                }
+                if (item.href) {
+                  navigate(item.href);
+                }
+              }}
+            >
+              {item.title}
+            </Anchor>
+          ))}
+        </Breadcrumbs>
+      </BreadcrumbBar>
     );
   };
 

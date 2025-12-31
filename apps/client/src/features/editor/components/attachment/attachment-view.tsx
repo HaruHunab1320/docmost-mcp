@@ -9,13 +9,105 @@ import { useState } from "react";
 
 export default function AttachmentView(props: NodeViewProps) {
   const { node, selected } = props;
-  const { url, name, size, mime } = node.attrs;
+  const {
+    url,
+    name,
+    size,
+    mime,
+    filePath,
+    fileName,
+    fileSize,
+    mimeType,
+    attachmentId,
+    id,
+  } = node.attrs;
   const { hovered, ref } = useHover();
-  const fileUrl = getFileUrl(url);
+  const resolvedName = name || fileName || "Attachment";
+  const resolvedSize = size ?? fileSize ?? 0;
+  const resolvedMime = mime || mimeType || "";
+  const extractIdFromUrl = (raw: string) => {
+    const match = raw.match(/\/files\/([^/]+)/);
+    return match?.[1] || "";
+  };
+  const attachmentKey =
+    attachmentId || id || extractIdFromUrl(String(url || "")) || "";
+  const derivePathFromFilePath = (rawPath?: string) => {
+    if (!rawPath) return "";
+    const normalized = rawPath.replace(/\\/g, "/");
+    const filesIndex = normalized.lastIndexOf("/files/");
+    if (filesIndex !== -1) {
+      const tail = normalized.slice(filesIndex + "/files/".length);
+      const [idPart, ...nameParts] = tail.split("/");
+      if (idPart && nameParts.length) {
+        const fileName = encodeURIComponent(nameParts.join("/"));
+        return `/files/${idPart}/${fileName}`;
+      }
+    }
+    const segments = normalized.split("/").filter(Boolean);
+    if (segments.length >= 2) {
+      const idPart = segments[segments.length - 2];
+      const namePart = segments[segments.length - 1];
+      if (idPart && namePart) {
+        return `/files/${idPart}/${encodeURIComponent(namePart)}`;
+      }
+    }
+    return "";
+  };
+  const fallbackPath =
+    derivePathFromFilePath(filePath) ||
+    (attachmentKey && resolvedName
+      ? `/files/${attachmentKey}/${encodeURIComponent(resolvedName)}`
+      : "");
+  const urlString = typeof url === "string" ? url : "";
+  const decodeSafely = (value: string) => {
+    try {
+      return decodeURIComponent(value);
+    } catch {
+      return value;
+    }
+  };
+  const encodeLastPathSegment = (path: string) => {
+    const parts = path.split("/");
+    const last = parts.pop();
+    if (!last) return path;
+    parts.push(encodeURIComponent(decodeSafely(last)));
+    return parts.join("/");
+  };
+  const normalizeUrl = (raw: string) => {
+    if (!raw) return raw;
+    if (raw.startsWith("http")) {
+      try {
+        const parsed = new URL(raw);
+        parsed.pathname = encodeLastPathSegment(parsed.pathname);
+        return parsed.toString();
+      } catch {
+        return raw;
+      }
+    }
+    if (raw.startsWith("/api/") || raw.startsWith("/files/")) {
+      return encodeLastPathSegment(raw);
+    }
+    return raw;
+  };
+  const urlLooksInvalid =
+    !urlString ||
+    urlString.includes("undefined") ||
+    urlString.includes("null") ||
+    urlString.endsWith("/undefined") ||
+    urlString.endsWith("/null");
+  const normalizedUrl = normalizeUrl(urlString);
+  const safeName = resolvedName || "attachment";
+  const directPath =
+    attachmentKey && safeName
+      ? `/files/${attachmentKey}/${encodeURIComponent(safeName)}`
+      : "";
+  const fileUrl = getFileUrl(
+    directPath || (urlLooksInvalid ? fallbackPath : normalizedUrl),
+  );
   const isImage =
-    (typeof mime === "string" && mime.startsWith("image/")) ||
-    /\.(png|jpe?g|gif|webp|bmp|svg)$/i.test(String(name || "")) ||
-    /\.(png|jpe?g|gif|webp|bmp|svg)$/i.test(String(url || ""));
+    (typeof resolvedMime === "string" && resolvedMime.startsWith("image/")) ||
+    /\.(png|jpe?g|gif|webp|bmp|svg)$/i.test(String(resolvedName || "")) ||
+    /\.(png|jpe?g|gif|webp|bmp|svg)$/i.test(String(fileUrl || ""));
   const [previewOpen, setPreviewOpen] = useState(false);
 
   return (
@@ -25,13 +117,19 @@ export default function AttachmentView(props: NodeViewProps) {
         onClose={() => setPreviewOpen(false)}
         size="lg"
         centered
-        title={name}
+        title={resolvedName}
       >
-        <img
-          src={fileUrl}
-          alt={name}
-          style={{ width: "100%", height: "auto", borderRadius: 8 }}
-        />
+        {fileUrl ? (
+          <img
+            src={fileUrl}
+            alt={resolvedName}
+            style={{ width: "100%", height: "auto", borderRadius: 8 }}
+          />
+        ) : (
+          <Text size="sm" c="dimmed">
+            File preview unavailable
+          </Text>
+        )}
       </Modal>
 
       <Box
@@ -41,6 +139,7 @@ export default function AttachmentView(props: NodeViewProps) {
           hovered || selected ? classes.chipHovered : ""
         }`}
         onClick={() => {
+          if (!fileUrl) return;
           if (isImage) {
             setPreviewOpen(true);
           } else {
@@ -49,10 +148,10 @@ export default function AttachmentView(props: NodeViewProps) {
         }}
         style={{ cursor: "pointer" }}
       >
-        {isImage ? (
+        {isImage && fileUrl ? (
           <img
             src={fileUrl}
-            alt={name}
+            alt={resolvedName}
             className={classes.thumbLarge}
             loading="lazy"
           />
@@ -62,20 +161,26 @@ export default function AttachmentView(props: NodeViewProps) {
 
         <Box className={isImage ? classes.metaStack : classes.meta}>
           <Text component="span" className={classes.name}>
-            {name}
+            {resolvedName}
           </Text>
           <Text component="span" className={classes.size}>
-            {formatBytes(size)}
+            {formatBytes(resolvedSize)}
           </Text>
         </Box>
 
         <Box className={classes.actions}>
-            <a href={fileUrl} target="_blank" onClick={(event) => event.stopPropagation()}>
+          {fileUrl && (
+            <a
+              href={fileUrl}
+              target="_blank"
+              onClick={(event) => event.stopPropagation()}
+            >
               <ActionIcon variant="subtle" aria-label="download file">
                 <IconDownload size={16} />
               </ActionIcon>
             </a>
-          </Box>
+          )}
+        </Box>
       </Box>
     </NodeViewWrapper>
   );

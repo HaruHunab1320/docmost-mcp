@@ -222,15 +222,15 @@ export default function PageEditor({
   useEffect(() => {
     if (!editor) return;
     if (!isMountedRef.current) return;
-    // @ts-ignore
-    const handle = window.setTimeout(() => {
+    let rafId = 0;
+    rafId = window.requestAnimationFrame(() => {
       if (!isMountedRef.current) return;
       // @ts-ignore
       setEditor(editor);
       editor.storage.pageId = pageId;
-    }, 0);
+    });
     return () => {
-      window.clearTimeout(handle);
+      window.cancelAnimationFrame(rafId);
     };
   }, [editor, pageId]);
 
