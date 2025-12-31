@@ -16,6 +16,14 @@ import {
   IconChevronRight,
   IconChevronDown,
   IconHome,
+  IconInbox,
+  IconCalendar,
+  IconPaperclip,
+  IconListCheck,
+  IconClipboardList,
+  IconChartDots,
+  IconClock,
+  IconCloud,
   IconPlus,
   IconSearch,
   IconSettings,
@@ -206,6 +214,167 @@ export function ProjectSidebar({
               </div>
             </UnstyledButton>
 
+            <UnstyledButton
+              component={Link}
+              to={APP_ROUTE.SPACE.INBOX(spaceId)}
+              className={clsx(
+                classes.menu,
+                location.pathname.includes(`/spaces/${spaceId}/inbox`)
+                  ? classes.activeButton
+                  : ""
+              )}
+            >
+              <div className={classes.menuItemInner}>
+                <IconInbox
+                  size={18}
+                  className={classes.menuItemIcon}
+                  stroke={2}
+                />
+                <span>{t("Inbox")}</span>
+              </div>
+            </UnstyledButton>
+
+            <UnstyledButton
+              component={Link}
+              to={APP_ROUTE.SPACE.TODAY(spaceId)}
+              className={clsx(
+                classes.menu,
+                location.pathname.includes(`/spaces/${spaceId}/today`)
+                  ? classes.activeButton
+                  : ""
+              )}
+            >
+              <div className={classes.menuItemInner}>
+                <IconCalendar
+                  size={18}
+                  className={classes.menuItemIcon}
+                  stroke={2}
+                />
+                <span>{t("Today")}</span>
+              </div>
+            </UnstyledButton>
+
+            <UnstyledButton
+              component={Link}
+              to={`/files?spaceId=${spaceId}`}
+              className={clsx(
+                classes.menu,
+                location.pathname === "/files" &&
+                  location.search.includes(`spaceId=${spaceId}`)
+                  ? classes.activeButton
+                  : ""
+              )}
+            >
+              <div className={classes.menuItemInner}>
+                <IconPaperclip
+                  size={18}
+                  className={classes.menuItemIcon}
+                  stroke={2}
+                />
+                <span>{t("Attachments")}</span>
+              </div>
+            </UnstyledButton>
+
+            <UnstyledButton
+              component={Link}
+              to={APP_ROUTE.SPACE.TRIAGE(spaceId)}
+              className={clsx(
+                classes.menu,
+                location.pathname.includes(`/spaces/${spaceId}/triage`)
+                  ? classes.activeButton
+                  : ""
+              )}
+            >
+              <div className={classes.menuItemInner}>
+                <IconListCheck
+                  size={18}
+                  className={classes.menuItemIcon}
+                  stroke={2}
+                />
+                <span>{t("Triage")}</span>
+              </div>
+            </UnstyledButton>
+
+            <UnstyledButton
+              component={Link}
+              to={APP_ROUTE.SPACE.REVIEW(spaceId)}
+              className={clsx(
+                classes.menu,
+                location.pathname.includes(`/spaces/${spaceId}/review`)
+                  ? classes.activeButton
+                  : ""
+              )}
+            >
+              <div className={classes.menuItemInner}>
+                <IconClipboardList
+                  size={18}
+                  className={classes.menuItemIcon}
+                  stroke={2}
+                />
+                <span>{t("Weekly Review")}</span>
+              </div>
+            </UnstyledButton>
+
+            <UnstyledButton
+              component={Link}
+              to={APP_ROUTE.SPACE.INSIGHTS(spaceId)}
+              className={clsx(
+                classes.menu,
+                location.pathname.includes(`/spaces/${spaceId}/insights`)
+                  ? classes.activeButton
+                  : ""
+              )}
+            >
+              <div className={classes.menuItemInner}>
+                <IconChartDots
+                  size={18}
+                  className={classes.menuItemIcon}
+                  stroke={2}
+                />
+                <span>{t("Insights")}</span>
+              </div>
+            </UnstyledButton>
+
+            <UnstyledButton
+              component={Link}
+              to={APP_ROUTE.SPACE.WAITING(spaceId)}
+              className={clsx(
+                classes.menu,
+                location.pathname.includes(`/spaces/${spaceId}/waiting`)
+                  ? classes.activeButton
+                  : ""
+              )}
+            >
+              <div className={classes.menuItemInner}>
+                <IconClock
+                  size={18}
+                  className={classes.menuItemIcon}
+                  stroke={2}
+                />
+                <span>{t("Waiting")}</span>
+              </div>
+            </UnstyledButton>
+
+            <UnstyledButton
+              component={Link}
+              to={APP_ROUTE.SPACE.SOMEDAY(spaceId)}
+              className={clsx(
+                classes.menu,
+                location.pathname.includes(`/spaces/${spaceId}/someday`)
+                  ? classes.activeButton
+                  : ""
+              )}
+            >
+              <div className={classes.menuItemInner}>
+                <IconCloud
+                  size={18}
+                  className={classes.menuItemIcon}
+                  stroke={2}
+                />
+                <span>{t("Someday")}</span>
+              </div>
+            </UnstyledButton>
+
             <UnstyledButton className={classes.menu} onClick={spotlight.open}>
               <div className={classes.menuItemInner}>
                 <IconSearch
@@ -227,6 +396,27 @@ export function ProjectSidebar({
                 <span>{t("Space settings")}</span>
               </div>
             </UnstyledButton>
+
+            {spaceAbility.can(
+              SpaceCaslAction.Manage,
+              SpaceCaslSubject.Page
+            ) && (
+              <UnstyledButton
+                className={classes.menu}
+                onClick={() => {
+                  tree?.create({ parentId: null, type: "internal", index: 0 });
+                }}
+              >
+                <div className={classes.menuItemInner}>
+                  <IconPlus
+                    size={18}
+                    className={classes.menuItemIcon}
+                    stroke={2}
+                  />
+                  <span>{t("New page")}</span>
+                </div>
+              </UnstyledButton>
+            )}
 
             <UnstyledButton className={classes.menu} onClick={openCreateModal}>
               <div className={classes.menuItemInner}>

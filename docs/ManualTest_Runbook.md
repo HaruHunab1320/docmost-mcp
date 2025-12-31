@@ -79,14 +79,14 @@ Use this checklist to validate Raven Docs end‑to‑end before a production pus
 
 ## Agent + Autonomy
 
-- [ ] “Run now” triggers autonomy loop.
-- [ ] Approvals execute and create tasks/pages.
-- [ ] Memory insights show new entries.
+- [X] “Run now” triggers autonomy loop.
+- [X] Approvals execute and create tasks/pages.
+- [X] Memory insights show new entries.
 
 ## Styling + Responsiveness
 
-- [ ] All themes switch without background seams.
-- [ ] No stray footer bar or background chunk.
+- [X] All themes switch without background seams.
+- [X] No stray footer bar or background chunk.
 - [ ] Sidebar toggle works on mobile.
 - [ ] Header layout does not overlap on tablet.
 
