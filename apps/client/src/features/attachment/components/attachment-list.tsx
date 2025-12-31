@@ -7,6 +7,8 @@ import {
   ActionIcon,
   Box,
   Center,
+  Stack,
+  UnstyledButton,
 } from "@mantine/core";
 import {
   useAttachmentsQuery,
@@ -18,6 +20,8 @@ import { useTranslation } from "react-i18next";
 import { IconDownload, IconTrash } from "@tabler/icons-react";
 import { getFileUrl } from "@/lib/config";
 import { modals } from "@mantine/modals";
+import { useMediaQuery } from "@mantine/hooks";
+import classes from "./attachment-list.module.css";
 
 interface AttachmentListProps {
   spaceId?: string;
@@ -46,6 +50,7 @@ export default function AttachmentList({
   });
   const items = data?.items ?? [];
   const meta = data?.meta;
+  const isMobile = useMediaQuery("(max-width: 48em)");
   const errorMessage =
     (error as { response?: { data?: { message?: string } } })?.response?.data
       ?.message ||
@@ -147,102 +152,180 @@ export default function AttachmentList({
 
   return (
     <>
-      <Table.ScrollContainer minWidth={500}>
-        <Table highlightOnHover verticalSpacing="sm">
-          <Table.Thead>
-            <Table.Tr>
-              <Table.Th>{t("File Name")}</Table.Th>
-              <Table.Th>{t("Size")}</Table.Th>
-              <Table.Th>{t("Type")}</Table.Th>
-              <Table.Th>{t("Uploaded")}</Table.Th>
-              <Table.Th>{t("Actions")}</Table.Th>
-            </Table.Tr>
-          </Table.Thead>
-
-          <Table.Tbody>
-            {items.map((attachment) => (
-              <Table.Tr key={attachment.id}>
-                <Table.Td>
-                  <Group
-                    gap="sm"
-                    wrap="nowrap"
-                    style={{ cursor: "pointer" }}
-                    onClick={() => handleOpenAttachment(attachment)}
-                  >
-                    {isImageType(attachment.fileExt, attachment.mimeType) ? (
-                      <Box
-                        component="img"
-                        src={getFileUrl(
-                          `/files/${attachment.id}/${attachment.fileName}`
-                        )}
-                        alt={attachment.fileName}
-                        style={{
-                          width: 28,
-                          height: 28,
-                          objectFit: "cover",
-                          borderRadius: 4,
-                        }}
-                        onError={(event) => {
-                          event.currentTarget.src = `/icons/filetypes/${getFileTypeIcon(attachment.fileExt)}.svg`;
-                          event.currentTarget.style.objectFit = "contain";
-                        }}
-                      />
-                    ) : (
-                      <Box
-                        component="img"
-                        src={`/icons/filetypes/${getFileTypeIcon(attachment.fileExt)}.svg`}
-                        alt={attachment.fileExt}
-                        style={{ width: 20, height: 20 }}
-                      />
-                    )}
-                    <Text size="sm" fw={500} lineClamp={1}>
-                      {attachment.fileName}
-                    </Text>
-                  </Group>
-                </Table.Td>
-                <Table.Td>
-                  <Text size="sm">{formatBytes(attachment.fileSize)}</Text>
-                </Table.Td>
-                <Table.Td>
-                  <Badge variant="light">
-                    {attachment.fileExt.toUpperCase().replace(".", "")}
-                  </Badge>
-                </Table.Td>
-                <Table.Td>
-                  <Text size="sm">{formatDate(attachment.createdAt)}</Text>
-                </Table.Td>
-                <Table.Td>
-                  <Group gap="xs">
-                    <ActionIcon
-                      size="sm"
-                      variant="subtle"
-                      component="a"
-                      href={getFileUrl(
+      {isMobile ? (
+        <Stack gap="sm">
+          {items.map((attachment) => (
+            <div key={attachment.id} className={classes.mobileRow}>
+              <UnstyledButton
+                className={classes.mobileLink}
+                onClick={() => handleOpenAttachment(attachment)}
+              >
+                <Group wrap="nowrap" gap="sm" align="flex-start">
+                  {isImageType(attachment.fileExt, attachment.mimeType) ? (
+                    <Box
+                      component="img"
+                      src={getFileUrl(
                         `/files/${attachment.id}/${attachment.fileName}`
                       )}
-                      target="_blank"
-                      download
-                    >
-                      <IconDownload size={16} />
-                    </ActionIcon>
-                    <ActionIcon 
-                      size="sm" 
-                      variant="subtle" 
-                      color="red"
-                      loading={deleteAttachmentMutation.isPending}
-                      onClick={() =>
-                        handleDelete(attachment.id, attachment.fileName)
-                      }
-                    >
-                      <IconTrash size={16} />
-                    </ActionIcon>
-                  </Group>
-                </Table.Td>
+                      alt={attachment.fileName}
+                      className={classes.mobileThumb}
+                      onError={(event) => {
+                        event.currentTarget.src = `/icons/filetypes/${getFileTypeIcon(attachment.fileExt)}.svg`;
+                        event.currentTarget.style.objectFit = "contain";
+                      }}
+                    />
+                  ) : (
+                    <Box
+                      component="img"
+                      src={`/icons/filetypes/${getFileTypeIcon(attachment.fileExt)}.svg`}
+                      alt={attachment.fileExt}
+                      className={classes.mobileIcon}
+                    />
+                  )}
+                  <div className={classes.mobileText}>
+                    <Text size="sm" fw={600} lineClamp={1}>
+                      {attachment.fileName}
+                    </Text>
+                    <Group gap={8} wrap="nowrap" className={classes.mobileMeta}>
+                      <Text size="xs" c="dimmed">
+                        {formatBytes(attachment.fileSize)}
+                      </Text>
+                      <Text size="xs" c="dimmed">
+                        {attachment.fileExt.toUpperCase().replace(".", "")}
+                      </Text>
+                      <Text size="xs" c="dimmed" className={classes.mobileDate}>
+                        {formatDate(attachment.createdAt)}
+                      </Text>
+                    </Group>
+                  </div>
+                </Group>
+              </UnstyledButton>
+              <Group gap="xs" className={classes.mobileActions}>
+                <ActionIcon
+                  size="sm"
+                  variant="subtle"
+                  component="a"
+                  href={getFileUrl(
+                    `/files/${attachment.id}/${attachment.fileName}`
+                  )}
+                  target="_blank"
+                  download
+                >
+                  <IconDownload size={16} />
+                </ActionIcon>
+                <ActionIcon
+                  size="sm"
+                  variant="subtle"
+                  color="red"
+                  loading={deleteAttachmentMutation.isPending}
+                  onClick={() =>
+                    handleDelete(attachment.id, attachment.fileName)
+                  }
+                >
+                  <IconTrash size={16} />
+                </ActionIcon>
+              </Group>
+            </div>
+          ))}
+        </Stack>
+      ) : (
+        <Table.ScrollContainer minWidth={500}>
+          <Table highlightOnHover verticalSpacing="sm">
+            <Table.Thead>
+              <Table.Tr>
+                <Table.Th>{t("File Name")}</Table.Th>
+                <Table.Th>{t("Size")}</Table.Th>
+                <Table.Th>{t("Type")}</Table.Th>
+                <Table.Th>{t("Uploaded")}</Table.Th>
+                <Table.Th>{t("Actions")}</Table.Th>
               </Table.Tr>
-            ))}
-          </Table.Tbody>
-        </Table>
-      </Table.ScrollContainer>
+            </Table.Thead>
+
+            <Table.Tbody>
+              {items.map((attachment) => (
+                <Table.Tr key={attachment.id}>
+                  <Table.Td>
+                    <Group
+                      gap="sm"
+                      wrap="nowrap"
+                      style={{ cursor: "pointer" }}
+                      onClick={() => handleOpenAttachment(attachment)}
+                    >
+                      {isImageType(attachment.fileExt, attachment.mimeType) ? (
+                        <Box
+                          component="img"
+                          src={getFileUrl(
+                            `/files/${attachment.id}/${attachment.fileName}`
+                          )}
+                          alt={attachment.fileName}
+                          style={{
+                            width: 28,
+                            height: 28,
+                            objectFit: "cover",
+                            borderRadius: 4,
+                          }}
+                          onError={(event) => {
+                            event.currentTarget.src = `/icons/filetypes/${getFileTypeIcon(attachment.fileExt)}.svg`;
+                            event.currentTarget.style.objectFit = "contain";
+                          }}
+                        />
+                      ) : (
+                        <Box
+                          component="img"
+                          src={`/icons/filetypes/${getFileTypeIcon(attachment.fileExt)}.svg`}
+                          alt={attachment.fileExt}
+                          style={{ width: 20, height: 20 }}
+                        />
+                      )}
+                      <Text size="sm" fw={500} lineClamp={1}>
+                        {attachment.fileName}
+                      </Text>
+                    </Group>
+                  </Table.Td>
+                  <Table.Td>
+                    <Text size="sm">{formatBytes(attachment.fileSize)}</Text>
+                  </Table.Td>
+                  <Table.Td>
+                    <Badge variant="light">
+                      {attachment.fileExt.toUpperCase().replace(".", "")}
+                    </Badge>
+                  </Table.Td>
+                  <Table.Td>
+                    <Text size="sm">{formatDate(attachment.createdAt)}</Text>
+                  </Table.Td>
+                  <Table.Td>
+                    <Group gap="xs">
+                      <ActionIcon
+                        size="sm"
+                        variant="subtle"
+                        component="a"
+                        href={getFileUrl(
+                          `/files/${attachment.id}/${attachment.fileName}`
+                        )}
+                        target="_blank"
+                        download
+                      >
+                        <IconDownload size={16} />
+                      </ActionIcon>
+                      <ActionIcon 
+                        size="sm" 
+                        variant="subtle" 
+                        color="red"
+                        loading={deleteAttachmentMutation.isPending}
+                        onClick={() =>
+                          handleDelete(attachment.id, attachment.fileName)
+                        }
+                      >
+                        <IconTrash size={16} />
+                      </ActionIcon>
+                    </Group>
+                  </Table.Td>
+                </Table.Tr>
+              ))}
+            </Table.Tbody>
+          </Table>
+        </Table.ScrollContainer>
+      )}
 
       {items.length > 0 && meta && (
         <Paginate

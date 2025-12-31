@@ -1,4 +1,4 @@
-import { Box, ScrollArea, Text } from "@mantine/core";
+import { ActionIcon, Box, Group, ScrollArea, Text } from "@mantine/core";
 import CommentList from "@/features/comment/components/comment-list.tsx";
 import { useAtom } from "jotai";
 import { asideStateAtom } from "@/components/layouts/global/hooks/atoms/sidebar-atom.ts";
@@ -7,9 +7,10 @@ import { useTranslation } from "react-i18next";
 import { TableOfContents } from "@/features/editor/components/table-of-contents/table-of-contents.tsx";
 import { useAtomValue } from "jotai";
 import { pageEditorAtom } from "@/features/editor/atoms/editor-atoms.ts";
+import { IconX } from "@tabler/icons-react";
 
 export default function Aside() {
-  const [{ tab }] = useAtom(asideStateAtom);
+  const [{ tab }, setAsideState] = useAtom(asideStateAtom);
   const { t } = useTranslation();
   const pageEditor = useAtomValue(pageEditorAtom);
 
@@ -34,9 +35,18 @@ export default function Aside() {
     <Box p="md">
       {component && (
         <>
-          <Text mb="md" fw={500}>
-            {t(title)}
-          </Text>
+          <Group justify="space-between" mb="md">
+            <Text fw={500}>{t(title)}</Text>
+            <ActionIcon
+              variant="subtle"
+              aria-label={t("Close")}
+              onClick={() =>
+                setAsideState({ tab: "toc", isAsideOpen: false })
+              }
+            >
+              <IconX size={16} />
+            </ActionIcon>
+          </Group>
 
           <ScrollArea
             style={{ height: "85vh" }}

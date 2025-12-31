@@ -1,4 +1,4 @@
-import { ActionIcon, Badge, Group, Text, Tooltip } from "@mantine/core";
+import { ActionIcon, Badge, Group, Menu, Text, Tooltip } from "@mantine/core";
 import classes from "./app-header.module.css";
 import React, { useEffect } from "react";
 import TopMenu from "@/components/layouts/global/top-menu.tsx";
@@ -17,7 +17,18 @@ import useTrial from "@/ee/hooks/use-trial.tsx";
 import { isCloud } from "@/lib/config.ts";
 import { ThemeSwitcher } from "@/features/user/components/theme-switcher";
 import { QuickCapture } from "@/features/gtd/components/quick-capture";
-import { IconKeyboard, IconMessageChatbot } from "@tabler/icons-react";
+import useAuth from "@/features/auth/hooks/use-auth.ts";
+import { currentUserAtom } from "@/features/user/atoms/current-user-atom.ts";
+import {
+  IconBrush,
+  IconKeyboard,
+  IconLogout,
+  IconMenu2,
+  IconMessageChatbot,
+  IconSettings,
+  IconUserCircle,
+  IconUsers,
+} from "@tabler/icons-react";
 // import { MCPEventIndicator } from "@/features/websocket/components/mcp-event-indicator.tsx";
 
 const links = [
@@ -75,7 +86,17 @@ export function AppHeader() {
     </Link>
   ));
 
+  const mobileMenuItems = headerLinks.map((link) => (
+    <Menu.Item key={link.label} component={Link} to={link.link}>
+      {t(link.label)}
+    </Menu.Item>
+  ));
+
   const toggleAgentChat = () => setAgentChatOpened((opened) => !opened);
+  const { logout } = useAuth();
+  const [currentUser] = useAtom(currentUserAtom);
+  const user = currentUser?.user;
+  const workspace = currentUser?.workspace;
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -96,8 +117,14 @@ export function AppHeader() {
 
   return (
     <>
-      <Group h="100%" px="md" justify="space-between" wrap={"nowrap"}>
-        <Group wrap="nowrap">
+      <Group
+        h="100%"
+        px="sm"
+        justify="space-between"
+        wrap="nowrap"
+        className={classes.headerRow}
+      >
+        <Group wrap="nowrap" className={classes.leftGroup}>
           {!isHomeRoute && (
             <>
               <Tooltip label={t("Sidebar toggle")}>
@@ -128,6 +155,7 @@ export function AppHeader() {
             style={{ cursor: "pointer", userSelect: "none" }}
             component={Link}
             to="/home"
+            className={classes.brand}
           >
             Raven Docs
           </Text>
@@ -141,7 +169,81 @@ export function AppHeader() {
           {!isHomeRoute && <QuickCapture />}
         </Group>
 
-        <Group px={"xl"} wrap="nowrap">
+        <Group wrap="nowrap" className={classes.rightGroup}>
+          <Menu position="bottom-end" withArrow shadow="md">
+            <Menu.Target>
+              <ActionIcon
+                variant="subtle"
+                size={30}
+                aria-label={t("Menu")}
+                hiddenFrom="sm"
+              >
+                <IconMenu2 size={18} />
+              </ActionIcon>
+            </Menu.Target>
+            <Menu.Dropdown>
+              <Menu.Label>{t("Navigation")}</Menu.Label>
+              {mobileMenuItems}
+
+              <Menu.Divider />
+
+              {workspace && !isHomeRoute && (
+                <>
+                  <Menu.Label>{t("Workspace")}</Menu.Label>
+                  <Menu.Item
+                    component={Link}
+                    to={APP_ROUTE.SETTINGS.WORKSPACE.GENERAL}
+                    leftSection={<IconSettings size={16} />}
+                  >
+                    {t("Workspace settings")}
+                  </Menu.Item>
+                  <Menu.Item
+                    component={Link}
+                    to={APP_ROUTE.SETTINGS.WORKSPACE.MEMBERS}
+                    leftSection={<IconUsers size={16} />}
+                  >
+                    {t("Manage members")}
+                  </Menu.Item>
+                  <Menu.Divider />
+                </>
+              )}
+
+              {user && (
+                <>
+                  <Menu.Label>{t("Account")}</Menu.Label>
+                  <Menu.Item
+                    component={Link}
+                    to={APP_ROUTE.SETTINGS.ACCOUNT.PROFILE}
+                    leftSection={<IconUserCircle size={16} />}
+                  >
+                    {t("My profile")}
+                  </Menu.Item>
+                  <Menu.Item
+                    component={Link}
+                    to={APP_ROUTE.SETTINGS.ACCOUNT.PREFERENCES}
+                    leftSection={<IconBrush size={16} />}
+                  >
+                    {t("My preferences")}
+                  </Menu.Item>
+                  <Menu.Divider />
+                </>
+              )}
+
+              <Menu.Item
+                onClick={toggleAgentChat}
+                leftSection={<IconMessageChatbot size={16} />}
+              >
+                {t("Agent chat")}
+              </Menu.Item>
+
+              {user && (
+                <Menu.Item onClick={logout} leftSection={<IconLogout size={16} />}>
+                  {t("Logout")}
+                </Menu.Item>
+              )}
+            </Menu.Dropdown>
+          </Menu>
+
           {isCloud() && isTrial && trialDaysLeft !== 0 && (
             <Badge
               variant="light"
@@ -155,24 +257,36 @@ export function AppHeader() {
                 : `${trialDaysLeft} days left`}
             </Badge>
           )}
-          <Tooltip label={shortcutLabel} withArrow position="bottom">
-            <ActionIcon variant="subtle" size={30} aria-label={shortcutLabel}>
-              <IconKeyboard size={16} />
-            </ActionIcon>
-          </Tooltip>
-          <Tooltip label={t("Agent chat")} withArrow position="bottom">
-            <ActionIcon
-              variant="subtle"
-              size={30}
-              aria-label={t("Agent chat")}
-              onClick={toggleAgentChat}
-            >
-              <IconMessageChatbot size={16} />
-            </ActionIcon>
-          </Tooltip>
-          <ThemeSwitcher />
+          <div className={classes.desktopOnly}>
+            <Tooltip label={shortcutLabel} withArrow position="bottom">
+              <ActionIcon
+                variant="subtle"
+                size={30}
+                aria-label={shortcutLabel}
+              >
+                <IconKeyboard size={16} />
+              </ActionIcon>
+            </Tooltip>
+          </div>
+          <div className={classes.desktopOnly}>
+            <Tooltip label={t("Agent chat")} withArrow position="bottom">
+              <ActionIcon
+                variant="subtle"
+                size={30}
+                aria-label={t("Agent chat")}
+                onClick={toggleAgentChat}
+              >
+                <IconMessageChatbot size={16} />
+              </ActionIcon>
+            </Tooltip>
+          </div>
+          <div className={classes.desktopOnly}>
+            <ThemeSwitcher />
+          </div>
           {/* <MCPEventIndicator /> */}
-          <TopMenu />
+          <div className={classes.desktopOnly}>
+            <TopMenu />
+          </div>
         </Group>
       </Group>
     </>

@@ -17,6 +17,7 @@ import classes from "./app-shell.module.css";
 import { useTrialEndAction } from "@/ee/hooks/use-trial-end-action.tsx";
 import { AgentChatDrawer } from "@/features/agent/components/agent-chat-drawer";
 import { PageTabsBar } from "@/components/layouts/global/page-tabs-bar";
+import { useMediaQuery } from "@mantine/hooks";
 
 export default function GlobalAppShell({
   children,
@@ -24,13 +25,14 @@ export default function GlobalAppShell({
   children: React.ReactNode;
 }) {
   useTrialEndAction();
-  const [mobileOpened] = useAtom(mobileSidebarAtom);
+  const [mobileOpened, setMobileOpened] = useAtom(mobileSidebarAtom);
   const [desktopOpened] = useAtom(desktopSidebarAtom);
   const [{ isAsideOpen }] = useAtom(asideStateAtom);
   const [sidebarWidth, setSidebarWidth] = useAtom(sidebarWidthAtom);
   const [isResizing, setIsResizing] = useState(false);
   const sidebarRef = useRef(null);
   const navigate = useNavigate();
+  const isMobile = useMediaQuery("(max-width: 48em)");
 
   const startResizing = React.useCallback((mouseDownEvent) => {
     mouseDownEvent.preventDefault();
@@ -72,6 +74,7 @@ export default function GlobalAppShell({
   }, [resize, stopResizing]);
 
   const location = useLocation();
+  const locationKey = `${location.pathname}${location.search}`;
   const isSettingsRoute = location.pathname.startsWith("/settings");
   const isFilesRoute = location.pathname.startsWith("/files");
   const hasFilesSpaceId =
@@ -83,6 +86,18 @@ export default function GlobalAppShell({
   const isProjectRoute = location.pathname.includes("/projects");
   const isHomeRoute = location.pathname.startsWith("/home");
   const isPageRoute = location.pathname.includes("/p/");
+
+  const prevLocationRef = useRef(locationKey);
+
+  useEffect(() => {
+    const prevLocation = prevLocationRef.current;
+    if (prevLocation !== locationKey) {
+      prevLocationRef.current = locationKey;
+      if (isMobile && mobileOpened) {
+        setMobileOpened(false);
+      }
+    }
+  }, [isMobile, locationKey, mobileOpened, setMobileOpened]);
 
   return (
     <AppShell
@@ -106,7 +121,7 @@ export default function GlobalAppShell({
       }
       padding="md"
     >
-      <AppShell.Header px="md" className={classes.header}>
+      <AppShell.Header px="xs" className={classes.header}>
         <AppHeader />
       </AppShell.Header>
       {!isHomeRoute && <PageTabsBar />}

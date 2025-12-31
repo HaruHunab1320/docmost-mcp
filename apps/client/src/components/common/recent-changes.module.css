@@ -1,0 +1,20 @@
+.mobileItem {
+  display: block;
+  width: 100%;
+  padding: var(--mantine-spacing-sm) 0;
+  border-bottom: 1px solid var(--docmost-border-color, var(--mantine-color-default-border));
+}
+
+.mobileItem:hover {
+  background-color: light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-7));
+}
+
+.mobileMeta {
+  margin-top: 2px;
+  padding-left: calc(18px + var(--mantine-spacing-xs));
+}
+
+.mobileDate {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}

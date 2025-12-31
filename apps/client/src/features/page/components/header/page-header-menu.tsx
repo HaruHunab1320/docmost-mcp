@@ -33,6 +33,7 @@ import {
 import { formattedDate, timeAgo } from "@/lib/time.ts";
 import MovePageModal from "@/features/page/components/move-page-modal.tsx";
 import { useTimeAgo } from "@/hooks/use-time-ago.tsx";
+import useToggleAside from "@/hooks/use-toggle-aside.tsx";
 
 interface PageHeaderMenuProps {
   readOnly?: boolean;
@@ -40,6 +41,7 @@ interface PageHeaderMenuProps {
 export default function PageHeaderMenu({ readOnly }: PageHeaderMenuProps) {
   const { t } = useTranslation();
   const [yjsConnectionStatus] = useAtom(yjsConnectionStatusAtom);
+  const toggleAside = useToggleAside();
 
   return (
     <>

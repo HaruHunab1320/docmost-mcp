@@ -7,6 +7,42 @@
     padding-right: var(--mantine-spacing-md);
 }
 
+.headerRow {
+    gap: var(--mantine-spacing-sm);
+}
+
+.leftGroup {
+    gap: var(--mantine-spacing-sm);
+}
+
+.rightGroup {
+    gap: var(--mantine-spacing-sm);
+    padding-inline: var(--mantine-spacing-sm);
+}
+
+.brand {
+    white-space: nowrap;
+    line-height: 1.1;
+}
+
+.desktopOnly {
+    display: inline-flex;
+}
+
+@media (max-width: 48em) {
+    .brand {
+        font-size: var(--mantine-font-size-md);
+    }
+
+    .rightGroup {
+        padding-inline: 0;
+    }
+
+    .desktopOnly {
+        display: none;
+    }
+}
+
 .link {
     display: block;
     line-height: 1;
@@ -16,8 +52,8 @@
     color: light-dark(var(--mantine-color-gray-7), var(--mantine-color-dark-0));
     font-size: var(--mantine-font-size-sm);
     font-weight: 500;
+}
 
-    @mixin hover {
-        background-color: light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-6));
-    }
+.link:hover {
+    background-color: light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-6));
 }

@@ -1,0 +1,41 @@
+.mobileRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--mantine-spacing-sm);
+  padding: var(--mantine-spacing-sm) 0;
+  border-bottom: 1px solid var(--docmost-border-color, var(--mantine-color-default-border));
+}
+
+.mobileLink {
+  flex: 1;
+  min-width: 0;
+}
+
+.mobileText {
+  min-width: 0;
+}
+
+.mobileMeta {
+  margin-top: 2px;
+}
+
+.mobileDate {
+  white-space: nowrap;
+}
+
+.mobileActions {
+  flex: 0 0 auto;
+}
+
+.mobileThumb {
+  width: 32px;
+  height: 32px;
+  object-fit: cover;
+  border-radius: 6px;
+}
+
+.mobileIcon {
+  width: 22px;
+  height: 22px;
+}
