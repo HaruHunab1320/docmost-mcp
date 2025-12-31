@@ -22,7 +22,7 @@ import { useState } from "react";
 import { useAtom } from "jotai";
 import { userAtom } from "../atoms/current-user-atom";
 import { updateUser } from "../services/user-service";
-import { useDocmostTheme } from "../providers/theme-provider";
+import { useRavenDocsTheme } from "../providers/theme-provider";
 import { DOCMOST_THEMES, getThemeById } from "@/theme";
 import { useTranslation } from "react-i18next";
 import { setManualThemeApplied } from "../hooks/use-current-user";
@@ -31,7 +31,7 @@ import { useColorScheme } from "@mantine/hooks";
 export function ThemeSwitcher() {
   const { t } = useTranslation();
   const { colorScheme, setColorScheme } = useMantineColorScheme();
-  const { activeTheme, setThemeById } = useDocmostTheme();
+  const { activeTheme, setThemeById } = useRavenDocsTheme();
   const [user, setUser] = useAtom(userAtom);
   const theme = useMantineTheme();
   const [opened, setOpened] = useState(false);

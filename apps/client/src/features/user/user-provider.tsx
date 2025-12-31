@@ -13,7 +13,7 @@ import { useTreeSocket } from "@/features/websocket/use-tree-socket.ts";
 import { useCollabToken } from "@/features/auth/queries/auth-query.tsx";
 import { Error404 } from "@/components/ui/error-404.tsx";
 import { MCPSocketProvider } from "@/features/websocket/providers/mcp-socket-provider.tsx";
-import { DocmostThemeProvider } from "./providers/theme-provider";
+import { RavenDocsThemeProvider } from "./providers/theme-provider";
 
 export function UserProvider({ children }: React.PropsWithChildren) {
   const [, setCurrentUser] = useAtom(currentUserAtom);
@@ -72,7 +72,7 @@ export function UserProvider({ children }: React.PropsWithChildren) {
         data.user.locale === "en" ? "en-US" : data.user.locale
       );
 
-      // Theme is managed by DocmostThemeProvider
+      // Theme is managed by RavenDocsThemeProvider
     }
   }, [data, isLoading]);
 
@@ -96,10 +96,10 @@ export function UserProvider({ children }: React.PropsWithChildren) {
     );
   }
 
-  // Wrap the children with the DocmostThemeProvider and MCPSocketProvider
+  // Wrap the children with the RavenDocsThemeProvider and MCPSocketProvider
   return (
-    <DocmostThemeProvider>
+    <RavenDocsThemeProvider>
       <MCPSocketProvider>{children}</MCPSocketProvider>
-    </DocmostThemeProvider>
+    </RavenDocsThemeProvider>
   );
 }

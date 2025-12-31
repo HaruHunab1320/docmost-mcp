@@ -72,10 +72,10 @@ Use this checklist to validate Raven Docs end‑to‑end before a production pus
 
 ## Settings
 
-- [ ] Account preferences save and persist.
-- [ ] Theme switching persists after reload.
-- [ ] API key create/delete works.
-- [ ] Agent settings toggle + policy editor save.
+- [X] Account preferences save and persist.
+- [X] Theme switching persists after reload.
+- [X] API key create/delete works.
+- [X] Agent settings toggle + policy editor save.
 
 ## Agent + Autonomy
 

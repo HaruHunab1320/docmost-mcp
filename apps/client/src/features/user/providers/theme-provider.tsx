@@ -35,13 +35,13 @@ const ThemeContext = createContext<ThemeContextType>({
   setThemeById: () => {},
 });
 
-export const useDocmostTheme = () => useContext(ThemeContext);
+export const useRavenDocsTheme = () => useContext(ThemeContext);
 
 interface ThemeProviderProps {
   children: React.ReactNode;
 }
 
-export function DocmostThemeProvider({ children }: ThemeProviderProps) {
+export function RavenDocsThemeProvider({ children }: ThemeProviderProps) {
   const [user] = useAtom(userAtom);
   const { colorScheme, setColorScheme } = useMantineColorScheme();
   const themeInitializedRef = useRef(false);
@@ -238,7 +238,7 @@ export function DocmostThemeProvider({ children }: ThemeProviderProps) {
 
 // Utility hook for other components to access theme colors
 export function useThemeColors() {
-  const { activeTheme } = useDocmostTheme();
+  const { activeTheme } = useRavenDocsTheme();
   const { colorScheme } = useMantineColorScheme();
 
   return {
