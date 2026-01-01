@@ -92,6 +92,6 @@ Use this checklist to validate Raven Docs end‑to‑end before a production pus
 
 ## Regression Notes
 
-- [ ] No console errors during normal navigation.
-- [ ] MCP socket connects without reconnection loop.
-- [ ] Task priorities use lowercase enum values.
+- [X] No console errors during normal navigation.
+- [X] MCP socket connects without reconnection loop.
+- [X] Task priorities use lowercase enum values.
