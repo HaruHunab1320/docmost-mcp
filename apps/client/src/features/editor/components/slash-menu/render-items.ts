@@ -20,15 +20,18 @@ const renderItems = () => {
         return;
       }
 
-      // @ts-ignore
-      popup = tippy("body", {
-        getReferenceClientRect: props.clientRect,
-        appendTo: () => document.body,
-        content: component.element,
-        showOnCreate: true,
-        interactive: true,
-        trigger: "manual",
-        placement: "bottom-start",
+      requestAnimationFrame(() => {
+        if (!component || !props.clientRect) return;
+        // @ts-ignore
+        popup = tippy("body", {
+          getReferenceClientRect: props.clientRect,
+          appendTo: () => document.body,
+          content: component.element,
+          showOnCreate: true,
+          interactive: true,
+          trigger: "manual",
+          placement: "bottom-start",
+        });
       });
     },
     onUpdate: (props: {

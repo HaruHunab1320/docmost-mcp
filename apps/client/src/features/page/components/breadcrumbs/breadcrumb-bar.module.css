@@ -14,6 +14,20 @@
     align-items: center;
 }
 
+.menuOnly {
+    position: sticky;
+    top: 0;
+    z-index: 99;
+    inset-inline-start: var(--app-shell-navbar-offset, 0rem);
+    inset-inline-end: var(--app-shell-aside-offset, 0rem);
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    height: 32px;
+    padding-inline: var(--mantine-spacing-md);
+    background-color: transparent;
+}
+
 @media print {
     .bar {
         display: none;

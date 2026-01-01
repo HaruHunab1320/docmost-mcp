@@ -60,7 +60,38 @@ interface PageEditorProps {
   content: any;
 }
 
-export default function PageEditor({
+export default function PageEditor(props: PageEditorProps) {
+  const [showEditor, setShowEditor] = useState(false);
+  const isMountedRef = useRef(false);
+
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    setShowEditor(false);
+    const rafId = window.requestAnimationFrame(() => {
+      if (!isMountedRef.current) return;
+      setShowEditor(true);
+    });
+    return () => window.cancelAnimationFrame(rafId);
+  }, [props.pageId]);
+
+  if (!showEditor) {
+    return (
+      <div style={{ minHeight: "160px", display: "flex", alignItems: "center" }}>
+        <span style={{ color: "var(--mantine-color-dimmed)" }}>Loading editor…</span>
+      </div>
+    );
+  }
+
+  return <PageEditorInner {...props} />;
+}
+
+function PageEditorInner({
   pageId,
   editable,
   content,
@@ -126,6 +157,7 @@ export default function PageEditor({
     };
   }, []);
 
+
   useEffect(() => {
     const handleSynced = () => {
       if (!isMountedRef.current) return;
@@ -176,7 +208,7 @@ export default function PageEditor({
       extensions,
       editable,
       immediatelyRender: true,
-      shouldRerenderOnTransaction: true,
+      shouldRerenderOnTransaction: false,
       editorProps: {
         scrollThreshold: 80,
         scrollMargin: 80,
@@ -319,7 +351,15 @@ export default function PageEditor({
     return () => clearTimeout(collabReadyTimeout);
   }, [isRemoteSynced, isLocalSynced, remoteProvider?.status]);
 
-  return isCollabReady ? (
+  if (!isCollabReady) {
+    return (
+      <div style={{ minHeight: "160px", display: "flex", alignItems: "center" }}>
+        <span style={{ color: "var(--mantine-color-dimmed)" }}>Loading editor…</span>
+      </div>
+    );
+  }
+
+  return (
     <div>
       <div ref={menuContainerRef}>
         <EditorContent editor={editor} />
@@ -346,12 +386,5 @@ export default function PageEditor({
         style={{ paddingBottom: "20vh" }}
       ></div>
     </div>
-  ) : (
-    <EditorProvider
-      editable={false}
-      immediatelyRender={true}
-      extensions={mainExtensions}
-      content={content}
-    ></EditorProvider>
   );
 }

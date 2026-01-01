@@ -18,6 +18,7 @@ import { useTrialEndAction } from "@/ee/hooks/use-trial-end-action.tsx";
 import { AgentChatDrawer } from "@/features/agent/components/agent-chat-drawer";
 import { PageTabsBar } from "@/components/layouts/global/page-tabs-bar";
 import { useMediaQuery } from "@mantine/hooks";
+import { AttachmentPreviewModal } from "@/features/attachment/components/attachment-preview-modal";
 
 export default function GlobalAppShell({
   children,
@@ -167,6 +168,7 @@ export default function GlobalAppShell({
         </AppShell.Aside>
       )}
       <AgentChatDrawer />
+      <AttachmentPreviewModal />
     </AppShell>
   );
 }

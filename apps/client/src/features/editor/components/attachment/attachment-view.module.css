@@ -91,7 +91,8 @@
   transition: opacity 120ms ease;
 }
 
-.chipHovered .actions {
+.chip:hover .actions,
+.chip[data-selected="true"] .actions {
   opacity: 1;
 }
 

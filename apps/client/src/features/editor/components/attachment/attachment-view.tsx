@@ -1,11 +1,11 @@
 import { NodeViewProps, NodeViewWrapper } from "@tiptap/react";
-import { ActionIcon, Box, Modal, Text } from "@mantine/core";
+import { ActionIcon, Box, Text } from "@mantine/core";
 import { getFileUrl } from "@/lib/config.ts";
 import { IconDownload, IconPaperclip } from "@tabler/icons-react";
-import { useHover } from "@mantine/hooks";
 import { formatBytes } from "@/lib";
 import classes from "./attachment-view.module.css";
-import { useState } from "react";
+import { useSetAtom } from "jotai";
+import { attachmentPreviewAtom } from "@/features/attachment/atoms/attachment-preview-atom";
 
 export default function AttachmentView(props: NodeViewProps) {
   const { node, selected } = props;
@@ -21,7 +21,6 @@ export default function AttachmentView(props: NodeViewProps) {
     attachmentId,
     id,
   } = node.attrs;
-  const { hovered, ref } = useHover();
   const resolvedName = name || fileName || "Attachment";
   const resolvedSize = size ?? fileSize ?? 0;
   const resolvedMime = mime || mimeType || "";
@@ -108,40 +107,23 @@ export default function AttachmentView(props: NodeViewProps) {
     (typeof resolvedMime === "string" && resolvedMime.startsWith("image/")) ||
     /\.(png|jpe?g|gif|webp|bmp|svg)$/i.test(String(resolvedName || "")) ||
     /\.(png|jpe?g|gif|webp|bmp|svg)$/i.test(String(fileUrl || ""));
-  const [previewOpen, setPreviewOpen] = useState(false);
+  const setPreview = useSetAtom(attachmentPreviewAtom);
 
   return (
     <NodeViewWrapper as="span" className={classes.wrapper}>
-      <Modal
-        opened={previewOpen}
-        onClose={() => setPreviewOpen(false)}
-        size="lg"
-        centered
-        title={resolvedName}
-      >
-        {fileUrl ? (
-          <img
-            src={fileUrl}
-            alt={resolvedName}
-            style={{ width: "100%", height: "auto", borderRadius: 8 }}
-          />
-        ) : (
-          <Text size="sm" c="dimmed">
-            File preview unavailable
-          </Text>
-        )}
-      </Modal>
-
       <Box
-        ref={ref}
         data-drag-handle
-        className={`${classes.chip} ${isImage ? classes.imageCard : ""} ${
-          hovered || selected ? classes.chipHovered : ""
-        }`}
+        data-selected={selected ? "true" : "false"}
+        className={`${classes.chip} ${isImage ? classes.imageCard : ""}`}
         onClick={() => {
           if (!fileUrl) return;
           if (isImage) {
-            setPreviewOpen(true);
+            setPreview({
+              opened: true,
+              url: fileUrl,
+              name: resolvedName,
+              isImage: true,
+            });
           } else {
             window.open(fileUrl, "_blank");
           }

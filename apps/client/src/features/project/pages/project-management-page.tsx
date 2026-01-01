@@ -144,8 +144,8 @@ export function ProjectManagementPage() {
 
   const renderBreadcrumbs = () => {
     const items = [
-      { title: workspaceData.name, href: "/dashboard" },
-      { title: spaceData.name, href: APP_ROUTE.SPACE.TODAY(spaceId) },
+      { title: workspaceData?.name || "Workspace", href: "/dashboard" },
+      { title: spaceData?.name || "Space", href: APP_ROUTE.SPACE.TODAY(spaceId) },
       {
         title: t("Projects"),
         href: `/spaces/${spaceId}/projects`,
@@ -157,28 +157,6 @@ export function ProjectManagementPage() {
       },
     ];
 
-    if (selectedProject) {
-      items.push({ title: selectedProject.name, href: "#" });
-    } else if (!showDashboard) {
-      items.push({
-        title: t("All Projects"),
-        href: "#",
-        onClick: () => {
-          setSelectedProject(null);
-          setShowDashboard(false);
-        },
-      });
-    } else {
-      items.push({
-        title: t("Dashboard"),
-        href: "#",
-        onClick: () => {
-          setSelectedProject(null);
-          setShowDashboard(true);
-        },
-      });
-    }
-
     return (
       <BreadcrumbBar>
         <Breadcrumbs className={breadcrumbClasses.breadcrumbs}>
@@ -186,15 +164,13 @@ export function ProjectManagementPage() {
             <Anchor
               key={index}
               href={item.href}
-              component={item.onClick ? "button" : Link}
-              to={item.onClick ? undefined : item.href}
               onClick={(e) => {
                 e.preventDefault();
                 if (item.onClick) {
                   item.onClick();
                   return;
                 }
-                if (item.href) {
+                if (item.href && item.href !== "#") {
                   navigate(item.href);
                 }
               }}

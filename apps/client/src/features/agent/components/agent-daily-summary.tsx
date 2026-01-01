@@ -1,8 +1,9 @@
-import { Card, Group, Stack, Text, Title } from "@mantine/core";
+import { Card, Group, Stack, Text, Title, TypographyStylesProvider } from "@mantine/core";
 import { useQuery } from "@tanstack/react-query";
 import { agentMemoryService } from "@/features/agent-memory/services/agent-memory-service";
 import { marked } from "marked";
 import DOMPurify from "dompurify";
+import classes from "./agent-daily-summary.module.css";
 
 marked.use({
   gfm: true,
@@ -48,10 +49,9 @@ export function AgentDailySummary({ workspaceId, spaceId }: AgentDailySummaryPro
             Loading summary...
           </Text>
         ) : summary ? (
-          <div
-            className="editor-content"
-            dangerouslySetInnerHTML={{ __html: sanitized }}
-          />
+          <TypographyStylesProvider className={classes.markdown}>
+            <div dangerouslySetInnerHTML={{ __html: sanitized }} />
+          </TypographyStylesProvider>
         ) : (
           <Text size="sm" c="dimmed">
             No summary yet.

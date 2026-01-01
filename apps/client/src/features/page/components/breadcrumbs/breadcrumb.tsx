@@ -17,6 +17,7 @@ import { SpaceTreeNode } from "@/features/page/tree/types.ts";
 import { buildPageUrl } from "@/features/page/page.utils.ts";
 import { usePageQuery } from "@/features/page/queries/page-query.ts";
 import { extractPageSlugId } from "@/lib";
+import APP_ROUTE from "@/lib/app-route";
 
 function getTitle(name: string, icon: string) {
   if (icon) {
@@ -25,7 +26,11 @@ function getTitle(name: string, icon: string) {
   return name;
 }
 
-export default function Breadcrumb() {
+interface BreadcrumbProps {
+  onHasBreadcrumbsChange?: (hasBreadcrumbs: boolean) => void;
+}
+
+export default function Breadcrumb({ onHasBreadcrumbsChange }: BreadcrumbProps) {
   const treeData = useAtomValue(treeDataAtom);
   const [breadcrumbNodes, setBreadcrumbNodes] = useState<
     SpaceTreeNode[] | null
@@ -72,8 +77,26 @@ export default function Breadcrumb() {
     </Anchor>
   );
 
-  const getBreadcrumbItems = () => {
+  const breadcrumbItems = React.useMemo(() => {
     if (!breadcrumbNodes) return [];
+    const spaceHome = spaceSlug
+      ? APP_ROUTE.SPACE.HOME(spaceSlug)
+      : APP_ROUTE.HOME;
+
+    if (breadcrumbNodes.length <= 1) {
+      return [
+        <Anchor
+          key="space-home"
+          component={Link}
+          to={spaceHome}
+          underline="never"
+          fz={"sm"}
+          className={classes.truncatedText}
+        >
+          ..
+        </Anchor>,
+      ];
+    }
 
     if (breadcrumbNodes.length > 3) {
       const firstNode = breadcrumbNodes[0];
@@ -103,16 +126,17 @@ export default function Breadcrumb() {
       ];
     }
 
-    return breadcrumbNodes.map(renderAnchor);
-  };
+    return breadcrumbNodes.slice(0, -1).map(renderAnchor);
+  }, [breadcrumbNodes, spaceSlug]);
+
+
+  if (!breadcrumbItems.length) return null;
 
   return (
     <div style={{ overflow: "hidden" }}>
-      {breadcrumbNodes && (
-        <Breadcrumbs className={classes.breadcrumbs}>
-          {getBreadcrumbItems()}
-        </Breadcrumbs>
-      )}
+      <Breadcrumbs className={classes.breadcrumbs}>
+        {breadcrumbItems}
+      </Breadcrumbs>
     </div>
   );
 }

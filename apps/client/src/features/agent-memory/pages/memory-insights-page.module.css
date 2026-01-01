@@ -1,0 +1,25 @@
+.markdown {
+  font-size: var(--mantine-font-size-sm);
+  color: var(--mantine-color-dimmed);
+  line-height: var(--mantine-line-height-md);
+}
+
+.markdown :where(p, ul, ol, blockquote, pre) {
+  margin: 0 0 0.5rem 0;
+}
+
+.markdown :where(ul, ol) {
+  padding-left: 1.25rem;
+}
+
+.markdown :where(pre, code) {
+  font-size: var(--mantine-font-size-xs);
+}
+
+.markdown :where(h1, h2, h3, h4) {
+  margin: 0 0 0.35rem 0;
+}
+
+.markdown :where(*:last-child) {
+  margin-bottom: 0;
+}

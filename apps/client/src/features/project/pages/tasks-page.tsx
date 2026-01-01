@@ -83,8 +83,6 @@ export function TasksPage() {
       });
     }
 
-    items.push({ title: getPageTitle(), href: "#" });
-
     return (
       <BreadcrumbBar>
         <Breadcrumbs className={breadcrumbClasses.breadcrumbs}>

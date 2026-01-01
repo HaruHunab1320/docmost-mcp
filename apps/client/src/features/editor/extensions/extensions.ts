@@ -51,7 +51,7 @@ import ImageView from "@/features/editor/components/image/image-view.tsx";
 import CalloutView from "@/features/editor/components/callout/callout-view.tsx";
 import { common, createLowlight } from "lowlight";
 import VideoView from "@/features/editor/components/video/video-view.tsx";
-import AttachmentView from "@/features/editor/components/attachment/attachment-view.tsx";
+import { attachmentNodeViewRenderer } from "@/features/editor/components/attachment/attachment-node-view";
 import CodeBlockView from "@/features/editor/components/code-block/code-block-view.tsx";
 import DrawioView from "../components/drawio/drawio-view";
 import ExcalidrawView from "@/features/editor/components/excalidraw/excalidraw-view.tsx";
@@ -199,8 +199,10 @@ export const mainExtensions = [
     },
   }),
   Selection,
-  Attachment.configure({
-    view: AttachmentView,
+  Attachment.extend({
+    addNodeView() {
+      return attachmentNodeViewRenderer();
+    },
   }),
   Drawio.configure({
     view: DrawioView,

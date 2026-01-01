@@ -87,8 +87,8 @@ Use this checklist to validate Raven Docs end‑to‑end before a production pus
 
 - [X] All themes switch without background seams.
 - [X] No stray footer bar or background chunk.
-- [ ] Sidebar toggle works on mobile.
-- [ ] Header layout does not overlap on tablet.
+- [X] Sidebar toggle works on mobile.
+- [X] Header layout does not overlap on tablet.
 
 ## Regression Notes
 
