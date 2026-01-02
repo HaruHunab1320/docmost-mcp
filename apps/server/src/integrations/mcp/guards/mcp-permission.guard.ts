@@ -6,7 +6,7 @@ import {
   Logger,
 } from '@nestjs/common';
 import { MCPRequest } from '../interfaces/mcp.interface';
-import { User } from '@docmost/db/types/entity.types';
+import { User } from '@raven-docs/db/types/entity.types';
 import { UserRole } from '../../../common/helpers/types/permission';
 
 /**

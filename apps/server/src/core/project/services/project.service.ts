@@ -10,9 +10,9 @@ import {
 import { PaginationOptions } from '../../../lib/pagination/pagination-options';
 import { Paginated } from '../../../lib/pagination/paginated';
 import { PageService } from '../../page/services/page.service';
-import { executeTx } from '@docmost/db/utils';
+import { executeTx } from '@raven-docs/db/utils';
 import { InjectKysely } from 'nestjs-kysely';
-import { KyselyDB } from '@docmost/db/types/kysely.types';
+import { KyselyDB } from '@raven-docs/db/types/kysely.types';
 import { AgentMemoryService } from '../../agent-memory/agent-memory.service';
 
 @Injectable()

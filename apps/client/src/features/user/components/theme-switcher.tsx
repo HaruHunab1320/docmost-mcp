@@ -23,7 +23,7 @@ import { useAtom } from "jotai";
 import { currentUserAtom } from "../atoms/current-user-atom";
 import { updateUser } from "../services/user-service";
 import { useRavenDocsTheme } from "../providers/theme-provider";
-import { DOCMOST_THEMES, getThemeById } from "@/theme";
+import { RAVEN_DOCS_THEMES, getThemeById } from "@/theme";
 import { useTranslation } from "react-i18next";
 import { setManualThemeApplied } from "../hooks/use-current-user";
 import { useColorScheme } from "@mantine/hooks";
@@ -41,8 +41,8 @@ export function ThemeSwitcher() {
   const isDefaultLightTheme = activeTheme.id === "default-light";
   const isDefaultDarkTheme = activeTheme.id === "default-dark";
 
-  const lightThemes = DOCMOST_THEMES.filter((theme) => !theme.isDark);
-  const darkThemes = DOCMOST_THEMES.filter((theme) => theme.isDark);
+  const lightThemes = RAVEN_DOCS_THEMES.filter((theme) => !theme.isDark);
+  const darkThemes = RAVEN_DOCS_THEMES.filter((theme) => theme.isDark);
 
   const applyLightOrDarkTheme = async (scheme: "light" | "dark") => {
     const activeId = activeTheme.id;
@@ -54,7 +54,10 @@ export function ThemeSwitcher() {
         : "";
     const candidateId = baseId ? `${baseId}-${scheme}` : "";
 
-    if (candidateId && DOCMOST_THEMES.some((theme) => theme.id === candidateId)) {
+    if (
+      candidateId &&
+      RAVEN_DOCS_THEMES.some((theme) => theme.id === candidateId)
+    ) {
       await applyTheme(candidateId);
       return;
     }
@@ -66,7 +69,7 @@ export function ThemeSwitcher() {
   const applyTheme = async (themeId: string) => {
     try {
       // Find the selected theme from available themes
-      const selectedTheme = DOCMOST_THEMES.find(
+      const selectedTheme = RAVEN_DOCS_THEMES.find(
         (theme) => theme.id === themeId
       );
       if (!selectedTheme) throw new Error(`Theme ${themeId} not found`);

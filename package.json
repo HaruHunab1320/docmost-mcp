@@ -1,6 +1,6 @@
 {
-  "name": "docmost",
-  "homepage": "https://docmost.com",
+  "name": "raven-docs",
+  "homepage": "https://raven-docs.local",
   "version": "0.10.2",
   "private": true,
   "scripts": {
@@ -10,7 +10,7 @@
     "collab:dev": "pnpm --filter ./apps/server run collab:dev",
     "server:build": "nx run server:build",
     "client:build": "nx run client:build",
-    "editor-ext:build": "nx run @docmost/editor-ext:build",
+    "editor-ext:build": "nx run @raven-docs/editor-ext:build",
     "client:dev": "nx run client:dev",
     "server:dev": "pnpm --filter ./apps/server run start:dev:nodemon",
     "server:start": "nx run server:start:prod",
@@ -19,7 +19,7 @@
     "seed:memory": "node scripts/seed-memory.js"
   },
   "dependencies": {
-    "@docmost/editor-ext": "workspace:*",
+    "@raven-docs/editor-ext": "workspace:*",
     "@hocuspocus/extension-redis": "^2.15.2",
     "@hocuspocus/provider": "^2.15.2",
     "@hocuspocus/server": "^2.15.2",

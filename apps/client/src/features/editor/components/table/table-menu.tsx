@@ -20,7 +20,7 @@ import {
   IconRowRemove,
   IconTrashX,
 } from "@tabler/icons-react";
-import { isCellSelection } from "@docmost/editor-ext";
+import { isCellSelection } from "@raven-docs/editor-ext";
 import { useTranslation } from "react-i18next";
 
 export const TableMenu = React.memo(

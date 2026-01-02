@@ -19,7 +19,7 @@ import { ExportHandler } from './handlers/export.handler';
 import { AIHandler } from './handlers/ai.handler';
 import { MemoryHandler } from './handlers/memory.handler';
 import { RepoHandler } from './handlers/repo.handler';
-import { User } from '@docmost/db/types/entity.types';
+import { User } from '@raven-docs/db/types/entity.types';
 import {
   createInternalError,
   createInvalidRequestError,
@@ -30,7 +30,7 @@ import {
 } from './utils/error.utils';
 import { MCPApprovalService } from './services/mcp-approval.service';
 import { AgentPolicyService } from '../../core/agent/agent-policy.service';
-import { WorkspaceRepo } from '@docmost/db/repos/workspace/workspace.repo';
+import { WorkspaceRepo } from '@raven-docs/db/repos/workspace/workspace.repo';
 import { resolveAgentSettings } from '../../core/agent/agent-settings';
 
 /**

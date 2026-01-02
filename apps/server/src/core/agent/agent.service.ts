@@ -8,10 +8,10 @@ import {
   SpaceCaslAction,
   SpaceCaslSubject,
 } from '../casl/interfaces/space-ability.type';
-import { User, Workspace } from '@docmost/db/types/entity.types';
+import { User, Workspace } from '@raven-docs/db/types/entity.types';
 import { resolveAgentSettings } from './agent-settings';
-import { SpaceRepo } from '@docmost/db/repos/space/space.repo';
-import { PageRepo } from '@docmost/db/repos/page/page.repo';
+import { SpaceRepo } from '@raven-docs/db/repos/space/space.repo';
+import { PageRepo } from '@raven-docs/db/repos/page/page.repo';
 import { AgentSuggestionsDto } from './agent-suggestions.dto';
 import { TaskBucket, TaskStatus } from '../project/constants/task-enums';
 

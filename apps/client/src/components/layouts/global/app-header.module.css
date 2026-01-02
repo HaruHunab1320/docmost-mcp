@@ -1,8 +1,8 @@
 .header {
     height: 100%;
     margin-bottom: rem(120px);
-    background-color: var(--docmost-surface-bg, var(--mantine-color-body));
-    border-bottom: rem(1px) solid var(--docmost-border-color, var(--mantine-color-default-border));
+    background-color: var(--raven-docs-surface-bg, var(--mantine-color-body));
+    border-bottom: rem(1px) solid var(--raven-docs-border-color, var(--mantine-color-default-border));
     padding-left: var(--mantine-spacing-md);
     padding-right: var(--mantine-spacing-md);
 }

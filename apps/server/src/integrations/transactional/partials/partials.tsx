@@ -30,7 +30,7 @@ export function MailBody({ children }: MailBodyProps) {
 export function MailHeader() {
   return (
     <Section style={logo}>
-      {/* <Heading style={h1}>docmost</Heading> */}
+      {/* <Heading style={h1}>raven-docs</Heading> */}
     </Section>
   );
 }
@@ -40,7 +40,7 @@ export function MailFooter() {
     <Section style={footer}>
       <Row>
         <Text style={{ textAlign: 'center', color: '#706a7b' }}>
-          © {new Date().getFullYear()} Docmost, All Rights Reserved <br />
+          © {new Date().getFullYear()} Raven Docs, All Rights Reserved <br />
         </Text>
       </Row>
     </Section>

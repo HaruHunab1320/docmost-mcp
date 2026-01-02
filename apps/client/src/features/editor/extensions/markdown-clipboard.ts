@@ -3,7 +3,7 @@ import { Extension } from "@tiptap/core";
 import { Plugin, PluginKey } from "@tiptap/pm/state";
 import { DOMParser } from "@tiptap/pm/model";
 import { find } from "linkifyjs";
-import { markdownToHtml } from "@docmost/editor-ext";
+import { markdownToHtml } from "@raven-docs/editor-ext";
 
 export const MarkdownClipboard = Extension.create({
   name: "markdownClipboard",

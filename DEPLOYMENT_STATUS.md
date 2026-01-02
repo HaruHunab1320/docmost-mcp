@@ -50,7 +50,7 @@ Despite build issues in development, the Docker image should work:
 docker-compose -f docker-compose.production.yml up -d
 
 # Or build from source
-docker build -f Dockerfile.production -t docmost:latest .
+docker build -f Dockerfile.production -t raven-docs:latest .
 ```
 
 ## 📋 Action Items for Production Ready

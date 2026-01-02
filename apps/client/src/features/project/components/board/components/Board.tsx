@@ -50,7 +50,7 @@ import { listGoalsForTasks } from "@/features/goal/services/goal-service";
 import { Goal } from "@/features/goal/types";
 
 // CSS class name for when we need to disable scrolling
-const NO_SCROLL_CLASS = "docmost-board-no-scroll";
+const NO_SCROLL_CLASS = "raven-docs-board-no-scroll";
 
 // Define an extended Task interface that includes position for type-checking
 interface TaskWithPosition extends Task {

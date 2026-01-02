@@ -1,8 +1,8 @@
 version: '3.8'
 
 services:
-  docmost:
-    image: docmost/docmost:latest
+  raven-docs:
+    image: raven-docs/raven-docs:latest
     restart: unless-stopped
     depends_on:
       postgres:
@@ -19,7 +19,7 @@ services:
     ports:
       - "${PORT:-3000}:3000"
     volumes:
-      - docmost_data:/app/data
+      - raven-docs_data:/app/data
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
       interval: 30s
@@ -27,24 +27,24 @@ services:
       retries: 3
       start_period: 40s
     networks:
-      - docmost_network
+      - raven-docs_network
 
   postgres:
     image: postgres:15-alpine
     restart: unless-stopped
     environment:
-      - POSTGRES_DB=docmost
-      - POSTGRES_USER=${DB_USER:-docmost}
+      - POSTGRES_DB=raven-docs
+      - POSTGRES_USER=${DB_USER:-raven-docs}
       - POSTGRES_PASSWORD=${DB_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-docmost}"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-raven-docs}"]
       interval: 10s
       timeout: 5s
       retries: 5
     networks:
-      - docmost_network
+      - raven-docs_network
 
   redis:
     image: redis:7-alpine
@@ -58,10 +58,10 @@ services:
       timeout: 5s
       retries: 5
     networks:
-      - docmost_network
+      - raven-docs_network
 
 volumes:
-  docmost_data:
+  raven-docs_data:
     driver: local
   postgres_data:
     driver: local
@@ -69,5 +69,5 @@ volumes:
     driver: local
 
 networks:
-  docmost_network:
+  raven-docs_network:
     driver: bridge

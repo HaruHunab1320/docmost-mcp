@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { PageHistoryRepo } from '../../../database/repos/page/page-history.repo';
-import { PageHistory } from '@docmost/db/types/entity.types';
-import { PaginationOptions } from '@docmost/db/pagination/pagination-options';
-import { PaginationResult } from '@docmost/db/pagination/pagination';
+import { PageHistory } from '@raven-docs/db/types/entity.types';
+import { PaginationOptions } from '@raven-docs/db/pagination/pagination-options';
+import { PaginationResult } from '@raven-docs/db/pagination/pagination';
 
 @Injectable()
 export class PageHistoryService {

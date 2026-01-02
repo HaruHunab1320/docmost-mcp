@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
- * Docmost Model Context Protocol (MCP) Bridge - Refactored Version
+ * Raven Docs Model Context Protocol (MCP) Bridge - Refactored Version
  *
- * This script implements an MCP server that bridges Cursor with the Docmost API.
+ * This script implements an MCP server that bridges Cursor with the Raven Docs API.
  * 
  * REFACTORED: Removed hardcoded user/workspace IDs. The API key now provides
  * all necessary authentication context server-side.
@@ -37,7 +37,7 @@ const DEBUG = process.env.MCP_DEBUG === "true";
 
 // Initialize MCP server
 const server = new McpServer({
-  name: "docmost",
+  name: "raven-docs",
   version: "1.0.0",
 });
 
@@ -55,7 +55,7 @@ logToFile(`Starting MCP Bridge (Refactored) with configuration:
 
 async function main() {
   try {
-    logToFile("=== Docmost MCP Bridge Starting (Refactored) ===");
+    logToFile("=== Raven Docs MCP Bridge Starting (Refactored) ===");
 
     // Register tools from resources
     for (const resource of Object.values(resources)) {

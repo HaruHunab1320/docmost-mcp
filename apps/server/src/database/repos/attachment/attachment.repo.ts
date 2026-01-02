@@ -1,17 +1,17 @@
 import { Injectable } from '@nestjs/common';
 import { InjectKysely } from 'nestjs-kysely';
-import { KyselyDB, KyselyTransaction } from '@docmost/db/types/kysely.types';
-import { dbOrTx } from '@docmost/db/utils';
+import { KyselyDB, KyselyTransaction } from '@raven-docs/db/types/kysely.types';
+import { dbOrTx } from '@raven-docs/db/utils';
 import {
   Attachment,
   InsertableAttachment,
   UpdatableAttachment,
-} from '@docmost/db/types/entity.types';
-import { PaginationOptions } from '@docmost/db/pagination/pagination-options';
+} from '@raven-docs/db/types/entity.types';
+import { PaginationOptions } from '@raven-docs/db/pagination/pagination-options';
 import {
   executeWithPagination,
   PaginationResult,
-} from '@docmost/db/pagination/pagination';
+} from '@raven-docs/db/pagination/pagination';
 
 @Injectable()
 export class AttachmentRepo {

@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectKysely } from 'nestjs-kysely';
-import { KyselyDB } from '@docmost/db/types/kysely.types';
+import { KyselyDB } from '@raven-docs/db/types/kysely.types';
 import { MemgraphService } from '../../integrations/memgraph/memgraph.service';
 import { AIService } from '../../integrations/ai/ai.service';
 import { v7 as uuid7 } from 'uuid';

@@ -545,7 +545,7 @@ This endpoint is internal. External integrations should use `/api/mcp-standard/*
 Example request:
 
 ```javascript
-const response = await fetch("https://your-docmost-instance.com/api/mcp", {
+const response = await fetch("https://your-raven-docs-instance.com/api/mcp", {
   method: "POST",
   headers: {
     "Content-Type": "application/json",

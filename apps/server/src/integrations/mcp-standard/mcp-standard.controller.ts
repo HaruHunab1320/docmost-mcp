@@ -14,7 +14,7 @@ import { SkipTransform } from '../../common/decorators/skip-transform.decorator'
 import { Public } from '../../common/decorators/public.decorator';
 import { MCPApiKeyGuard } from '../mcp/guards/mcp-api-key.guard';
 import { AuthUser } from '../../common/decorators/auth-user.decorator';
-import { User } from '@docmost/db/types/entity.types';
+import { User } from '@raven-docs/db/types/entity.types';
 
 /**
  * Standard Model Context Protocol (MCP) Controller

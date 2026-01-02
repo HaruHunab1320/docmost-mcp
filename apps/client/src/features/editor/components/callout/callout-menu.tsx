@@ -16,7 +16,7 @@ import {
   IconCircleXFilled,
   IconInfoCircleFilled,
 } from "@tabler/icons-react";
-import { CalloutType } from "@docmost/editor-ext";
+import { CalloutType } from "@raven-docs/editor-ext";
 import { useTranslation } from "react-i18next";
 
 export function CalloutMenu({ editor }: EditorMenuProps) {

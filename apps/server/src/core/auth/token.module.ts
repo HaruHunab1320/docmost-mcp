@@ -11,7 +11,7 @@ import { TokenService } from './services/token.service';
           secret: environmentService.getAppSecret(),
           signOptions: {
             expiresIn: environmentService.getJwtTokenExpiresIn(),
-            issuer: 'Docmost',
+            issuer: 'Raven Docs',
           },
         };
       },

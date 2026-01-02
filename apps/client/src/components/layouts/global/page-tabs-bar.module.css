@@ -5,7 +5,7 @@
   padding: 4px 10px 0;
   padding-left: 10px;
   border-bottom: 1px solid light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-6));
-  background: var(--docmost-surface-bg, var(--mantine-color-body));
+  background: var(--raven-docs-surface-bg, var(--mantine-color-body));
   position: fixed;
   top: var(--app-shell-header-height, 45px);
   left: var(--app-shell-navbar-offset, 0px);

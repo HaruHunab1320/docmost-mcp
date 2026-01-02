@@ -1760,31 +1760,31 @@ export class MCPStandardService {
     return {
       resources: [
         {
-          uri: 'docmost://spaces',
+          uri: 'ravendocs://spaces',
           name: 'Spaces',
           description: 'All spaces in the workspace',
           mimeType: 'application/json',
         },
         {
-          uri: 'docmost://pages',
+          uri: 'ravendocs://pages',
           name: 'Pages',
           description: 'All pages across all spaces',
           mimeType: 'application/json',
         },
         {
-          uri: 'docmost://projects',
+          uri: 'ravendocs://projects',
           name: 'Projects',
           description: 'All projects across all spaces',
           mimeType: 'application/json',
         },
         {
-          uri: 'docmost://tasks',
+          uri: 'ravendocs://tasks',
           name: 'Tasks',
           description: 'All tasks across all spaces',
           mimeType: 'application/json',
         },
         {
-          uri: 'docmost://users',
+          uri: 'ravendocs://users',
           name: 'Users',
           description: 'All users in the workspace',
           mimeType: 'application/json',
@@ -1800,7 +1800,7 @@ export class MCPStandardService {
     this.logger.debug(`Reading resource: ${uri}`);
 
     const resourceHandlers: Record<string, () => Promise<any>> = {
-      'docmost://spaces': async () => {
+      'ravendocs://spaces': async () => {
         const result = await this.mcpService.processRequest({
           jsonrpc: '2.0',
           method: 'space.list',
@@ -1809,7 +1809,7 @@ export class MCPStandardService {
         }, user);
         return result.result;
       },
-      'docmost://pages': async () => {
+      'ravendocs://pages': async () => {
         const result = await this.mcpService.processRequest({
           jsonrpc: '2.0',
           method: 'page.list',
@@ -1818,7 +1818,7 @@ export class MCPStandardService {
         }, user);
         return result.result;
       },
-      'docmost://projects': async () => {
+      'ravendocs://projects': async () => {
         const spacesResult = await this.mcpService.processRequest({
           jsonrpc: '2.0',
           method: 'space.list',
@@ -1844,7 +1844,7 @@ export class MCPStandardService {
 
         return { projects };
       },
-      'docmost://tasks': async () => {
+      'ravendocs://tasks': async () => {
         const spacesResult = await this.mcpService.processRequest({
           jsonrpc: '2.0',
           method: 'space.list',
@@ -1870,7 +1870,7 @@ export class MCPStandardService {
 
         return { tasks };
       },
-      'docmost://users': async () => {
+      'ravendocs://users': async () => {
         const result = await this.mcpService.processRequest({
           jsonrpc: '2.0',
           method: 'user.list',

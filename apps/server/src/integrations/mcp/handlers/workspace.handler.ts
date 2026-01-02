@@ -6,8 +6,8 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { WorkspaceService } from '../../../core/workspace/services/workspace.service';
-import { User } from '@docmost/db/types/entity.types';
-import { PaginationOptions } from '@docmost/db/pagination/pagination-options';
+import { User } from '@raven-docs/db/types/entity.types';
+import { PaginationOptions } from '@raven-docs/db/pagination/pagination-options';
 import {
   createInvalidParamsError,
   createInternalError,
@@ -22,7 +22,7 @@ import {
 } from '../../../core/casl/interfaces/workspace-ability.type';
 import { UserService } from '../../../core/user/user.service';
 import { InjectKysely } from 'nestjs-kysely';
-import { KyselyDB } from '@docmost/db/types/kysely.types';
+import { KyselyDB } from '@raven-docs/db/types/kysely.types';
 import { WorkspaceInvitationService } from '../../../core/workspace/services/workspace-invitation.service';
 import { SpaceRole, UserRole } from '../../../common/helpers/types/permission';
 import { MCPEventService } from '../services/mcp-event.service';

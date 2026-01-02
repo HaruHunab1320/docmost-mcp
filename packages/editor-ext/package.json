@@ -1,6 +1,6 @@
 {
-  "name": "@docmost/editor-ext",
-  "homepage": "https://docmost.com",
+  "name": "@raven-docs/editor-ext",
+  "homepage": "https://raven-docs.local",
   "private": true,
   "scripts": {
     "build": "tsc --build",

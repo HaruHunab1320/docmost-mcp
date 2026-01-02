@@ -1,4 +1,4 @@
-import { handleVideoUpload } from "@docmost/editor-ext";
+import { handleVideoUpload } from "@raven-docs/editor-ext";
 import { uploadFile } from "@/features/page/services/page-service.ts";
 import { notifications } from "@mantine/notifications";
 import { getFileUploadSizeLimit } from "@/lib/config.ts";

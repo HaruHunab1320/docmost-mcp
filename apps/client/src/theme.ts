@@ -7,7 +7,7 @@ import {
 // Flag to track active theme
 let activeThemeId = "default-light";
 
-// Default DocMost blue
+// Default Raven Docs blue
 const blue: MantineColorsTuple = [
   "#e7f3ff",
   "#d0e4ff",
@@ -21,7 +21,7 @@ const blue: MantineColorsTuple = [
   "#004aac",
 ];
 
-// Default DocMost red
+// Default Raven Docs red
 const red: MantineColorsTuple = [
   "#ffebeb",
   "#fad7d7",
@@ -148,7 +148,7 @@ const glitchPurple: MantineColorsTuple = [
 ];
 
 // Theme interface for our custom themes
-export interface DocmostTheme {
+export interface RavenDocsTheme {
   id: string;
   name: string;
   description: string;
@@ -184,11 +184,11 @@ export interface DocmostTheme {
 }
 
 // Available themes
-export const DOCMOST_THEMES: DocmostTheme[] = [
+export const RAVEN_DOCS_THEMES: RavenDocsTheme[] = [
   {
     id: "default-light",
     name: "Default Light",
-    description: "The default DocMost light theme",
+    description: "The default Raven Docs light theme",
     primaryColor: "blue",
     secondaryColor: "red",
     isDark: false,
@@ -201,7 +201,7 @@ export const DOCMOST_THEMES: DocmostTheme[] = [
   {
     id: "default-dark",
     name: "Default Dark",
-    description: "The default DocMost dark theme",
+    description: "The default Raven Docs dark theme",
     primaryColor: "blue",
     secondaryColor: "red",
     isDark: true,
@@ -349,11 +349,11 @@ export const DOCMOST_THEMES: DocmostTheme[] = [
 ];
 
 // Function to get a theme by ID
-export const getThemeById = (themeId: string): DocmostTheme => {
-  const theme = DOCMOST_THEMES.find((theme) => theme.id === themeId);
+export const getThemeById = (themeId: string): RavenDocsTheme => {
+  const theme = RAVEN_DOCS_THEMES.find((theme) => theme.id === themeId);
   if (!theme) {
     console.warn(`Theme ${themeId} not found, using default theme`);
-    return DOCMOST_THEMES[0];
+    return RAVEN_DOCS_THEMES[0];
   }
   return theme;
 };
@@ -463,13 +463,13 @@ export const theme = createTheme({
 export const mantineCssResolver: CSSVariablesResolver = (theme) => ({
   variables: {
     "--mantine-input-error-size": theme.fontSizes.sm,
-    "--docmost-primary-color": `var(--mantine-color-${theme.primaryColor}-filled)`,
-    "--docmost-primary-hover": `var(--mantine-color-${theme.primaryColor}-filled-hover)`,
-    "--docmost-primary-light": `var(--mantine-color-${theme.primaryColor}-light)`,
-    "--docmost-primary-light-hover": `var(--mantine-color-${theme.primaryColor}-light-hover)`,
+    "--raven-docs-primary-color": `var(--mantine-color-${theme.primaryColor}-filled)`,
+    "--raven-docs-primary-hover": `var(--mantine-color-${theme.primaryColor}-filled-hover)`,
+    "--raven-docs-primary-light": `var(--mantine-color-${theme.primaryColor}-light)`,
+    "--raven-docs-primary-light-hover": `var(--mantine-color-${theme.primaryColor}-light-hover)`,
     // Add new text size variables
-    "--docmost-text-size-small": theme.fontSizes.sm,
-    "--docmost-text-size-description": theme.fontSizes.sm,
+    "--raven-docs-text-size-small": theme.fontSizes.sm,
+    "--raven-docs-text-size-description": theme.fontSizes.sm,
   },
   light: {
     "[data-theme='project89-tron'] .mantine-Button-root": {

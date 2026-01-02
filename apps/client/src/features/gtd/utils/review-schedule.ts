@@ -1,5 +1,5 @@
-const REVIEW_STORAGE_PREFIX = "docmost.review";
-const REVIEW_COMPLETED_PREFIX = "docmost.review.completed";
+const REVIEW_STORAGE_PREFIX = "ravendocs.review";
+const REVIEW_COMPLETED_PREFIX = "ravendocs.review.completed";
 
 export type ReviewChecklist = Record<string, boolean>;
 

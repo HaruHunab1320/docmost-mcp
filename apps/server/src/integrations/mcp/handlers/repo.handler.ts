@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { RepoBrowseService } from '../../repo/repo-browse.service';
 import { createInvalidParamsError, createInternalError } from '../utils/error.utils';
 import { WorkspaceRepo } from '../../../database/repos/workspace/workspace.repo';
-import { User } from '@docmost/db/types/entity.types';
+import { User } from '@raven-docs/db/types/entity.types';
 
 @Injectable()
 export class RepoHandler {

@@ -6,12 +6,12 @@ import {
   InsertablePageHistory,
   Page,
   PageHistory,
-} from '@docmost/db/types/entity.types';
-import { PaginationOptions } from '@docmost/db/pagination/pagination-options';
-import { executeWithPagination } from '@docmost/db/pagination/pagination';
+} from '@raven-docs/db/types/entity.types';
+import { PaginationOptions } from '@raven-docs/db/pagination/pagination-options';
+import { executeWithPagination } from '@raven-docs/db/pagination/pagination';
 import { jsonObjectFrom } from 'kysely/helpers/postgres';
 import { ExpressionBuilder } from 'kysely';
-import { DB } from '@docmost/db/types/db';
+import { DB } from '@raven-docs/db/types/db';
 
 @Injectable()
 export class PageHistoryRepo {

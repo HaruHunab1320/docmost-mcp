@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { AttachmentService } from '../../../core/attachment/services/attachment.service';
 import { WorkspaceService } from '../../../core/workspace/services/workspace.service';
-import { PaginationOptions } from '@docmost/db/pagination/pagination-options';
+import { PaginationOptions } from '@raven-docs/db/pagination/pagination-options';
 import {
   createInvalidParamsError,
   createPermissionDeniedError,
@@ -25,7 +25,7 @@ import {
 } from '../../../core/casl/interfaces/space-ability.type';
 import { validate as isValidUUID } from 'uuid';
 import { v7 as uuid7 } from 'uuid';
-import { User } from '@docmost/db/types/entity.types';
+import { User } from '@raven-docs/db/types/entity.types';
 import { UserService } from '../../../core/user/user.service';
 import { AttachmentRepo } from '../../../database/repos/attachment/attachment.repo';
 import { PageRepo } from '../../../database/repos/page/page.repo';

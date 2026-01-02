@@ -5,24 +5,24 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { AcceptInviteDto, InviteUserDto } from '../dto/invitation.dto';
-import { UserRepo } from '@docmost/db/repos/user/user.repo';
+import { UserRepo } from '@raven-docs/db/repos/user/user.repo';
 import { InjectKysely } from 'nestjs-kysely';
-import { KyselyDB } from '@docmost/db/types/kysely.types';
-import { executeTx } from '@docmost/db/utils';
+import { KyselyDB } from '@raven-docs/db/types/kysely.types';
+import { executeTx } from '@raven-docs/db/utils';
 import {
   Group,
   User,
   Workspace,
   WorkspaceInvitation,
-} from '@docmost/db/types/entity.types';
+} from '@raven-docs/db/types/entity.types';
 import { MailService } from '../../../integrations/mail/mail.service';
-import InvitationEmail from '@docmost/transactional/emails/invitation-email';
-import { GroupUserRepo } from '@docmost/db/repos/group/group-user.repo';
-import InvitationAcceptedEmail from '@docmost/transactional/emails/invitation-accepted-email';
+import InvitationEmail from '@raven-docs/transactional/emails/invitation-email';
+import { GroupUserRepo } from '@raven-docs/db/repos/group/group-user.repo';
+import InvitationAcceptedEmail from '@raven-docs/transactional/emails/invitation-accepted-email';
 import { TokenService } from '../../auth/services/token.service';
 import { nanoIdGen } from '../../../common/helpers';
-import { PaginationOptions } from '@docmost/db/pagination/pagination-options';
-import { executeWithPagination } from '@docmost/db/pagination/pagination';
+import { PaginationOptions } from '@raven-docs/db/pagination/pagination-options';
+import { executeWithPagination } from '@raven-docs/db/pagination/pagination';
 import { DomainService } from 'src/integrations/environment/domain.service';
 import { InjectQueue } from '@nestjs/bullmq';
 import { QueueJob, QueueName } from '../../../integrations/queue/constants';
@@ -267,7 +267,7 @@ export class WorkspaceInvitationService {
 
       await this.mailService.sendToQueue({
         to: invitedByUser.email,
-        subject: `${newUser.name} has accepted your Docmost invite`,
+        subject: `${newUser.name} has accepted your Raven Docs invite`,
         template: emailTemplate,
       });
     }
@@ -359,7 +359,7 @@ export class WorkspaceInvitationService {
 
     await this.mailService.sendToQueue({
       to: inviteeEmail,
-      subject: `${invitedByName} invited you to Docmost`,
+      subject: `${invitedByName} invited you to Raven Docs`,
       template: emailTemplate,
     });
   }

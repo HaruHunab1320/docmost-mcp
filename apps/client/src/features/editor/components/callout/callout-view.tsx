@@ -7,7 +7,7 @@ import {
 } from "@tabler/icons-react";
 import { Alert } from "@mantine/core";
 import classes from "./callout.module.css";
-import { CalloutType } from "@docmost/editor-ext";
+import { CalloutType } from "@raven-docs/editor-ext";
 
 export default function CalloutView(props: NodeViewProps) {
   const { node } = props;

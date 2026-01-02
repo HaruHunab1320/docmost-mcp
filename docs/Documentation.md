@@ -145,7 +145,7 @@ To contribute to the MCP extensions:
 
 ## License
 
-The Raven Docs MCP extensions are licensed under the same license as the core Docmost project (AGPL 3.0). 
+The Raven Docs MCP extensions are licensed under the same license as the core Raven Docs project (AGPL 3.0). 
 ### 6. [UI Audit Matrix](./UIAudit.md)
 
 Current UI surface status (complete/partial/unverified) with follow-up checklist.

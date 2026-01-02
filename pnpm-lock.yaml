@@ -16,9 +16,6 @@ importers:
 
   .:
     dependencies:
-      '@docmost/editor-ext':
-        specifier: workspace:*
-        version: link:packages/editor-ext
       '@hocuspocus/extension-redis':
         specifier: ^2.15.2
         version: 2.15.2(y-protocols@1.0.6(yjs@13.6.20))(yjs@13.6.20)
@@ -43,6 +40,9 @@ importers:
       '@modelcontextprotocol/sdk':
         specifier: ^1.10.1
         version: 1.10.1
+      '@raven-docs/editor-ext':
+        specifier: workspace:*
+        version: link:packages/editor-ext
       '@sindresorhus/slugify':
         specifier: 1.1.0
         version: 1.1.0
@@ -242,9 +242,6 @@ importers:
       '@dnd-kit/utilities':
         specifier: ^3.2.2
         version: 3.2.2(react@18.3.1)
-      '@docmost/editor-ext':
-        specifier: workspace:*
-        version: link:../../packages/editor-ext
       '@emoji-mart/data':
         specifier: ^1.2.1
         version: 1.2.1
@@ -275,6 +272,9 @@ importers:
       '@mantine/spotlight':
         specifier: ^7.17.0
         version: 7.17.0(@mantine/core@7.17.0(@mantine/hooks@7.17.0(react@18.3.1))(@types/react@18.3.12)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@mantine/hooks@7.17.0(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@raven-docs/editor-ext':
+        specifier: workspace:*
+        version: link:../../packages/editor-ext
       '@tabler/icons-react':
         specifier: ^3.22.0
         version: 3.22.0(react@18.3.1)
@@ -504,6 +504,9 @@ importers:
       '@node-saml/passport-saml':
         specifier: ^5.0.1
         version: 5.0.1
+      '@raven-docs/editor-ext':
+        specifier: workspace:*
+        version: link:../../packages/editor-ext
       '@react-email/components':
         specifier: 0.0.28
         version: 0.0.28(react-dom@18.3.1(react@18.3.1))(react@18.3.1)

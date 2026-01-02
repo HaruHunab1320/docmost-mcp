@@ -1,4 +1,4 @@
-import { UserSpaceRole } from '@docmost/db/repos/space/types';
+import { UserSpaceRole } from '@raven-docs/db/repos/space/types';
 import { SpaceRole } from '../../../common/helpers/types/permission';
 
 export function findHighestUserSpaceRole(userSpaceRoles: UserSpaceRole[]) {

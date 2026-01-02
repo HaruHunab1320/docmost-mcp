@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import { InjectKysely } from 'nestjs-kysely';
-import { KyselyDB } from '@docmost/db/types/kysely.types';
+import { KyselyDB } from '@raven-docs/db/types/kysely.types';
 import { AIService } from '../../integrations/ai/ai.service';
 import { AgentMemoryService } from '../agent-memory/agent-memory.service';
 import { TaskService } from '../project/services/task.service';

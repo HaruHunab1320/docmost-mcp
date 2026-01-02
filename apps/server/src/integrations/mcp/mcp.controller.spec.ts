@@ -3,7 +3,7 @@ import { MCPController } from './mcp.controller';
 import { MCPService } from './mcp.service';
 import { MCPSchemaService } from './services/mcp-schema.service';
 import { MCPRequest, MCPResponse } from './interfaces/mcp.interface';
-import { User } from '@docmost/db/types/entity.types';
+import { User } from '@raven-docs/db/types/entity.types';
 import { BadRequestException } from '@nestjs/common';
 
 describe('MCPController', () => {
@@ -251,8 +251,8 @@ describe('MCPController', () => {
 
       expect(result).toEqual({
         schema_version: '1.0',
-        name_for_model: 'Docmost MCP',
-        name_for_human: 'Docmost Machine Control Protocol',
+        name_for_model: 'Raven Docs MCP',
+        name_for_human: 'Raven Docs Machine Control Protocol',
         tools: [
           {
             type: 'function',
@@ -315,7 +315,7 @@ describe('MCPController', () => {
       expect(result).toMatchObject({
         openapi: '3.0.0',
         info: {
-          title: 'Docmost Machine Control Protocol API',
+          title: 'Raven Docs Machine Control Protocol API',
           version: '1.0.0',
         },
         paths: {

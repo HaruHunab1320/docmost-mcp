@@ -54,6 +54,7 @@
     "@react-email/components": "0.0.28",
     "@react-email/render": "1.0.2",
     "@socket.io/redis-adapter": "^8.3.0",
+    "@raven-docs/editor-ext": "workspace:*",
     "bcrypt": "^5.1.1",
     "bullmq": "^5.41.3",
     "cache-manager": "^6.4.0",

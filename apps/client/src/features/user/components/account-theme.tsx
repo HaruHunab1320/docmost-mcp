@@ -15,7 +15,7 @@ import {
   useMantineTheme,
 } from "@mantine/core";
 import { useTranslation } from "react-i18next";
-import { DOCMOST_THEMES, DocmostTheme, getThemeById } from "@/theme";
+import { RAVEN_DOCS_THEMES, getThemeById } from "@/theme";
 import { useAtom } from "jotai";
 import { currentUserAtom } from "../atoms/current-user-atom";
 import { updateUser } from "../services/user-service";
@@ -124,7 +124,7 @@ function ThemeSwitcher() {
         label={t("Select a theme")}
       >
         <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="sm" mt="xs">
-          {DOCMOST_THEMES.map((themeOption) => (
+          {RAVEN_DOCS_THEMES.map((themeOption) => (
             <Card
               key={themeOption.id}
               padding="xs"

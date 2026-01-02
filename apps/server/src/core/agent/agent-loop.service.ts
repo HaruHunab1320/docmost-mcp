@@ -1,6 +1,6 @@
 import { ForbiddenException, Injectable, Logger } from '@nestjs/common';
 import { InjectKysely } from 'nestjs-kysely';
-import { KyselyDB } from '@docmost/db/types/kysely.types';
+import { KyselyDB } from '@raven-docs/db/types/kysely.types';
 import { AIService } from '../../integrations/ai/ai.service';
 import { AgentMemoryService } from '../agent-memory/agent-memory.service';
 import { TaskService } from '../project/services/task.service';
@@ -14,8 +14,8 @@ import {
   SpaceCaslAction,
   SpaceCaslSubject,
 } from '../casl/interfaces/space-ability.type';
-import { User, Workspace } from '@docmost/db/types/entity.types';
-import { SpaceRepo } from '@docmost/db/repos/space/space.repo';
+import { User, Workspace } from '@raven-docs/db/types/entity.types';
+import { SpaceRepo } from '@raven-docs/db/repos/space/space.repo';
 
 type AgentAction = {
   method: string;

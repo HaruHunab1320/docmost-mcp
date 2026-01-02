@@ -14,8 +14,8 @@ A second-brain documentation and project management platform with AI integration
 
 ```bash
 # Clone the repository
-git clone https://github.com/docmost/docmost.git
-cd docmost
+git clone https://github.com/raven-docs/raven-docs.git
+cd raven-docs
 
 # Run the setup script
 ./scripts/setup.sh
@@ -49,7 +49,7 @@ This will:
 
 4. **Run migrations**
    ```bash
-   docker-compose exec docmost pnpm migration:latest
+   docker-compose exec raven-docs pnpm migration:latest
    ```
 
 5. **Access Raven Docs**
@@ -99,7 +99,7 @@ pnpm test
 
 ### Project Structure
 ```
-docmost/
+raven-docs/
 ├── apps/
 │   ├── client/        # React frontend
 │   └── server/        # NestJS backend
@@ -177,4 +177,4 @@ We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guid
 
 ---
 
-Made with ❤️ by the Raven Docs team (with deep appreciation for Docmost)
+Made with ❤️ by the Raven Docs team (with deep appreciation for Raven Docs)

@@ -13,7 +13,7 @@ describe('MCP System (e2e)', () => {
 
   beforeAll(async () => {
     process.env.APP_SECRET = testAppSecret;
-    process.env.DATABASE_URL = process.env.DATABASE_URL || 'postgresql://test:test@localhost:5432/docmost_test';
+    process.env.DATABASE_URL = process.env.DATABASE_URL || 'postgresql://test:test@localhost:5432/raven-docs_test';
     
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
@@ -152,8 +152,8 @@ describe('MCP System (e2e)', () => {
         .expect((res) => {
           expect(res.body).toMatchObject({
             schema_version: '1.0',
-            name_for_model: 'Docmost MCP',
-            name_for_human: 'Docmost Machine Control Protocol',
+            name_for_model: 'Raven Docs MCP',
+            name_for_human: 'Raven Docs Machine Control Protocol',
             tools: expect.any(Array),
           });
           expect(res.body.tools.length).toBeGreaterThan(0);
@@ -178,7 +178,7 @@ describe('MCP System (e2e)', () => {
           expect(res.body).toMatchObject({
             openapi: '3.0.0',
             info: {
-              title: 'Docmost Machine Control Protocol API',
+              title: 'Raven Docs Machine Control Protocol API',
               version: '1.0.0',
             },
             paths: expect.any(Object),

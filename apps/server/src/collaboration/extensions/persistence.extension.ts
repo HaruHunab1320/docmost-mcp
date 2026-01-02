@@ -11,8 +11,8 @@ import { TiptapTransformer } from '@hocuspocus/transformer';
 import { getPageId, jsonToText, tiptapExtensions } from '../collaboration.util';
 import { PageRepo } from '../../database/repos/page/page.repo';
 import { InjectKysely } from 'nestjs-kysely';
-import { KyselyDB } from '@docmost/db/types/kysely.types';
-import { executeTx } from '@docmost/db/utils';
+import { KyselyDB } from '@raven-docs/db/types/kysely.types';
+import { executeTx } from '@raven-docs/db/utils';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { InjectQueue } from '@nestjs/bullmq';
 import { QueueJob, QueueName } from '../../integrations/queue/constants';
@@ -23,7 +23,7 @@ import {
 } from '../../common/helpers/prosemirror/utils';
 import { isDeepStrictEqual } from 'node:util';
 import { IPageBacklinkJob } from '../../integrations/queue/constants/queue.interface';
-import { Page } from '@docmost/db/types/entity.types';
+import { Page } from '@raven-docs/db/types/entity.types';
 import { EventName } from '../../common/events/event.contants';
 
 @Injectable()

@@ -12,7 +12,7 @@ fi
 
 # Generate a proper password hash
 echo "Generating password hash..."
-cd /Users/jakobgrant/Workspaces/docmost
+cd /Users/jakobgrant/Workspaces/raven-docs
 HASH=$(node -e "const bcrypt = require('bcrypt'); bcrypt.hash('testpassword123', 12).then(h => console.log(h));")
 
 # Wait for the hash to be generated

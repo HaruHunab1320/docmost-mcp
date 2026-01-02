@@ -10,7 +10,7 @@ import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
 import { AuthUser } from '../../../common/decorators/auth-user.decorator';
 import { MCPApprovalService } from '../services/mcp-approval.service';
 import { MCPService } from '../mcp.service';
-import { User } from '@docmost/db/types/entity.types';
+import { User } from '@raven-docs/db/types/entity.types';
 import { AgentMemoryService } from '../../../core/agent-memory/agent-memory.service';
 
 @UseGuards(JwtAuthGuard)

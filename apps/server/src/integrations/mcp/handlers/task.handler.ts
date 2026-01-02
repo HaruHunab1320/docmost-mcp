@@ -12,7 +12,7 @@ import {
   createPermissionDeniedError,
   createResourceNotFoundError,
 } from '../utils/error.utils';
-import { User } from '@docmost/db/types/entity.types';
+import { User } from '@raven-docs/db/types/entity.types';
 import { MCPEventService } from '../services/mcp-event.service';
 import { MCPResourceType } from '../interfaces/mcp-event.interface';
 import {

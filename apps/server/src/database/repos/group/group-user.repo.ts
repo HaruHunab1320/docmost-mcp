@@ -4,13 +4,13 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectKysely } from 'nestjs-kysely';
-import { KyselyDB, KyselyTransaction } from '@docmost/db/types/kysely.types';
-import { dbOrTx, executeTx } from '@docmost/db/utils';
-import { GroupUser, InsertableGroupUser } from '@docmost/db/types/entity.types';
+import { KyselyDB, KyselyTransaction } from '@raven-docs/db/types/kysely.types';
+import { dbOrTx, executeTx } from '@raven-docs/db/utils';
+import { GroupUser, InsertableGroupUser } from '@raven-docs/db/types/entity.types';
 import { PaginationOptions } from '../../pagination/pagination-options';
-import { executeWithPagination } from '@docmost/db/pagination/pagination';
-import { GroupRepo } from '@docmost/db/repos/group/group.repo';
-import { UserRepo } from '@docmost/db/repos/user/user.repo';
+import { executeWithPagination } from '@raven-docs/db/pagination/pagination';
+import { GroupRepo } from '@raven-docs/db/repos/group/group.repo';
+import { UserRepo } from '@raven-docs/db/repos/user/user.repo';
 
 @Injectable()
 export class GroupUserRepo {

@@ -62,7 +62,7 @@ PAGE_RESPONSE=$(curl -s -X POST "$API_URL/call_tool" \
           {
             "type": "paragraph",
             "content": [
-              { "type": "text", "text": "The MCP Standard API provides a unified interface for AI tools to interact with Docmost." }
+              { "type": "text", "text": "The MCP Standard API provides a unified interface for AI tools to interact with Raven Docs." }
             ]
           }
         ]
@@ -120,4 +120,4 @@ echo "- New page: 'MCP Demo Page' with content"
 echo "- Comment on the page"
 echo ""
 echo "This demonstrates that the MCP Standard API is fully integrated"
-echo "and working within the main Docmost server."
+echo "and working within the main Raven Docs server."

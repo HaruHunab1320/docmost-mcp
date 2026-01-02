@@ -6,11 +6,11 @@ import {
   Comment,
   InsertableComment,
   UpdatableComment,
-} from '@docmost/db/types/entity.types';
-import { PaginationOptions } from '@docmost/db/pagination/pagination-options';
-import { executeWithPagination } from '@docmost/db/pagination/pagination';
+} from '@raven-docs/db/types/entity.types';
+import { PaginationOptions } from '@raven-docs/db/pagination/pagination-options';
+import { executeWithPagination } from '@raven-docs/db/pagination/pagination';
 import { ExpressionBuilder } from 'kysely';
-import { DB } from '@docmost/db/types/db';
+import { DB } from '@raven-docs/db/types/db';
 import { jsonObjectFrom } from 'kysely/helpers/postgres';
 
 @Injectable()

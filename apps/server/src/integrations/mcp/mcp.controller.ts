@@ -14,7 +14,7 @@ import { MCPService } from './mcp.service';
 import { MCPRequest, MCPResponse } from './interfaces/mcp.interface';
 import { SkipTransform } from '../../common/decorators/skip-transform.decorator';
 import { AuthUser } from '../../common/decorators/auth-user.decorator';
-import { User } from '@docmost/db/types/entity.types';
+import { User } from '@raven-docs/db/types/entity.types';
 import { MCPPermissionGuard } from './guards/mcp-permission.guard';
 import { MCPAuthGuard } from './guards/mcp-auth.guard';
 import { MCPSchemaService } from './services/mcp-schema.service';
@@ -171,8 +171,8 @@ export class MCPController {
 
     return {
       schema_version: '1.0',
-      name_for_model: 'Docmost MCP',
-      name_for_human: 'Docmost Machine Control Protocol',
+      name_for_model: 'Raven Docs MCP',
+      name_for_human: 'Raven Docs Machine Control Protocol',
       tools,
     };
   }
@@ -249,8 +249,8 @@ export class MCPController {
     return {
       openapi: '3.0.0',
       info: {
-        title: 'Docmost Machine Control Protocol API',
-        description: 'API for AI agents to interact with Docmost',
+        title: 'Raven Docs Machine Control Protocol API',
+        description: 'API for AI agents to interact with Raven Docs',
         version: '1.0.0',
       },
       servers: [

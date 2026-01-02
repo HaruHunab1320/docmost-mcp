@@ -10,7 +10,7 @@ import {
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { AuthWorkspace } from '../../common/decorators/auth-workspace.decorator';
 import { AuthUser } from '../../common/decorators/auth-user.decorator';
-import { Workspace, User } from '@docmost/db/types/entity.types';
+import { Workspace, User } from '@raven-docs/db/types/entity.types';
 import { GoalService } from './goal.service';
 import {
   GoalAssignDto,

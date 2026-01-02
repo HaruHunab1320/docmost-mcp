@@ -1,4 +1,4 @@
-# Production Dockerfile for Docmost
+# Production Dockerfile for Raven Docs
 # Multi-stage build for optimal image size and security
 
 # Stage 1: Dependencies

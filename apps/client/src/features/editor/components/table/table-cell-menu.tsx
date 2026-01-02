@@ -5,7 +5,7 @@ import {
   EditorMenuProps,
   ShouldShowProps,
 } from "@/features/editor/components/table/types/types.ts";
-import { isCellSelection } from "@docmost/editor-ext";
+import { isCellSelection } from "@raven-docs/editor-ext";
 import { ActionIcon, Tooltip } from "@mantine/core";
 import {
   IconBoxMargin,

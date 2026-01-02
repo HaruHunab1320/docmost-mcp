@@ -11,8 +11,8 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { AuthUser } from '../../common/decorators/auth-user.decorator';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { AuthWorkspace } from '../../common/decorators/auth-workspace.decorator';
-import { User, Workspace } from '@docmost/db/types/entity.types';
-import { WorkspaceRepo } from '@docmost/db/repos/workspace/workspace.repo';
+import { User, Workspace } from '@raven-docs/db/types/entity.types';
+import { WorkspaceRepo } from '@raven-docs/db/repos/workspace/workspace.repo';
 
 @UseGuards(JwtAuthGuard)
 @Controller('users')

@@ -32,7 +32,7 @@ import {
   Excalidraw,
   Embed,
   Mention
-} from '@docmost/editor-ext';
+} from '@raven-docs/editor-ext';
 import { generateText, getSchema, JSONContent } from '@tiptap/core';
 import { generateHTML } from '../common/helpers/prosemirror/html';
 // @tiptap/html library works best for generating prosemirror json state but not HTML

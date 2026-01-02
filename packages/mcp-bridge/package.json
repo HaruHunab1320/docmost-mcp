@@ -1,7 +1,7 @@
 {
-  "name": "@docmost/mcp-bridge",
+  "name": "@raven-docs/mcp-bridge",
   "version": "0.1.0",
-  "description": "Model Context Protocol bridge for Docmost",
+  "description": "Model Context Protocol bridge for Raven Docs",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

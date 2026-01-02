@@ -7,13 +7,13 @@ const rl = readline.createInterface({
   output: process.stdout,
 });
 
-console.log("MCP WebSocket Client for Docmost");
+console.log("MCP WebSocket Client for Raven Docs");
 console.log("--------------------------------");
 console.log(
   "This client will connect to the MCP WebSocket endpoint and display all events"
 );
 console.log(
-  "You need an API key to authenticate. You can create one in Docmost settings."
+  "You need an API key to authenticate. You can create one in Raven Docs settings."
 );
 
 rl.question("Enter your MCP API key (starts with 'mcp_'): ", (apiKey) => {

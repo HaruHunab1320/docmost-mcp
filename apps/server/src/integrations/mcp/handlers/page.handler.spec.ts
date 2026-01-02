@@ -4,7 +4,7 @@ import { PageService } from '../../../core/page/page.service';
 import { PageHistoryService } from '../../../core/page/services/page-history.service';
 import { MCPEventService } from '../services/mcp-event.service';
 import { MCPContextService } from '../services/mcp-context.service';
-import { User } from '@docmost/db/types/entity.types';
+import { User } from '@raven-docs/db/types/entity.types';
 import { ForbiddenException, NotFoundException } from '@nestjs/common';
 
 describe('PageHandler', () => {

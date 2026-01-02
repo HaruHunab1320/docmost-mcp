@@ -1,17 +1,17 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectKysely } from 'nestjs-kysely';
-import { KyselyDB, KyselyTransaction } from '@docmost/db/types/kysely.types';
-import { dbOrTx } from '@docmost/db/utils';
+import { KyselyDB, KyselyTransaction } from '@raven-docs/db/types/kysely.types';
+import { dbOrTx } from '@raven-docs/db/utils';
 import {
   InsertableSpaceMember,
   SpaceMember,
   UpdatableSpaceMember,
-} from '@docmost/db/types/entity.types';
+} from '@raven-docs/db/types/entity.types';
 import { PaginationOptions } from '../../pagination/pagination-options';
 import { MemberInfo, UserSpaceRole } from './types';
-import { executeWithPagination } from '@docmost/db/pagination/pagination';
-import { GroupRepo } from '@docmost/db/repos/group/group.repo';
-import { SpaceRepo } from '@docmost/db/repos/space/space.repo';
+import { executeWithPagination } from '@raven-docs/db/pagination/pagination';
+import { GroupRepo } from '@raven-docs/db/repos/group/group.repo';
+import { SpaceRepo } from '@raven-docs/db/repos/space/space.repo';
 
 @Injectable()
 export class SpaceMemberRepo {

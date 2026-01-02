@@ -1,4 +1,4 @@
-import { UserRepo } from '@docmost/db/repos/user/user.repo';
+import { UserRepo } from '@raven-docs/db/repos/user/user.repo';
 import {
   BadRequestException,
   Injectable,
@@ -6,9 +6,9 @@ import {
   Logger,
 } from '@nestjs/common';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { PaginationOptions } from '@docmost/db/pagination/pagination-options';
-import { PaginationResult } from '@docmost/db/pagination/pagination';
-import { User } from '@docmost/db/types/entity.types';
+import { PaginationOptions } from '@raven-docs/db/pagination/pagination-options';
+import { PaginationResult } from '@raven-docs/db/pagination/pagination';
+import { User } from '@raven-docs/db/types/entity.types';
 
 @Injectable()
 export class UserService {

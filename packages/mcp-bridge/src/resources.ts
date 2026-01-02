@@ -8,7 +8,7 @@ const contentSchema = z
     type: z.string(),
     content: z.array(z.any()),
   })
-  .describe("Content in Docmost format");
+  .describe("Content in Raven Docs format");
 
 // Helper function to make API requests with type validation
 async function makeRequest<T extends z.ZodSchema>(
@@ -122,7 +122,7 @@ const updateSpaceSchema = z.object({
 // Space resource
 const spaceResource = {
   name: "space",
-  description: "Manage spaces in Docmost",
+  description: "Manage spaces in Raven Docs",
   schema: createSpaceSchema,
   operations: {
     create: {
@@ -212,7 +212,7 @@ const movePageSchema = z.object({
 // Page resource
 const pageResource = {
   name: "page",
-  description: "Manage pages in Docmost",
+  description: "Manage pages in Raven Docs",
   schema: createPageSchema,
   operations: {
     create: {
@@ -282,7 +282,7 @@ const updateUserSchema = z.object({
 // User resource
 const userResource = {
   name: "user",
-  description: "Manage users in Docmost",
+  description: "Manage users in Raven Docs",
   operations: {
     list: {
       description: "List users in a workspace",
@@ -361,7 +361,7 @@ const updateCommentSchema = z.object({
 // Comment resource
 const commentResource = {
   name: "comment",
-  description: "Manage comments in Docmost",
+  description: "Manage comments in Raven Docs",
   operations: {
     create: {
       description: "Create a new comment",
@@ -441,7 +441,7 @@ const updateWorkspaceSchema = z.object({
 // Workspace resource
 const workspaceResource = {
   name: "workspace",
-  description: "Manage workspaces in Docmost",
+  description: "Manage workspaces in Raven Docs",
   operations: {
     create: {
       description: "Create a new workspace",
@@ -543,7 +543,7 @@ const updateGroupSchema = z.object({
 // Group resource
 const groupResource = {
   name: "group",
-  description: "Manage groups in Docmost",
+  description: "Manage groups in Raven Docs",
   operations: {
     create: {
       description: "Create a new group",
@@ -658,7 +658,7 @@ const uploadAttachmentSchema = z.object({
 // Attachment resource
 const attachmentResource = {
   name: "attachment",
-  description: "Manage attachments in Docmost",
+  description: "Manage attachments in Raven Docs",
   operations: {
     upload: {
       description: "Upload a new attachment",
@@ -754,7 +754,7 @@ const navigateUISchema = z.object({
 // UI resource
 const uiResource = {
   name: "ui",
-  description: "Control the Docmost UI",
+  description: "Control the Raven Docs UI",
   operations: {
     navigate: {
       description: "Navigate to a specific destination in the UI",

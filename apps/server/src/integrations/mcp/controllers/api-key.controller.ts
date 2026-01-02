@@ -13,7 +13,7 @@ import {
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
 import { AuthUser } from '../../../common/decorators/auth-user.decorator';
-import { User, MCPApiKey } from '@docmost/db/types/entity.types';
+import { User, MCPApiKey } from '@raven-docs/db/types/entity.types';
 import { MCPApiKeyService } from '../services/mcp-api-key.service';
 import { IsString, MinLength } from 'class-validator';
 import WorkspaceAbilityFactory from '../../../core/casl/abilities/workspace-ability.factory';

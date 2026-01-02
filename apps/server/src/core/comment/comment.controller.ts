@@ -16,8 +16,8 @@ import { ResolveCommentDto } from './dto/resolve-comment.dto';
 import { AuthUser } from '../../common/decorators/auth-user.decorator';
 import { AuthWorkspace } from '../../common/decorators/auth-workspace.decorator';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
-import { PaginationOptions } from '@docmost/db/pagination/pagination-options';
-import { User, Workspace } from '@docmost/db/types/entity.types';
+import { PaginationOptions } from '@raven-docs/db/pagination/pagination-options';
+import { User, Workspace } from '@raven-docs/db/types/entity.types';
 import SpaceAbilityFactory from '../casl/abilities/space-ability.factory';
 import { PageRepo } from '../../database/repos/page/page.repo';
 import {

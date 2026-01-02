@@ -70,7 +70,7 @@ const project89CSS = `
   /* Background effects for the entire page */
   [data-theme^="project89"] body {
     position: relative;
-    background-color: var(--docmost-body-bg);
+    background-color: var(--raven-docs-body-bg);
   }
   
   /* Grid lines are removed for both themes */

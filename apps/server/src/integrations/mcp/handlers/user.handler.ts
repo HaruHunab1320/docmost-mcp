@@ -1,8 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { WorkspaceService } from '../../../core/workspace/services/workspace.service';
 import { UserService } from '../../../core/user/user.service';
-import { User } from '@docmost/db/types/entity.types';
-import { PaginationOptions } from '@docmost/db/pagination/pagination-options';
+import { User } from '@raven-docs/db/types/entity.types';
+import { PaginationOptions } from '@raven-docs/db/pagination/pagination-options';
 import {
   createInvalidParamsError,
   createInternalError,

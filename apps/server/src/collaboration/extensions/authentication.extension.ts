@@ -9,7 +9,7 @@ import { TokenService } from '../../core/auth/services/token.service';
 import { UserRepo } from '../../database/repos/user/user.repo';
 import { PageRepo } from '../../database/repos/page/page.repo';
 import { SpaceMemberRepo } from '../../database/repos/space/space-member.repo';
-import { findHighestUserSpaceRole } from '@docmost/db/repos/space/utils';
+import { findHighestUserSpaceRole } from '@raven-docs/db/repos/space/utils';
 import { SpaceRole } from '../../common/helpers/types/permission';
 import { getPageId } from '../collaboration.util';
 import { JwtCollabPayload, JwtType } from '../../core/auth/dto/jwt-payload';

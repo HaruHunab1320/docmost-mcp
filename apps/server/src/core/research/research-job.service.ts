@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectKysely } from 'nestjs-kysely';
-import { KyselyDB } from '@docmost/db/types/kysely.types';
+import { KyselyDB } from '@raven-docs/db/types/kysely.types';
 import { CreateResearchJobDto } from './dto/research-job.dto';
 import { QueueJob, QueueName } from '../../integrations/queue/constants';
 import { InjectQueue } from '@nestjs/bullmq';
@@ -12,9 +12,9 @@ import { WebSearchService } from './web-search.service';
 import { AgentMemoryService } from '../agent-memory/agent-memory.service';
 import { AIService } from '../../integrations/ai/ai.service';
 import { sql } from 'kysely';
-import { PageRepo } from '@docmost/db/repos/page/page.repo';
+import { PageRepo } from '@raven-docs/db/repos/page/page.repo';
 import { PageService } from '../page/services/page.service';
-import { WorkspaceRepo } from '@docmost/db/repos/workspace/workspace.repo';
+import { WorkspaceRepo } from '@raven-docs/db/repos/workspace/workspace.repo';
 
 type ResearchJobRecord = {
   id: string;

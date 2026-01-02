@@ -36,7 +36,7 @@ describe('MCP Standard API (e2e)', () => {
           expect(res.body.data).toHaveProperty('protocolVersion');
           expect(res.body.data).toHaveProperty('capabilities');
           expect(res.body.data).toHaveProperty('serverInfo');
-          expect(res.body.data.serverInfo.name).toBe('docmost');
+          expect(res.body.data.serverInfo.name).toBe('raven-docs');
         });
     });
 

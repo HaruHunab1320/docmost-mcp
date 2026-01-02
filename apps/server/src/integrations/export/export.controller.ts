@@ -12,10 +12,10 @@ import {
 import { ExportService } from './export.service';
 import { ExportPageDto, ExportSpaceDto } from './dto/export-dto';
 import { AuthUser } from '../../common/decorators/auth-user.decorator';
-import { User } from '@docmost/db/types/entity.types';
+import { User } from '@raven-docs/db/types/entity.types';
 import SpaceAbilityFactory from '../../core/casl/abilities/space-ability.factory';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
-import { PageRepo } from '@docmost/db/repos/page/page.repo';
+import { PageRepo } from '@raven-docs/db/repos/page/page.repo';
 import {
   SpaceCaslAction,
   SpaceCaslSubject,

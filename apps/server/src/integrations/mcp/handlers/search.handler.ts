@@ -10,7 +10,7 @@ import {
   createInternalError,
   createPermissionDeniedError,
 } from '../utils/error.utils';
-import { User } from '@docmost/db/types/entity.types';
+import { User } from '@raven-docs/db/types/entity.types';
 
 /**
  * Handler for search-related MCP operations

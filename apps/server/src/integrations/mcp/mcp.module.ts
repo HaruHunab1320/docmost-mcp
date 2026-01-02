@@ -58,7 +58,7 @@ import { AgentPolicyService } from '../../core/agent/agent-policy.service';
 /**
  * Machine Control Protocol (MCP) Module
  *
- * This module provides programmatic access to Docmost functionality
+ * This module provides programmatic access to Raven Docs functionality
  * through a JSON-RPC 2.0 based protocol.
  */
 @Module({

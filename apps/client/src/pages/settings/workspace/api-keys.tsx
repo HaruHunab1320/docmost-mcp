@@ -97,7 +97,7 @@ export default function ApiKeysSettings() {
               <Paper
                 withBorder
                 p="sm"
-                bg="var(--docmost-surface-bg, var(--mantine-color-body))"
+                bg="var(--raven-docs-surface-bg, var(--mantine-color-body))"
               >
                 <code style={{ fontSize: "0.875rem" }}>
                   Authorization: Bearer mcp_your_api_key_here

@@ -16,7 +16,7 @@ This document maps GTD / Second Brain primitives to Raven Docs data and MCP Stan
 - Inbox items: tasks in a space with no `projectId`.
 - Projects: `projects` table with `homePageId` and task lists.
 - Tasks: `tasks` table with status, priority, due date, assignee.
-- GTD buckets: **stored in localStorage** (`docmost.taskBuckets.{spaceId}`).
+- GTD buckets: **stored in localStorage** (`ravendocs.taskBuckets.{spaceId}`).
 - Daily notes: created as pages with date titles.
 - Weekly review: helper creates a page with a checklist template.
 

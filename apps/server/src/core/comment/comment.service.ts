@@ -7,9 +7,9 @@ import {
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
 import { CommentRepo } from '../../database/repos/comment/comment.repo';
-import { Comment, User } from '@docmost/db/types/entity.types';
-import { PaginationOptions } from '@docmost/db/pagination/pagination-options';
-import { PaginationResult } from '@docmost/db/pagination/pagination';
+import { Comment, User } from '@raven-docs/db/types/entity.types';
+import { PaginationOptions } from '@raven-docs/db/pagination/pagination-options';
+import { PaginationResult } from '@raven-docs/db/pagination/pagination';
 import { PageRepo } from '../../database/repos/page/page.repo';
 import { AgentMemoryService } from '../agent-memory/agent-memory.service';
 

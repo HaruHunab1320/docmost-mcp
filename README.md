@@ -3,18 +3,18 @@
     <p>
         A second-brain workspace for docs, projects, and GTD-style planning.
         <br />
-        <a href="https://github.com/docmost/docmost"><strong>Upstream Docmost</strong></a>
+        <a href="https://github.com/raven-docs/raven-docs"><strong>Upstream Raven Docs</strong></a>
     </p>
 </div>
 <br />
 
 ## Getting started
 
-To get started with Raven Docs, see `README-NEW.md` for setup and use the upstream Docmost docs for baseline reference.
+To get started with Raven Docs, see `README-NEW.md` for setup and use the upstream Raven Docs docs for baseline reference.
 
 ## Origin
 
-Raven Docs is built on the Docmost codebase and continues to evolve with its own product direction.
+Raven Docs is built on the Raven Docs codebase and continues to evolve with its own product direction.
 
 ## Features
 
@@ -36,7 +36,7 @@ Raven Docs is built on the Docmost codebase and continues to evolve with its own
 
 ## API Integrations (HaruHunab1320 Extensions)
 
-> **Note**: The following API integrations are extensions developed by HaruHunab1320 and are not part of the upstream Docmost project.
+> **Note**: The following API integrations are extensions developed by HaruHunab1320 and are not part of the upstream Raven Docs project.
 
 ### Master Control API (Internal)
 
@@ -112,19 +112,19 @@ Each tool accepts specific parameters and can be called directly from AI assista
 ### Screenshots
 
 <p align="center">
-<img alt="home" src="https://docmost.com/screenshots/home.png" width="70%">
-<img alt="editor" src="https://docmost.com/screenshots/editor.png" width="70%">
+<img alt="home" src="https://raven-docs.local/screenshots/home.png" width="70%">
+<img alt="editor" src="https://raven-docs.local/screenshots/editor.png" width="70%">
 </p>
 
 ### License
-Raven Docs inherits the Docmost core licensed under the open-source AGPL 3.0 license.  
+Raven Docs inherits the Raven Docs core licensed under the open-source AGPL 3.0 license.  
 Enterprise features are available under an enterprise license (Enterprise Edition).  
 
-All files in the following directories are licensed under the Docmost Enterprise license defined in `packages/ee/License`.
+All files in the following directories are licensed under the Raven Docs Enterprise license defined in `packages/ee/License`.
   - apps/server/src/ee
   - apps/client/src/ee
   - packages/ee
 
 ### Contributing
 
-See the upstream [development documentation](https://docmost.com/docs/self-hosting/development)
+See the upstream [development documentation](https://raven-docs.local/docs/self-hosting/development)

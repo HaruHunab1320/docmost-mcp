@@ -5,9 +5,9 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { PaginationOptions } from '@docmost/db/pagination/pagination-options';
+import { PaginationOptions } from '@raven-docs/db/pagination/pagination-options';
 import { GroupService } from './group.service';
-import { KyselyDB } from '@docmost/db/types/kysely.types';
+import { KyselyDB } from '@raven-docs/db/types/kysely.types';
 import { InjectKysely } from 'nestjs-kysely';
 import { GroupUserRepo } from '../../../database/repos/group/group-user.repo';
 import { UserRepo } from '../../../database/repos/user/user.repo';

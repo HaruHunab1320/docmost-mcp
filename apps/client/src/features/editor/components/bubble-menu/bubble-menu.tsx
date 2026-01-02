@@ -25,7 +25,7 @@ import {
 } from "@/features/comment/atoms/comment-atom";
 import { useAtom } from "jotai";
 import { v7 as uuid7 } from "uuid";
-import { isCellSelection, isTextSelected } from "@docmost/editor-ext";
+import { isCellSelection, isTextSelected } from "@raven-docs/editor-ext";
 import { LinkSelector } from "@/features/editor/components/bubble-menu/link-selector.tsx";
 import { useTranslation } from "react-i18next";
 

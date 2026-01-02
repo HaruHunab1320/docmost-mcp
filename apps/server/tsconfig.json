@@ -20,9 +20,9 @@
     "strict": true,
     "jsx": "react",
     "paths": {
-      "@docmost/db/*": ["./src/database/*"],
-      "@docmost/transactional/*": ["./src/integrations/transactional/*"],
-      "@docmost/ee/*": ["./src/ee/*"]
+      "@raven-docs/db/*": ["./src/database/*"],
+      "@raven-docs/transactional/*": ["./src/integrations/transactional/*"],
+      "@raven-docs/ee/*": ["./src/ee/*"]
     }
   }
 }

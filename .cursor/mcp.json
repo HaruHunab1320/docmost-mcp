@@ -1,6 +1,6 @@
 {
   "mcpServers": {
-    "docmost": {
+    "raven-docs": {
       "command": "npx",
       "args": [
         "tsx",

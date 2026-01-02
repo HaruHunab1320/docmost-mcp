@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { MCPService } from './mcp.service';
 import { MCPRequest, MCPResponse, MCPErrorCode } from './interfaces/mcp.interface';
-import { User } from '@docmost/db/types/entity.types';
+import { User } from '@raven-docs/db/types/entity.types';
 import { PageHandler } from './handlers/page.handler';
 import { SpaceHandler } from './handlers/space.handler';
 import { UserHandler } from './handlers/user.handler';
@@ -18,7 +18,7 @@ import { TaskHandler } from './handlers/task.handler';
 import { ApprovalHandler } from './handlers/approval.handler';
 import { MCPApprovalService } from './services/mcp-approval.service';
 import { AgentPolicyService } from '../../core/agent/agent-policy.service';
-import { WorkspaceRepo } from '@docmost/db/repos/workspace/workspace.repo';
+import { WorkspaceRepo } from '@raven-docs/db/repos/workspace/workspace.repo';
 import { SearchHandler } from './handlers/search.handler';
 import { ImportHandler } from './handlers/import.handler';
 import { ExportHandler } from './handlers/export.handler';

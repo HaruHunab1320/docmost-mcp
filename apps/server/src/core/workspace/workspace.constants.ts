@@ -17,7 +17,7 @@ export const DISALLOWED_HOSTNAMES = [
   'customer',
   'customers',
   'dashboard',
-  'docmost',
+  'raven-docs',
   'support',
   'admin',
   'about',

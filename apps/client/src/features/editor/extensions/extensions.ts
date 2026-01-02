@@ -37,7 +37,7 @@ import {
   Excalidraw,
   Embed,
   Mention,
-} from "@docmost/editor-ext";
+} from "@raven-docs/editor-ext";
 import {
   randomElement,
   userColors,

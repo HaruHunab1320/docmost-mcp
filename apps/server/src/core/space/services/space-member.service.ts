@@ -3,7 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { PaginationOptions } from '@docmost/db/pagination/pagination-options';
+import { PaginationOptions } from '@raven-docs/db/pagination/pagination-options';
 import {
   KyselyDB,
   KyselyTransaction,
@@ -11,12 +11,12 @@ import {
 import { SpaceMemberRepo } from '../../../database/repos/space/space-member.repo';
 import { AddSpaceMembersDto } from '../dto/add-space-members.dto';
 import { InjectKysely } from 'nestjs-kysely';
-import { Space, SpaceMember, User } from '@docmost/db/types/entity.types';
+import { Space, SpaceMember, User } from '@raven-docs/db/types/entity.types';
 import { SpaceRepo } from '../../../database/repos/space/space.repo';
 import { RemoveSpaceMemberDto } from '../dto/remove-space-member.dto';
 import { UpdateSpaceMemberRoleDto } from '../dto/update-space-member-role.dto';
 import { SpaceRole } from '../../../common/helpers/types/permission';
-import { PaginationResult } from '@docmost/db/pagination/pagination';
+import { PaginationResult } from '@raven-docs/db/pagination/pagination';
 
 @Injectable()
 export class SpaceMemberService {

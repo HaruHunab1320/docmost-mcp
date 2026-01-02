@@ -2,7 +2,7 @@
   display: block;
   width: 100%;
   padding: var(--mantine-spacing-sm) 0;
-  border-bottom: 1px solid var(--docmost-border-color, var(--mantine-color-default-border));
+  border-bottom: 1px solid var(--raven-docs-border-color, var(--mantine-color-default-border));
 }
 
 .mobileItem:hover {

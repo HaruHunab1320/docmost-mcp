@@ -18,9 +18,9 @@ import { getExportExtension } from '../../export/utils';
 import { sanitize } from 'sanitize-filename-ts';
 import { v7 as uuid7 } from 'uuid';
 import * as path from 'path';
-import { User } from '@docmost/db/types/entity.types';
+import { User } from '@raven-docs/db/types/entity.types';
 import { InjectKysely } from 'nestjs-kysely';
-import { KyselyDB } from '@docmost/db/types/kysely.types';
+import { KyselyDB } from '@raven-docs/db/types/kysely.types';
 
 /**
  * Handler for export-related MCP operations

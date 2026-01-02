@@ -7,7 +7,7 @@
     "^.+\\.(t|j)s$": "ts-jest"
   },
   "moduleNameMapper": {
-    "^@docmost/db/(.*)$": "<rootDir>/../src/database/$1"
+    "^@raven-docs/db/(.*)$": "<rootDir>/../src/database/$1"
   },
   "setupFiles": ["<rootDir>/jest.setup.ts"]
 }

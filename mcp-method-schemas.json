@@ -170,7 +170,7 @@
                 },
                 "content": {
                   "type": "object",
-                  "description": "Page content in Docmost format",
+                  "description": "Page content in Raven Docs format",
                   "required": true
                 }
               },
@@ -421,7 +421,7 @@
         },
         "content": {
           "type": "object",
-          "description": "Page content in Docmost format",
+          "description": "Page content in Raven Docs format",
           "required": true,
           "example": {
             "type": "doc",
@@ -466,7 +466,7 @@
         {
           "code": "INVALID_CONTENT",
           "message": "The provided content format is invalid",
-          "resolution": "Ensure content follows the Docmost document schema"
+          "resolution": "Ensure content follows the Raven Docs document schema"
         }
       ],
       "examples": [

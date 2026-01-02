@@ -16,7 +16,7 @@ import { useAtom } from "jotai";
 import { userAtom } from "../atoms/current-user-atom";
 import {
   getThemeById,
-  DocmostTheme,
+  RavenDocsTheme,
   mantineCssResolver,
   theme as baseTheme,
 } from "@/theme";
@@ -30,7 +30,7 @@ import {
 let themeBeingApplied = false;
 
 interface ThemeContextType {
-  activeTheme: DocmostTheme;
+  activeTheme: RavenDocsTheme;
   setThemeById: (themeId: string) => void;
 }
 
@@ -52,7 +52,7 @@ export function RavenDocsThemeProvider({ children }: ThemeProviderProps) {
   const applyingThemeRef = useRef(false);
 
   // Use state for active theme to ensure it updates properly
-  const [activeTheme, setActiveTheme] = useState<DocmostTheme>(() => {
+  const [activeTheme, setActiveTheme] = useState<RavenDocsTheme>(() => {
     const defaultTheme =
       colorScheme === "dark" ? "default-dark" : "default-light";
     const themeId = user?.settings?.preferences?.themeId || defaultTheme;
@@ -68,7 +68,7 @@ export function RavenDocsThemeProvider({ children }: ThemeProviderProps) {
   }, [activeTheme]);
 
   // Function to apply a theme to all parts of the system
-  const applyThemeToSystem = (theme: DocmostTheme) => {
+  const applyThemeToSystem = (theme: RavenDocsTheme) => {
     if (themeBeingApplied) return;
 
     try {
@@ -95,23 +95,23 @@ export function RavenDocsThemeProvider({ children }: ThemeProviderProps) {
       );
 
       document.documentElement.style.setProperty(
-        "--docmost-body-bg",
+        "--raven-docs-body-bg",
         theme.bodyBg || "var(--mantine-color-body)"
       );
       document.documentElement.style.setProperty(
-        "--docmost-surface-bg",
+        "--raven-docs-surface-bg",
         theme.surfaceBg || "var(--mantine-color-body)"
       );
       document.documentElement.style.setProperty(
-        "--docmost-muted-bg",
+        "--raven-docs-muted-bg",
         theme.mutedBg || "var(--mantine-color-gray-1)"
       );
       document.documentElement.style.setProperty(
-        "--docmost-text-color",
+        "--raven-docs-text-color",
         theme.textColor || "var(--mantine-color-text)"
       );
       document.documentElement.style.setProperty(
-        "--docmost-border-color",
+        "--raven-docs-border-color",
         theme.borderColor || "var(--mantine-color-default-border)"
       );
 

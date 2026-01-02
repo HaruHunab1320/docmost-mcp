@@ -5,14 +5,14 @@ import {
   MongoAbility,
 } from '@casl/ability';
 import { SpaceRole } from '../../../common/helpers/types/permission';
-import { User } from '@docmost/db/types/entity.types';
-import { SpaceMemberRepo } from '@docmost/db/repos/space/space-member.repo';
+import { User } from '@raven-docs/db/types/entity.types';
+import { SpaceMemberRepo } from '@raven-docs/db/repos/space/space-member.repo';
 import {
   SpaceCaslAction,
   ISpaceAbility,
   SpaceCaslSubject,
 } from '../interfaces/space-ability.type';
-import { findHighestUserSpaceRole } from '@docmost/db/repos/space/utils';
+import { findHighestUserSpaceRole } from '@raven-docs/db/repos/space/utils';
 
 @Injectable()
 export default class SpaceAbilityFactory {

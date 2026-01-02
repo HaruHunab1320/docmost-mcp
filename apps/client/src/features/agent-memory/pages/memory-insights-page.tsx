@@ -36,7 +36,7 @@ import { useProjects } from "@/features/project/hooks/use-projects";
 import { getProjectsArray } from "@/features/project/utils/project-data";
 import { notifications } from "@mantine/notifications";
 import { IconChevronDown, IconChevronRight, IconDotsVertical } from "@tabler/icons-react";
-import { markdownToHtml } from "@docmost/editor-ext";
+import { markdownToHtml } from "@raven-docs/editor-ext";
 import classes from "./memory-insights-page.module.css";
 
 function renderMemoryContent(content: unknown) {

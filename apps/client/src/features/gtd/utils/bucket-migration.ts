@@ -1,7 +1,7 @@
 import { projectService } from "@/features/project/services/project-service";
 import { TaskBucket } from "@/features/project/types";
 
-const LEGACY_PREFIX = "docmost.taskBuckets.";
+const LEGACY_PREFIX = "ravendocs.taskBuckets.";
 
 function getLegacyKey(spaceId: string) {
   return `${LEGACY_PREFIX}${spaceId}`;

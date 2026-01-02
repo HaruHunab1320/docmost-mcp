@@ -9,7 +9,7 @@ const getArgValue = (flag) => {
 
 const DATABASE_URL =
   process.env.DATABASE_URL ||
-  "postgresql://docmost_user:docmost_secure_password@localhost:5432/docmost";
+  "postgresql://raven-docs_user:raven-docs_secure_password@localhost:5432/raven-docs";
 const MEMGRAPH_URI = process.env.MEMGRAPH_URI || "bolt://localhost:7687";
 const MEMGRAPH_USER = process.env.MEMGRAPH_USER || "";
 const MEMGRAPH_PASSWORD = process.env.MEMGRAPH_PASSWORD || "";

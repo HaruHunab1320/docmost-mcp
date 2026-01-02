@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectKysely } from '../../../lib/kysely/nestjs-kysely';
-import { KyselyDB, KyselyTransaction } from '@docmost/db/types/kysely.types';
+import { KyselyDB, KyselyTransaction } from '@raven-docs/db/types/kysely.types';
 import {
   InsertableTaskLabel,
   InsertableTaskLabelAssignment,

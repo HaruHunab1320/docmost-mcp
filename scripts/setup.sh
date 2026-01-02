@@ -1,11 +1,11 @@
 #!/bin/bash
 
-# Docmost Quick Setup Script
-# This script helps you get Docmost running quickly with Docker
+# Raven Docs Quick Setup Script
+# This script helps you get Raven Docs running quickly with Docker
 
 set -e
 
-echo "🚀 Docmost Quick Setup"
+echo "🚀 Raven Docs Quick Setup"
 echo "====================="
 echo ""
 
@@ -70,23 +70,23 @@ echo ""
 
 # Run migrations
 echo "🗄️  Running database migrations..."
-docker-compose exec -T docmost pnpm migration:latest || {
+docker-compose exec -T raven-docs pnpm migration:latest || {
     echo "⚠️  Migrations might have already been run or there was an error."
     echo "   Check the logs if you encounter issues."
 }
 
 echo ""
-echo "🎉 Docmost is ready!"
+echo "🎉 Raven Docs is ready!"
 echo "=================================="
 echo ""
-echo "📍 Access Docmost at: http://localhost:3000"
+echo "📍 Access Raven Docs at: http://localhost:3000"
 echo ""
 echo "🔧 Useful commands:"
 echo "   - View logs: docker-compose logs -f"
 echo "   - Stop services: docker-compose down"
 echo "   - Restart services: docker-compose restart"
-echo "   - Update Docmost: docker-compose pull && docker-compose up -d"
+echo "   - Update Raven Docs: docker-compose pull && docker-compose up -d"
 echo ""
-echo "📚 For more information, visit: https://docmost.com/docs"
+echo "📚 For more information, visit: https://raven-docs.local/docs"
 echo ""
 echo "💡 First time? Create your admin account at http://localhost:3000/auth/setup"

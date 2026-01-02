@@ -1,10 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import { InjectKysely } from 'nestjs-kysely';
-import { KyselyDB } from '@docmost/db/types/kysely.types';
+import { KyselyDB } from '@raven-docs/db/types/kysely.types';
 import { AgentLoopService } from './agent-loop.service';
 import { resolveAgentSettings } from './agent-settings';
-import { WorkspaceRepo } from '@docmost/db/repos/workspace/workspace.repo';
+import { WorkspaceRepo } from '@raven-docs/db/repos/workspace/workspace.repo';
 
 @Injectable()
 export class AgentLoopSchedulerService {

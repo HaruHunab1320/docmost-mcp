@@ -8,7 +8,7 @@ import { TaskLabelRepo } from '../../../database/repos/task/task-label.repo';
 import { ProjectRepo } from '../../../database/repos/project/project.repo';
 import { SpaceRepo } from '../../../database/repos/space/space.repo';
 import { PageRepo } from '../../../database/repos/page/page.repo';
-import { WorkspaceRepo } from '@docmost/db/repos/workspace/workspace.repo';
+import { WorkspaceRepo } from '@raven-docs/db/repos/workspace/workspace.repo';
 import { GoalService } from '../../goal/goal.service';
 import { resolveAgentSettings } from '../../agent/agent-settings';
 import {

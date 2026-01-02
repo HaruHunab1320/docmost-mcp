@@ -4,7 +4,7 @@ import { MCPApiKeyService } from '../services/mcp-api-key.service';
 import WorkspaceAbilityFactory from '../../../core/casl/abilities/workspace-ability.factory';
 import { UserService } from '../../../core/user/user.service';
 import { EnvironmentService } from '../../../integrations/environment/environment.service';
-import { User, MCPApiKey } from '@docmost/db/types/entity.types';
+import { User, MCPApiKey } from '@raven-docs/db/types/entity.types';
 import { BadRequestException, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import {
   WorkspaceCaslSubject,

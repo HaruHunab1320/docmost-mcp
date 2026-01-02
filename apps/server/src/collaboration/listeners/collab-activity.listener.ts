@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { PageRepo } from '../../database/repos/page/page.repo';
-import { WorkspaceRepo } from '@docmost/db/repos/workspace/workspace.repo';
+import { WorkspaceRepo } from '@raven-docs/db/repos/workspace/workspace.repo';
 import { AgentMemoryService } from '../../core/agent-memory/agent-memory.service';
 import { resolveAgentSettings } from '../../core/agent/agent-settings';
 

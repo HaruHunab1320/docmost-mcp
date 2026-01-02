@@ -12,8 +12,8 @@ import {
   createPermissionDeniedError,
   createResourceNotFoundError,
 } from '../utils/error.utils';
-import { PaginationOptions } from '@docmost/db/pagination/pagination-options';
-import { User } from '@docmost/db/types/entity.types';
+import { PaginationOptions } from '@raven-docs/db/pagination/pagination-options';
+import { User } from '@raven-docs/db/types/entity.types';
 import { CreatePageDto } from '../../../core/page/dto/create-page.dto';
 import { PageHistoryService } from '../../../core/page/services/page-history.service';
 import { validate as isValidUUID } from 'uuid';

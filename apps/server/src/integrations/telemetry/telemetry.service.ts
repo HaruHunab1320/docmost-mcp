@@ -2,15 +2,15 @@ import { Injectable } from '@nestjs/common';
 import { Interval, SchedulerRegistry } from '@nestjs/schedule';
 import { EnvironmentService } from '../environment/environment.service';
 import { InjectKysely } from 'nestjs-kysely';
-import { KyselyDB } from '@docmost/db/types/kysely.types';
+import { KyselyDB } from '@raven-docs/db/types/kysely.types';
 import { createHmac } from 'node:crypto';
-import { WorkspaceRepo } from '@docmost/db/repos/workspace/workspace.repo';
+import { WorkspaceRepo } from '@raven-docs/db/repos/workspace/workspace.repo';
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const packageJson = require('./../../../package.json');
 
 @Injectable()
 export class TelemetryService {
-  private readonly ENDPOINT_URL = 'https://tel.docmost.com/api/event';
+  private readonly ENDPOINT_URL = 'https://tel.raven-docs.local/api/event';
 
   constructor(
     private readonly environmentService: EnvironmentService,
@@ -75,7 +75,7 @@ export class TelemetryService {
       await fetch(this.ENDPOINT_URL, {
         method: 'POST',
         headers: {
-          'User-Agent': 'docmost:' + data.version,
+          'User-Agent': 'raven-docs:' + data.version,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(data),

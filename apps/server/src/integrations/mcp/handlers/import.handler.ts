@@ -14,7 +14,7 @@ import {
 import { StorageService } from '../../storage/storage.service';
 import { v7 as uuid7 } from 'uuid';
 import * as path from 'path';
-import { User } from '@docmost/db/types/entity.types';
+import { User } from '@raven-docs/db/types/entity.types';
 
 /**
  * Handler for import-related MCP operations

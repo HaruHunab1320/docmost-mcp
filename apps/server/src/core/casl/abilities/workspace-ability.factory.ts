@@ -5,7 +5,7 @@ import {
   MongoAbility,
 } from '@casl/ability';
 import { UserRole } from '../../../common/helpers/types/permission';
-import { User, Workspace } from '@docmost/db/types/entity.types';
+import { User, Workspace } from '@raven-docs/db/types/entity.types';
 import {
   IWorkspaceAbility,
   WorkspaceCaslAction,

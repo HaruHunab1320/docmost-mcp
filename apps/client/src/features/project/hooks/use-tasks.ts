@@ -32,7 +32,7 @@ export function useTasksBySpace(params: TaskListBySpaceParams) {
   useEffect(() => {
     if (!params.spaceId) return;
     if (migratedSpacesRef.current.has(params.spaceId)) return;
-    const key = `docmost.taskBuckets.${params.spaceId}`;
+    const key = `ravendocs.taskBuckets.${params.spaceId}`;
     if (typeof window === "undefined" || !window.localStorage.getItem(key)) {
       return;
     }

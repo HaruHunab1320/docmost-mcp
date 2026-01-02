@@ -1,8 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { KyselyTransaction } from '@docmost/db/types/kysely.types';
+import { KyselyTransaction } from '@raven-docs/db/types/kysely.types';
 import { randomBytes, createHash } from 'crypto';
 import { MCPApiKeyRepo } from '../../../database/repos/mcp-api-key/mcp-api-key.repo';
-import { MCPApiKey } from '@docmost/db/types/entity.types';
+import { MCPApiKey } from '@raven-docs/db/types/entity.types';
 
 /**
  * Service for managing MCP API keys
